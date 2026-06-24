@@ -6,7 +6,7 @@
  * Version:           1.0.0
  * Requires at least: 6.0
  * Requires PHP:      8.0
- * Author:            XpeedStudio
+ * Author:             Digital Downloads
  * Author URI:        https://x.com
  * License:           GPL-3.0+
  * License URI:       https://www.gnu.org/licenses/gpl-3.0.html
