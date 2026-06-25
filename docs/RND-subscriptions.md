@@ -1,32 +1,138 @@
-# RND — Subscription Tracking Module
+# RND — Subscription Module
 **Plugin:** woo-digital-downloads
-**Module:** Subscription Tracking
+**Module:** Subscriptions
 **Phase:** 2
-**Standalone:** Yes — tracks WooCommerce recurring order lifecycle independently
+**Standalone:** Yes — works independently; links to Licensing and SaaS modules when both are active
+**Third-party dependency:** None — fully built-in
 
 ---
 
 ## Overview
 
-The Subscriptions module does not replace your payment gateway's recurring billing. Instead, it sits alongside whatever subscription billing system you use (WooCommerce Subscriptions, SUMO Subscriptions, WP Swings, Stripe subscription schedules, etc.) and tracks subscription state as metadata. When a renewal succeeds, the linked license is extended. When a renewal fails, the dunning sequence begins and the license moves to `suspended`. When a subscription is cancelled, the license is revoked.
+The Subscriptions module is a complete, self-contained recurring billing management system built directly into WDD. It adds a subscription product type to WooCommerce, handles recurring billing via Stripe and PayPal (through WooCommerce's gateway layer), manages the full subscription lifecycle (trial → active → paused → cancelled → expired), and ties renewals directly to license expiry and SaaS account status when those modules are enabled.
 
-### Problem It Solves
-- WooCommerce has no built-in concept of a subscription linked to a license
-- After a renewal, nothing automatically extends a license expiry date
-- Failed payment scenarios have no automated follow-up logic for digital products
-- Upgrade/downgrade between subscription tiers requires proration logic
+This is not a billing layer wrapper — it is a full subscription engine.
 
 ---
 
 ## Standalone Usage
 
-Enable this module alone (without Licensing) to:
-- Track subscription state in the WDD database
-- Record renewal history
-- Send dunning emails on failed payments
-- Suspend SaaS accounts on cancellation (if SaaS module is enabled)
+Enable this module in **Settings → Digital Downloads → Modules → Subscriptions**.
 
-Without the Licensing module, subscription events do not affect any license records. With Licensing enabled, renewal events automatically extend the license expiry.
+Without any other WDD module:
+- Create subscription products with recurring pricing, free trials, sign-up fees
+- Auto-renew via Stripe or PayPal
+- Customer self-service: pause, resume, cancel, change payment method, upgrade/downgrade
+- Admin: manage all subscriptions, trigger manual renewals, bulk actions
+- Dunning: configurable retry and email sequence on payment failure
+- Reports: active/expired/cancelled counts, revenue from subscriptions, CSV export
+
+With **Licensing** enabled: renewal automatically extends license expiry.
+With **SaaS** enabled: suspension automatically suspends the SaaS account.
+
+---
+
+## Feature Specification
+
+### 1. Subscription Product Types
+
+| Feature | Description | Developer Notes |
+|---|---|---|
+| Subscription product type | Admin creates `wdd_subscription` product in WooCommerce | Register via `woocommerce_product_class` + product meta boxes |
+| Recurring price | Set a recurring billing amount | Store in `_wdd_sub_price` product meta |
+| Billing interval | Daily / Weekly / Monthly / Yearly | Store in `_wdd_sub_interval` + `_wdd_sub_period` meta |
+| Free trial | Optional free trial period before billing starts | `_wdd_sub_trial_length` + `_wdd_sub_trial_period` meta |
+| Sign-up fee | Optional one-time fee collected on first payment | `_wdd_sub_signup_fee` meta |
+| Subscription length | Max duration (e.g., 12 months); empty = indefinite | `_wdd_sub_length` meta |
+| Variable subscriptions | Support product variations with different prices/intervals | Integrate with WooCommerce variable product structure |
+| Mixed cart | Subscription + non-subscription products in one checkout | WC cart compatibility required |
+| Multiple subscriptions | Multiple subscription products in a single checkout | Create separate subscription records per product |
+| Subscription coupons | Sign-up fee coupon type + recurring fee coupon type | Custom WC coupon discount types |
+| Drip content | Deliver downloadable files incrementally over time | Phase 4 — requires Downloads module |
+
+---
+
+### 2. Subscription Management (Customer)
+
+| Feature | Description |
+|---|---|
+| My Account subscriptions tab | Customer views all active/past subscriptions |
+| Pause subscription | Customer can pause; billing suspended, access maintained during pause |
+| Resume subscription | Resume from paused state; next billing on resume date |
+| Cancel subscription | Customer cancels; access continues to period end (grace period) |
+| Change payment method | Customer updates card/PayPal for future renewals |
+| Upgrade plan | Switch to higher-tier product; proration applied or full price charged |
+| Downgrade plan | Switch to lower-tier product; change effective next cycle |
+| Resubscribe | Re-activate a cancelled or expired subscription |
+| Update quantity | Change subscription quantity (if product allows) |
+| View renewal history | Full log of payments, status changes, retries |
+
+---
+
+### 3. Admin Features
+
+| Feature | Description |
+|---|---|
+| Admin subscription list | Sortable list table of all subscriptions |
+| Filter subscriptions | Filter by status, product, customer, date range |
+| Subscription detail page | View all details, payment log, status history |
+| Manual status change | Admin changes status with reason and hook fires |
+| Manual renewal trigger | Admin forces renewal from detail page |
+| Manual cancellation | Admin cancels with optional grace period |
+| Bulk actions | Bulk cancel, bulk retry payment, bulk export |
+| Overdue/suspend period | Configurable days before overdue → suspended |
+| Payment retry settings | Number of retries and intervals (configurable) |
+| Multiple reminder emails | Pre-renewal reminders (configurable days before) |
+| Tax in renewal | Include or exclude tax in renewal orders |
+| Shipping in renewal | Include or exclude shipping in renewal orders |
+| Subscription logs | Per-subscription log of all events (payment attempt, status change, email sent) |
+
+---
+
+### 4. Renewal Methods
+
+| Method | Requirement |
+|---|---|
+| Auto-renewal via Stripe | WooCommerce Stripe Gateway active |
+| Auto-renewal via PayPal | WooCommerce PayPal Payments active |
+| Auto-renewal via PayPal Subscriptions | PayPal Subscriptions API (billing agreements) |
+| Manual renewal | Customer pays renewal invoice manually via any WC gateway |
+| Fallback to manual | If auto-renewal fails or is cancelled, subscription switches to manual mode |
+
+Auto-renewal uses the payment token stored by the gateway on initial purchase. WDD does not store card data — it stores the gateway's token reference.
+
+---
+
+### 5. Notifications (Email)
+
+All emails use WooCommerce's HTML email infrastructure. Templates overridable in `your-theme/woocommerce/emails/`.
+
+| Email | Trigger | Customizable |
+|---|---|---|
+| Subscription created | Order completed with subscription product | Yes |
+| Renewal reminder | N days before renewal (configurable) | Yes |
+| Renewal successful | Payment captured successfully | Yes |
+| Payment failed | Auto-renewal charge fails | Yes |
+| Overdue notice | Payment still outstanding after X days | Yes |
+| Suspend notice | Subscription suspended after overdue period | Yes |
+| Cancellation notice | Customer or admin cancels | Yes |
+| Expiration notice | Fixed-length subscription reaches end | Yes |
+| Resubscription confirmed | Customer resubscribes | Yes |
+
+Multiple pre-renewal reminders can be configured (e.g., 7 days before, 3 days before, 1 day before).
+
+---
+
+### 6. Reports
+
+| Report | Description |
+|---|---|
+| Active subscriptions | Count by product, with MRR breakdown |
+| Expired subscriptions | Count and revenue lost |
+| Cancelled subscriptions | Count, churn rate |
+| Trial to paid conversion | % of trials that converted |
+| Revenue report | Total billed per period |
+| Export to CSV | All subscription data including customer info, billing amounts, dates |
 
 ---
 
@@ -36,114 +142,205 @@ Without the Licensing module, subscription events do not affect any license reco
 
 | Class | File | Responsibility |
 |---|---|---|
-| `SubscriptionManager` | `includes/Subscriptions/SubscriptionManager.php` | Create, renew, cancel subscription records |
+| `SubscriptionProduct` | `includes/Subscriptions/SubscriptionProduct.php` | Register product type, meta boxes, pricing display |
+| `SubscriptionManager` | `includes/Subscriptions/SubscriptionManager.php` | Create, renew, pause, cancel, resubscribe |
+| `RenewalEngine` | `includes/Subscriptions/RenewalEngine.php` | Action Scheduler jobs for auto-renewal |
 | `DunningManager` | `includes/Subscriptions/DunningManager.php` | Failed payment retry sequence + emails |
-| `PlanUpgrade` | `includes/Subscriptions/PlanUpgrade.php` | Proration and upgrade/downgrade logic |
+| `PlanUpgrade` | `includes/Subscriptions/PlanUpgrade.php` | Proration, upgrade/downgrade logic |
+| `SubscriptionEmail` | `includes/Subscriptions/SubscriptionEmail.php` | All subscription-specific email classes |
+| `SubscriptionReport` | `includes/Subscriptions/SubscriptionReport.php` | Admin reports and CSV export |
+| `SubscriptionListTable` | `includes/Admin/SubscriptionListTable.php` | WP_List_Table implementation |
 
-### Subscription Lifecycle
+---
+
+## Subscription Lifecycle
 
 ```
-Order Completed (initial purchase)
+Order Completed (initial purchase — subscription product)
     │
-    └── SubscriptionManager::create()
-            INSERT wp_wdd_subscriptions {status: active, renewal_at: +30days or +365days}
-            [If Licensing active] → link license_id
+    └── SubscriptionManager::create_from_order($order_id)
+            ├── Extract subscription product meta (price, interval, trial, signup fee)
+            ├── INSERT wp_wdd_subscriptions {
+            │       status: 'trialing' (if trial) or 'active',
+            │       trial_ends_at: NOW() + trial_days (or NULL),
+            │       next_payment_at: NOW() + billing_interval
+            │   }
+            ├── [If Licensing active] → link license_id, set expires_at = next_payment_at
+            ├── [If SaaS active]     → AccountProvisioner::provision()
+            ├── Store gateway token reference from order
+            └── Schedule: RenewalEngine::schedule_renewal(subscription_id, next_payment_at)
 
-Renewal Payment Completed
+Renewal Due (Action Scheduler fires)
     │
-    └── SubscriptionManager::renew()
-            UPDATE wp_wdd_subscriptions {renewal_at: +period, status: active}
-            [If Licensing active] → LicenseExpiry::extend(license_id, +period_days)
-            [If SaaS active]     → AccountProvisioner::activate(account_id)
+    └── RenewalEngine::process_renewal($subscription_id)
+            ├── Load subscription + stored gateway token
+            ├── Create new WC order for renewal amount
+            ├── Attempt charge via gateway token
+            ├── [Success]
+            │       ├── UPDATE next_payment_at += interval
+            │       ├── [If Licensing] LicenseExpiry::extend(license_id, interval_days)
+            │       ├── [If SaaS]     AccountProvisioner::activate(account_id)
+            │       ├── Send "Renewal successful" email
+            │       └── Schedule next renewal
+            └── [Failure] → DunningManager::on_payment_failed(subscription_id)
 
-Renewal Payment Failed
+Payment Failed (Dunning Sequence — via Action Scheduler)
     │
-    └── DunningManager::on_payment_failed()
-            UPDATE wp_wdd_subscriptions {status: past_due}
-            Schedule dunning sequence via Action Scheduler:
-                Day 1:  Send "Payment failed — please update payment method" email
-                Day 3:  Send reminder email
-                Day 7:  Set license status = 'suspended'
-                        [If SaaS] AccountProvisioner::suspend(account_id)
-                Day 14: Final notice, cancel subscription
-                        Update status = 'cancelled'
-                        [If Licensing] LicenseRevoke::revoke(license_id)
+    ├── Day 0:  Status → 'past_due'. Send "Payment failed" email.
+    ├── Day N:  Retry charge. On success → back to Active flow above.
+    │           On failure → send overdue reminder.
+    ├── Day X:  Status → 'suspended'. Suspend license / SaaS account.
+    │           Send "Access suspended" email.
+    └── Day Y:  Status → 'cancelled'. Final cancellation email.
+                [If Licensing] License remains until expires_at (grace) or revoked.
 
-Subscription Cancelled (by customer or admin)
+Customer Pauses Subscription
     │
-    └── SubscriptionManager::cancel()
-            UPDATE wp_wdd_subscriptions {status: cancelled, cancelled_at: NOW()}
-            [If Licensing] → license stays active until expires_at (grace period)
-            [If SaaS]     → AccountProvisioner::suspend(account_id)
+    └── SubscriptionManager::pause($subscription_id)
+            ├── UPDATE status = 'paused', paused_at = NOW()
+            ├── Cancel scheduled renewal Action Scheduler job
+            └── [License stays valid during pause]
 
-Subscription Paused
+Customer Resumes Subscription
     │
-    └── SubscriptionManager::pause()
-            UPDATE wp_wdd_subscriptions {status: paused}
-            [If Licensing] → no change (license stays valid during pause period)
+    └── SubscriptionManager::resume($subscription_id)
+            ├── UPDATE status = 'active'
+            ├── Calculate new next_payment_at (NOW() + remaining_days or fresh cycle)
+            └── Schedule renewal job
+
+Customer Cancels Subscription
+    │
+    └── SubscriptionManager::cancel($subscription_id)
+            ├── UPDATE status = 'cancelled', cancelled_at = NOW()
+            ├── Cancel scheduled renewal
+            ├── Send cancellation email
+            ├── [License stays active until expires_at — grace period]
+            └── [SaaS account suspended immediately or at period end — configurable]
+
+Subscription Expires (fixed length)
+    │
+    └── SubscriptionManager::expire($subscription_id)
+            ├── UPDATE status = 'expired'
+            ├── [License revoked or allowed to expire naturally]
+            └── Send expiration email
+
+Customer Resubscribes
+    │
+    └── SubscriptionManager::resubscribe($subscription_id)
+            ├── Create new subscription record (or re-activate if within N days)
+            ├── New payment collected immediately
+            └── Link to existing license (extend) or generate new license
 ```
 
 ---
 
-## Database Table
+## Upgrade / Downgrade with Proration
 
-### wp_wdd_subscriptions
+```
+Customer upgrades from Plan A ($49/mo) to Plan B ($99/mo)
+    │
+    └── PlanUpgrade::process($subscription_id, $new_product_id)
+            ├── Calculate days_remaining = (next_payment_at - NOW()) in days
+            ├── Calculate days_in_cycle = billing_interval in days
+            ├── Unused credit = (days_remaining / days_in_cycle) × Plan A price
+            ├── Prorated charge = Plan B price − unused_credit
+            ├── Create WC order for prorated amount
+            ├── Charge immediately via stored gateway token
+            ├── UPDATE wp_wdd_subscriptions {product_id = Plan B, price = $99}
+            ├── [If Licensing] UPDATE plan_type and activation_limit
+            └── next_payment_at = NOW() + billing_interval (reset cycle)
+
+Downgrade: same logic, issue store credit for the difference instead of charging
+```
+
+Proration mode is configurable: **Prorate** (charge/credit difference) or **Next cycle** (switch takes effect at next renewal, no charge today).
+
+---
+
+## Database Schema
+
+### `wp_wdd_subscriptions` (expanded)
+
 ```sql
-CREATE TABLE wp_wdd_subscriptions (
-    id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-    user_id       BIGINT UNSIGNED NOT NULL,
-    product_id    BIGINT UNSIGNED NOT NULL,
-    order_id      BIGINT UNSIGNED NOT NULL,   -- initial order ID
-    license_id    BIGINT UNSIGNED NULL,        -- FK wp_wdd_licenses (if Licensing enabled)
-    saas_account_id BIGINT UNSIGNED NULL,      -- FK wp_wdd_saas_accounts (if SaaS enabled)
-    status        ENUM('active','cancelled','paused','expired','past_due') DEFAULT 'active',
-    billing_cycle ENUM('monthly','yearly') DEFAULT 'yearly',
-    starts_at     DATETIME NOT NULL,
-    expires_at    DATETIME NULL,
-    renewal_at    DATETIME NULL,
-    cancelled_at  DATETIME NULL,
+CREATE TABLE {prefix}wdd_subscriptions (
+    id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    user_id             BIGINT UNSIGNED NOT NULL,
+    product_id          BIGINT UNSIGNED NOT NULL,
+    order_id            BIGINT UNSIGNED NOT NULL,   -- initial order
+    license_id          BIGINT UNSIGNED NULL,
+    saas_account_id     BIGINT UNSIGNED NULL,
+    status              ENUM(
+                            'trialing',
+                            'active',
+                            'paused',
+                            'past_due',
+                            'suspended',
+                            'cancelled',
+                            'expired'
+                        ) DEFAULT 'active',
+    billing_interval    INT UNSIGNED NOT NULL,       -- numeric value
+    billing_period      ENUM('day','week','month','year') NOT NULL,
+    recurring_amount    DECIMAL(10,2) NOT NULL,
+    currency            VARCHAR(10) DEFAULT 'USD',
+    signup_fee          DECIMAL(10,2) DEFAULT 0.00,
+    trial_ends_at       DATETIME NULL,
+    next_payment_at     DATETIME NULL,
+    last_payment_at     DATETIME NULL,
+    max_length_at       DATETIME NULL,              -- NULL = indefinite
+    paused_at           DATETIME NULL,
+    cancelled_at        DATETIME NULL,
+    gateway             VARCHAR(50) NULL,           -- 'stripe', 'paypal', etc.
+    gateway_subscription_id VARCHAR(255) NULL,      -- gateway's recurring ID
+    retry_count         TINYINT UNSIGNED DEFAULT 0,
+    starts_at           DATETIME NOT NULL,
+    created_at          DATETIME NOT NULL,
     PRIMARY KEY (id),
     KEY idx_user_id (user_id),
-    KEY idx_renewal (renewal_at),
-    KEY idx_status (status)
+    KEY idx_product_id (product_id),
+    KEY idx_status (status),
+    KEY idx_next_payment (next_payment_at),
+    KEY idx_trial_ends (trial_ends_at)
+);
+```
+
+### `wp_wdd_subscription_logs`
+
+```sql
+CREATE TABLE {prefix}wdd_subscription_logs (
+    id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    subscription_id BIGINT UNSIGNED NOT NULL,
+    event           VARCHAR(100) NOT NULL,          -- 'renewal_success', 'payment_failed', 'status_change', etc.
+    old_status      VARCHAR(30) NULL,
+    new_status      VARCHAR(30) NULL,
+    amount          DECIMAL(10,2) NULL,
+    order_id        BIGINT UNSIGNED NULL,
+    note            TEXT NULL,
+    created_at      DATETIME NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_subscription_id (subscription_id),
+    KEY idx_event (event),
+    KEY idx_created_at (created_at)
 );
 ```
 
 ---
 
-## WooCommerce Integration Hooks
+## Product Meta Fields
 
-```php
-// Initial subscription creation
-add_action( 'woocommerce_order_status_completed', [ SubscriptionManager::class, 'on_order_completed' ] );
-
-// Renewal payment success (fired by WooCommerce Subscriptions / SUMO Subscriptions / etc.)
-add_action( 'woocommerce_subscription_renewal_payment_complete', [ SubscriptionManager::class, 'on_renewal_success' ], 10, 2 );
-
-// Renewal payment failed
-add_action( 'woocommerce_subscription_payment_failed', [ DunningManager::class, 'on_payment_failed' ], 10, 2 );
-
-// Subscription cancelled (by customer or admin)
-add_action( 'woocommerce_subscription_status_cancelled', [ SubscriptionManager::class, 'on_cancelled' ], 10, 1 );
-
-// Subscription paused
-add_action( 'woocommerce_subscription_status_on-hold', [ SubscriptionManager::class, 'on_paused' ], 10, 1 );
-```
-
----
-
-## Dunning Email Sequence
-
-| Day | Email | Action |
+| Meta Key | Type | Description |
 |---|---|---|
-| 0 | Payment failed — please update card | None (grace period starts) |
-| 3 | Payment reminder | None |
-| 7 | Final notice — access suspended | Suspend license / SaaS account |
-| 14 | Subscription cancelled | Cancel subscription, revoke license |
-
-All dunning emails are scheduled via Action Scheduler for reliable delivery even on shared hosting with unreliable WP-Cron.
-
-Email templates stored in `templates/emails/` and filterable via standard WooCommerce email template override system.
+| `_wdd_sub_price` | decimal | Recurring price |
+| `_wdd_sub_interval` | int | Billing interval number (e.g., 1, 2, 3) |
+| `_wdd_sub_period` | string | `day`, `week`, `month`, `year` |
+| `_wdd_sub_trial_length` | int | Trial period number |
+| `_wdd_sub_trial_period` | string | `day`, `week`, `month` |
+| `_wdd_sub_signup_fee` | decimal | One-time sign-up fee (0 = none) |
+| `_wdd_sub_length` | int | Max subscription length (0 = indefinite) |
+| `_wdd_sub_length_period` | string | `month`, `year` |
+| `_wdd_sub_limit` | int | Max active subscriptions per customer (0 = unlimited) |
+| `_wdd_sub_proration` | string | `prorated` or `next_cycle` |
+| `_wdd_sub_include_shipping` | bool | Include shipping in renewal orders |
+| `_wdd_sub_include_tax` | bool | Include tax in renewal orders |
 
 ---
 
@@ -151,48 +348,86 @@ Email templates stored in `templates/emails/` and filterable via standard WooCom
 
 | Option | Default | Description |
 |---|---|---|
-| `wdd_dunning_day_1` | `1` | Days after failure before first email |
-| `wdd_dunning_day_2` | `3` | Days before second email |
-| `wdd_dunning_suspend_day` | `7` | Days before suspension |
-| `wdd_dunning_cancel_day` | `14` | Days before cancellation |
-| `wdd_grace_period_days` | `0` | Days license stays active after cancellation |
-| `wdd_billing_cycle_default` | `yearly` | Default billing cycle for WDD products |
+| `wdd_sub_auto_renew` | `true` | Enable automatic renewal |
+| `wdd_sub_retry_attempts` | `3` | Number of failed payment retry attempts |
+| `wdd_sub_retry_intervals` | `[1, 3, 5]` | Days between retries |
+| `wdd_sub_overdue_days` | `7` | Days past_due before suspension |
+| `wdd_sub_cancel_days` | `14` | Days past_due before cancellation |
+| `wdd_sub_grace_period_days` | `0` | Days license stays active after cancel |
+| `wdd_sub_proration_mode` | `prorated` | `prorated` or `next_cycle` |
+| `wdd_sub_renewal_reminder_days` | `[7, 3, 1]` | Days before renewal to send reminder emails |
+| `wdd_sub_allow_pause` | `true` | Allow customers to pause |
+| `wdd_sub_allow_cancel` | `true` | Allow customers to self-cancel |
+| `wdd_sub_allow_upgrade` | `true` | Allow customers to upgrade/downgrade |
+| `wdd_sub_cancel_saas_immediately` | `false` | Suspend SaaS on cancel (vs. at period end) |
 
 ---
 
-## Plan Upgrade / Downgrade
+## REST API Endpoints
 
-`PlanUpgrade` handles mid-cycle tier changes:
-
-```
-Customer upgrades from Single Site ($49/yr) to Multi Site ($99/yr)
-    │
-    └── PlanUpgrade::process_upgrade()
-            ├── Calculate days remaining in current cycle
-            ├── Calculate prorated refund for unused days on old plan
-            ├── Issue WooCommerce store credit or partial refund
-            ├── Create new order for new plan (prorated amount)
-            ├── Update wp_wdd_subscriptions with new product_id
-            ├── Update wp_wdd_licenses plan_type and activation_limit
-            └── Schedule renewal_at based on new billing cycle
-```
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/wdd/v1/subscriptions` | manage_woocommerce | List all subscriptions |
+| `GET` | `/wdd/v1/subscriptions/{id}` | manage_woocommerce | Get subscription detail |
+| `POST` | `/wdd/v1/subscriptions/{id}/pause` | Customer / Admin | Pause subscription |
+| `POST` | `/wdd/v1/subscriptions/{id}/resume` | Customer / Admin | Resume subscription |
+| `POST` | `/wdd/v1/subscriptions/{id}/cancel` | Customer / Admin | Cancel subscription |
+| `POST` | `/wdd/v1/subscriptions/{id}/renew` | manage_woocommerce | Manual renewal trigger |
+| `POST` | `/wdd/v1/subscriptions/{id}/upgrade` | Customer / Admin | Upgrade/downgrade plan |
+| `GET` | `/wdd/v1/subscriptions/{id}/logs` | manage_woocommerce | Get event log for subscription |
 
 ---
 
-## Competitive Context
+## Admin Panel Structure
 
-| | SUMO Subscriptions ($49) | WP Swings (free) | Sublium (free + 2.9% fee) | woo-digital-downloads |
-|---|---|---|---|---|
-| Subscription billing | Yes (standalone) | Yes (standalone) | Yes (standalone) | **Tracks WC billing** |
-| Linked to license expiry | No | No | No | **Yes** |
-| Linked to SaaS account | No | No | No | **Yes** |
-| Dunning sequence | Basic emails | No (Pro) | Yes (free) | **Yes** |
-| Proration on upgrade | Yes | No | Yes (free) | **Yes** |
-| Grace period | No | No | No | **Yes** |
-| Action Scheduler | Yes | Yes | Not confirmed | **Yes** |
-| Works with WooCommerce Subscriptions | Conflict possible | Yes | Yes | **Yes (hooks-based)** |
-| WooCommerce native | Yes | Yes | Yes | **Yes** |
-| Mixed with SaaS | No | No | No | **Yes** |
+**Digital Downloads → Subscriptions**
+
+### List Table Columns
+
+| Column | Description |
+|---|---|
+| Subscription ID | Unique ID (SUB-XXXXX) |
+| Customer | Name + email |
+| Product | Subscription product name |
+| Status | Badge: active / paused / past_due / suspended / cancelled / expired |
+| Recurring Amount | Price + billing cycle |
+| Next Payment | Date of next renewal |
+| Started | Start date |
+| Actions | View, Cancel, Renew now |
+
+Filterable by: status, product, date range, customer.
+
+### Detail Page Tabs
+
+- **Overview** — all subscription fields, status, dates
+- **Payment Log** — all renewal attempts with order IDs, amounts, gateway responses
+- **Status History** — every status change with timestamp and reason
+- **Emails Sent** — log of all notifications sent for this subscription
+
+### Settings Tabs (inside WDD Settings → Subscriptions)
+
+| Tab | Key Options |
+|---|---|
+| General | Enable/disable, auto-renew, mixed cart |
+| Billing | Retry attempts, retry intervals, overdue/suspend days |
+| Renewals | Reminder days, renewal email templates |
+| Upgrade/Downgrade | Proration mode, immediate vs. next-cycle |
+| Customer Portal | Allow pause/cancel/upgrade from My Account |
+| Notifications | Email template customization per event |
+| Advanced | Cron interval, debug mode, gateway sync |
+
+### Role-Based Access
+
+| Capability | Admin | Shop Manager | Customer |
+|---|---|---|---|
+| View all subscriptions | ✅ | ✅ | ❌ |
+| Change subscription status | ✅ | ✅ | ❌ |
+| Trigger manual renewal | ✅ | ❌ | ❌ |
+| Bulk actions | ✅ | ❌ | ❌ |
+| View own subscriptions | ✅ | ✅ | ✅ |
+| Pause / Resume | ✅ | ✅ | ✅ (if allowed) |
+| Cancel | ✅ | ✅ | ✅ (if allowed) |
+| Upgrade / Downgrade | ✅ | ✅ | ✅ (if allowed) |
 
 ---
 
@@ -202,21 +437,90 @@ Customer upgrades from Single Site ($49/yr) to Multi Site ($99/yr)
 // After subscription record is created
 do_action( 'wdd_subscription_created', $subscription_id, $order_id, $product_id );
 
+// After trial ends and first real payment occurs
+do_action( 'wdd_subscription_trial_ended', $subscription_id );
+
 // After successful renewal
-do_action( 'wdd_subscription_renewed', $subscription_id, $new_renewal_at );
+do_action( 'wdd_subscription_renewed', $subscription_id, $order_id, $new_next_payment_at );
 
 // When license is extended on renewal
-do_action( 'wdd_license_renewed', $license_id, $new_expiry );
+do_action( 'wdd_license_renewed', $license_id, $new_expires_at );
 
 // After payment fails (before dunning starts)
-do_action( 'wdd_subscription_payment_failed', $subscription_id );
+do_action( 'wdd_subscription_payment_failed', $subscription_id, $order_id, $retry_count );
 
-// When subscription is suspended
+// When subscription is suspended (overdue period exceeded)
 do_action( 'wdd_subscription_suspended', $subscription_id );
 
 // When subscription is cancelled
-do_action( 'wdd_subscription_cancelled', $subscription_id );
+do_action( 'wdd_subscription_cancelled', $subscription_id, $cancelled_by );
 
-// Filter dunning schedule (return array of days)
+// When subscription expires (fixed length)
+do_action( 'wdd_subscription_expired', $subscription_id );
+
+// When subscription is paused
+do_action( 'wdd_subscription_paused', $subscription_id );
+
+// When subscription is resumed
+do_action( 'wdd_subscription_resumed', $subscription_id );
+
+// When plan is upgraded or downgraded
+do_action( 'wdd_subscription_plan_changed', $subscription_id, $old_product_id, $new_product_id, $prorated_charge );
+
+// Filter dunning schedule (return array of days after failure)
 apply_filters( 'wdd_dunning_schedule', [ 1, 3, 7, 14 ], $subscription_id );
+
+// Filter proration calculation
+apply_filters( 'wdd_proration_amount', $amount, $subscription_id, $new_product_id );
+
+// Filter renewal order args before creation
+apply_filters( 'wdd_renewal_order_args', $args, $subscription_id );
 ```
+
+---
+
+## Competitor Comparison
+
+| Feature | WooCommerce Subscriptions ($199/yr) | SUMO Subscriptions ($49) | WP Swings (free) | woo-digital-downloads |
+|---|---|---|---|---|
+| WooCommerce native | ✅ | ✅ | ✅ | **✅** |
+| Simple product subscriptions | ✅ | ✅ | ✅ | **✅** |
+| Variable product subscriptions | ✅ | ✅ | ✅ | **✅** |
+| Grouped product subscriptions | ✅ | ✅ | ❌ | **✅** |
+| Mixed cart (sub + non-sub) | ✅ | ✅ | ❌ | **✅** |
+| Multiple subs in one checkout | ✅ | ✅ | ❌ | **✅** |
+| Free trial | ✅ | ✅ | ✅ (Pro) | **✅** |
+| Paid trial | ✅ | ✅ | ❌ | **✅** |
+| Sign-up fee | ✅ | ✅ | ✅ | **✅** |
+| Billing daily/weekly/monthly/yearly | ✅ | ✅ | ✅ | **✅** |
+| Max subscription length | ✅ | ✅ | ❌ | **✅** |
+| Pause / Resume | ✅ | ✅ | ❌ | **✅** |
+| Cancel | ✅ | ✅ | ✅ | **✅** |
+| Resubscribe | ✅ | ✅ | ❌ | **✅** |
+| Update payment method | ✅ | ✅ | ❌ | **✅** |
+| Upgrade / Downgrade | ✅ | ✅ | ❌ | **✅** |
+| Proration on upgrade | ✅ | ✅ | ❌ | **✅** |
+| Auto-renewal via Stripe | ✅ | ✅ | ✅ | **✅** |
+| Auto-renewal via PayPal | ✅ | ✅ | ✅ | **✅** |
+| Manual renewal fallback | ✅ | ✅ | ✅ | **✅** |
+| Payment retry / dunning | ✅ | ✅ configurable | ❌ (Pro) | **✅ configurable** |
+| Multiple renewal reminder emails | ✅ | ✅ | ❌ | **✅** |
+| Subscription logs per record | ✅ | ✅ | ❌ | **✅** |
+| Bulk admin actions | ✅ | ✅ | ❌ | **✅** |
+| CSV export | ✅ | ❌ | ❌ | **✅** |
+| Linked to software license | ❌ | ❌ | ❌ | **✅** |
+| Linked to SaaS account | ❌ | ❌ | ❌ | **✅** |
+| Subscription coupon types | ✅ | ✅ (sign-up + recurring) | ❌ | **✅** |
+| Drip content / downloads | ❌ | ✅ | ❌ | **✅ (Phase 4)** |
+| Update subscription quantity | ✅ | ✅ | ❌ | **✅** |
+| HPOS compatible | ✅ | ⚠️ | ⚠️ | **✅** |
+| Single-site license only | N/A | ✅ only | N/A | **N/A (multi-site WDD)** |
+| Price | $199/yr | $49 one-time | Free | **Included in WDD** |
+
+### Key WDD Differentiators
+
+1. **License-linked renewals** — renewal payment automatically extends software license expiry; no manual work
+2. **SaaS-linked renewals** — renewal re-activates a suspended SaaS account automatically
+3. **Built into WDD** — no separate plugin install, no compatibility risk with WDD modules
+4. **CSV export** — SUMO Subscriptions lacks this; WC Subscriptions requires extra steps
+5. **Unified admin** — subscriptions, licenses, and downloads in one admin area

@@ -16,11 +16,11 @@
 | Licensing | 1 | Yes | LicenseGenerator, LicenseActivator |
 | Plugin Updates | 1 | Yes (or with Licensing) | UpdateServer, VersionManager |
 | SaaS Provisioning | 2 | Yes | AccountProvisioner, JwtIssuer |
-| Subscriptions | 2 | Yes (tracks WC recurring) | SubscriptionManager, DunningManager |
+| Subscriptions | 2 | Yes — full built-in engine | SubscriptionManager, RenewalEngine, DunningManager |
 | Security & Anti-Piracy | 3 | Partial | RateLimiter, GeoBlocker, AbuseDetector |
 | Git Integration | 4 | Requires Updates | GitHubSync |
-| Abandoned Cart | 5 | Yes (webhook bridge) | AbandonedCart |
-| Affiliates | 5 | Yes (webhook bridge) | AffiliateConnector |
+| Abandoned Cart | 5 | Yes — fully built-in | CartWatcher, RecoveryEmailer, CartRestorer |
+| Affiliates | 5 | Yes — fully built-in | AffiliateManager, CommissionEngine, PayoutManager |
 | Analytics | 6 | Yes | RevenueReport, LicenseReport |
 
 See individual feature RND files in this docs/ folder for detailed specifications per module.
@@ -121,9 +121,71 @@ See individual feature RND files in this docs/ folder for detailed specification
 **URL:** https://codecanyon.net/item/sumo-subscriptions-woocommerce-subscription-system/16486054
 **By:** FantasticPlugins | **Price:** $49 | **Sales:** 5,063 | **Rating:** 4.38/5 | **Version:** 17.5.0 (Feb 2026)
 
-WooCommerce-native subscription plugin. Covers Simple, Variable, Grouped products plus "Order Subscriptions" (attach billing to any product). Automatic renewal via Stripe and PayPal. Mixed cart (subscription + non-subscription). Upgrade/Downgrade with proration. Customer pause/cancel/resubscribe. Drip content. HPOS + Blocks + REST API + WPML.
+#### Core Capabilities
+Simple, Variable, and Grouped product subscriptions. Order Subscriptions (attach recurring billing to any product). Mixed cart (subscription + non-subscription in one checkout). Multiple subscriptions per checkout. Free trial + paid trial. Sign-up fee. Switching between identical variations. Upgrade/Downgrade with prorate or full price. Payment synchronization. Customer-selectable renewal frequency and instalment count.
 
-**Weaknesses:** Single-site license only. No software licensing. No SaaS provisioning. No update delivery. Automatic renewal limited to Stripe/PayPal only. Membership/Donations require separate paid plugins.
+#### Renewal Methods
+Auto-renewal via Stripe (requires WooCommerce Stripe Plugin), PayPal (requires WooCommerce PayPal Payments), PayPal Subscriptions (billing agreements), SUMO Reward Points (requires their separate plugin). Manual renewal via any WC gateway. Falls back to manual renewal if auto-renewal is cancelled.
+
+#### Subscriber Controls
+Pause, Cancel, Resubscribe. Update subscription quantity.
+
+#### Digital Product Features
+Drip downloadable content, additional digital downloads, manually create subscription orders for any user, include/exclude shipping in renewal.
+
+#### Admin Features
+Include/exclude tax in renewal. Overdue and suspend period settings. Multiple payment reminder emails. Multiple overdue and suspend reminder emails. Bulk update subscription product settings.
+
+#### Discount & Coupon Types
+Sign-up fee coupon type. Recurring fee coupon type.
+
+#### Admin Panel Structure
+
+**Main subscription list table columns:** Subscription ID, Customer, Status, Recurring Amount, Next Payment Date, Actions (Edit / View / Cancel).
+
+**Settings tabs:**
+
+| Tab | Purpose | Key Options |
+|---|---|---|
+| General Settings | Global behavior | Enable/disable, cart behavior, trial settings |
+| Order Subscription | Link subs to orders | Auto-renewal orders, order status sync |
+| Synchronization | Gateway/CRM sync | Stripe/PayPal webhook URLs |
+| Upgrade/Downgrade | Plan change rules | Proration, immediate vs. next-cycle |
+| My Account | Customer portal | Shortcodes, allow pause/cancel |
+| Advanced | Technical config | Cron intervals, debug mode |
+| Bulk Actions | Scale management | Bulk status changes, retry payments |
+| Messages | Communications | Email/SMS templates |
+
+**Role-Based Access:**
+
+| Area | Admin | Shop Manager | Customer |
+|---|---|---|---|
+| General Settings | ✅ | ✅ | ❌ |
+| Bulk Actions | ✅ | ❌ | ❌ |
+| My Account portal | ✅ | ✅ | ✅ (own only) |
+
+#### Workflow & Automation
+- Renewals: configured in "Order Subscription" tab; cron jobs process them automatically
+- Plan Changes: rules in "Upgrade/Downgrade" tab; customer requests via My Account; proration applied
+- Payment Failures: configurable 3 retry attempts; admin retries via Bulk Actions; customer notified by email/SMS
+
+#### Add-On Dependencies (weaknesses)
+- Membership subscriptions require separate SUMO Memberships plugin
+- Recurring donations require separate SUMO Donations plugin
+- SUMO Reward Points as renewal method requires their separate plugin
+- Single-site CodeCanyon license — no multi-site option at $49
+
+#### Key Gaps vs WDD
+- No software license key generation or activation tracking
+- No plugin update server
+- No SaaS account provisioning
+- No signed download tokens
+- No API key management
+- No geo-blocking or abuse detection
+- No affiliate module
+- No abandoned cart recovery
+- Automatic renewal limited to Stripe/PayPal (no PayFast, Authorize.net, etc. natively)
+- No CSV export of subscription data
 
 ---
 
@@ -159,7 +221,7 @@ WooCommerce-native subscription plugin. Covers Simple, Variable, Grouped product
 | Subscription & Recurring Payment (Convers Lab) | Free | 700+ | 4.9/5 | iDEAL/SEPA free, highest rated |
 | Subscriptions by Sublium (FunnelKit) | Free + 2.9% fee | 300+ | 5.0/5 | Variable products + installments free, FunnelKit ecosystem |
 
-**WDD Position:** WDD tracks subscription state and links it to license expiry / SaaS account status. For gateway-level recurring billing, WDD integrates with Stripe/PayPal via WooCommerce hooks. WDD does not compete with these engines.
+**WDD Position:** WDD builds its own full subscription engine (see `docs/RND-subscriptions.md`). It handles recurring billing via Stripe and PayPal through WooCommerce's gateway layer, plus links subscription state to license expiry and SaaS account status. WDD does not depend on any of the free plugins above.
 
 ---
 
