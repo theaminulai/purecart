@@ -83,7 +83,7 @@ class Admin {
     }
 
 	public function page_react_dashboard(): void {
-		echo '<div id="wdd-react-dashboard-root"></div>';
+		echo '<div class="wrap wdd-react-dashboard" id="wdd-react-dashboard-root"></div>';
 	}
 
     /** Enqueue admin CSS/JS on our screens. */
