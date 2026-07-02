@@ -62,10 +62,10 @@ module.exports = {
 
 	entry: {
 		// JS bundle: React 18 SPA (React Router hash router, Context API, Recharts, Lucide)
-		'assets/js/admin':  path.resolve( rootDir, 'src/main.jsx' ),
+		'build/admin/admin':  path.resolve( rootDir, 'src/main.tsx' ),
 
 		// CSS bundle: compiled from SCSS; empty JS stub is removed below by RemoveEmptyScriptsPlugin
-		'assets/css/admin': path.resolve( rootDir, 'src/styles/main.scss' ),
+		// 'build/admin/admin.css': path.resolve( rootDir, 'src/styles/main.scss' ),
 	},
 
 	output: {

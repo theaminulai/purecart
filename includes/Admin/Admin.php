@@ -71,7 +71,20 @@ class Admin {
             'wdd-settings',
             [ $this, 'page_settings' ]
         );
+		// react dashborard 
+		add_submenu_page(
+			'wdd-dashboard',
+			__( 'React Dashboard', 'woo-digital-downloads' ),
+			__( 'React Dashboard', 'woo-digital-downloads' ),
+			'manage_woocommerce',
+			'wdd-react-dashboard',
+			[ $this, 'page_react_dashboard' ]
+		);
     }
+
+	public function page_react_dashboard(): void {
+		echo '<div class="wrap wdd-react-dashboard" id="wdd-react-dashboard-root"></div>';
+	}
 
     /** Enqueue admin CSS/JS on our screens. */
     public function enqueue_assets( string $hook ): void {
@@ -80,6 +93,7 @@ class Admin {
             'digital-downloads_page_wdd-licenses',
             'digital-downloads_page_wdd-versions',
             'digital-downloads_page_wdd-settings',
+			'digital-downloads_page_wdd-react-dashboard',
         ];
 
         if ( ! in_array( $hook, $wdd_hooks, true ) && 'post.php' !== $hook && 'post-new.php' !== $hook ) {
@@ -100,6 +114,32 @@ class Admin {
             WDD_VERSION,
             true
         );
+
+		if ( 'digital-downloads_page_wdd-react-dashboard' === $hook ) {
+			$assests = include WDD_PATH . 'build/admin/admin.asset.php';
+			// https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4
+			wp_enqueue_script(
+				'wdd-tailwind-browser',
+				'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4',
+				[],
+				'4.0.0',
+				true
+			);
+			wp_enqueue_script(
+				'wdd-react-dashboard',
+				WDD_URL . 'build/admin/admin.js',
+				$assests['dependencies'],
+				$assests['version'],
+				true
+			);
+			wp_enqueue_style(
+				'wdd-react-dashboard',
+				WDD_URL . 'build/admin/admin.css',
+				[],
+				$assests['version']
+			);
+
+		}
     }
 
     // ─── Product meta boxes ──────────────────────────────────────────────────
