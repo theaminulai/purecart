@@ -18,39 +18,55 @@ defined( 'ABSPATH' ) || exit;
  */
 class Activator {
 
-    /** DB version option key. */
-    private const DB_VERSION_KEY = 'purecart_db_version';
+	/** DB version option key. */
+	private const DB_VERSION_KEY = 'purecart_db_version';
 
-    /** Current DB schema version. */
-    private const DB_VERSION = '1.1.0';
+	/** Current DB schema version. */
+	private const DB_VERSION = '1.1.0';
 
-    /** Action Scheduler group for all plugin jobs. */
-    private const AS_GROUP = 'purecart';
+	/** Action Scheduler group for all plugin jobs. */
+	private const AS_GROUP = 'purecart';
 
-    /** Runs on plugin activation. */
-    public static function activate(): void {
-        self::create_tables();
-        self::schedule_jobs();
-        update_option( self::DB_VERSION_KEY, self::DB_VERSION );
-        flush_rewrite_rules();
-    }
+	/**
+	 * Run on plugin activation: create tables, schedule jobs, flush rewrite rules.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public static function activate(): void {
+		self::create_tables();
+		self::schedule_jobs();
+		update_option( self::DB_VERSION_KEY, self::DB_VERSION );
+		flush_rewrite_rules();
+	}
 
-    /** Runs on plugin deactivation. */
-    public static function deactivate(): void {
-        as_unschedule_all_actions( 'purecart_check_expired_licenses', [], self::AS_GROUP );
-        as_unschedule_all_actions( 'purecart_process_dunning',        [], self::AS_GROUP );
-        flush_rewrite_rules();
-    }
+	/**
+	 * Run on plugin deactivation: unschedule AS jobs and flush rewrite rules.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public static function deactivate(): void {
+		as_unschedule_all_actions( 'purecart_check_expired_licenses', array(), self::AS_GROUP );
+		as_unschedule_all_actions( 'purecart_process_dunning', array(), self::AS_GROUP );
+		flush_rewrite_rules();
+	}
 
-    /** Creates all custom database tables using dbDelta(). */
-    public static function create_tables(): void {
-        global $wpdb;
+	/**
+	 * Create or upgrade all PureCart custom database tables using dbDelta().
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public static function create_tables(): void {
+		global $wpdb;
 
-        $charset = $wpdb->get_charset_collate();
+		$charset = $wpdb->get_charset_collate();
 
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_licenses (
+		dbDelta(
+			"CREATE TABLE {$wpdb->prefix}purecart_licenses (
             id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             order_id         BIGINT UNSIGNED NOT NULL DEFAULT 0,
             user_id          BIGINT UNSIGNED NOT NULL DEFAULT 0,
@@ -69,9 +85,11 @@ class Activator {
             KEY idx_order_id (order_id),
             KEY idx_product  (product_id),
             KEY idx_status   (status)
-        ) $charset;" );
+        ) $charset;"
+		);
 
-        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_license_activations (
+		dbDelta(
+			"CREATE TABLE {$wpdb->prefix}purecart_license_activations (
             id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             license_id   BIGINT UNSIGNED NOT NULL,
             domain       VARCHAR(255) NOT NULL DEFAULT '',
@@ -82,9 +100,11 @@ class Activator {
             PRIMARY KEY  (id),
             KEY idx_license_id (license_id),
             KEY idx_domain     (domain)
-        ) $charset;" );
+        ) $charset;"
+		);
 
-        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_downloads (
+		dbDelta(
+			"CREATE TABLE {$wpdb->prefix}purecart_downloads (
             id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             order_id       BIGINT UNSIGNED NOT NULL DEFAULT 0,
             user_id        BIGINT UNSIGNED NOT NULL DEFAULT 0,
@@ -100,9 +120,11 @@ class Activator {
             PRIMARY KEY  (id),
             UNIQUE KEY  token (token),
             KEY idx_order_user (order_id, user_id)
-        ) $charset;" );
+        ) $charset;"
+		);
 
-        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_download_logs (
+		dbDelta(
+			"CREATE TABLE {$wpdb->prefix}purecart_download_logs (
             id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             download_id   BIGINT UNSIGNED NOT NULL,
             ip_address    VARCHAR(45) NOT NULL DEFAULT '',
@@ -112,9 +134,11 @@ class Activator {
             PRIMARY KEY  (id),
             KEY idx_download_id (download_id),
             KEY idx_downloaded  (downloaded_at)
-        ) $charset;" );
+        ) $charset;"
+		);
 
-        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_product_versions (
+		dbDelta(
+			"CREATE TABLE {$wpdb->prefix}purecart_product_versions (
             id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             product_id      BIGINT UNSIGNED NOT NULL,
             version         VARCHAR(20) NOT NULL DEFAULT '',
@@ -129,9 +153,11 @@ class Activator {
             PRIMARY KEY  (id),
             KEY idx_product_version (product_id, version),
             KEY idx_channel         (channel)
-        ) $charset;" );
+        ) $charset;"
+		);
 
-        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_subscriptions (
+		dbDelta(
+			"CREATE TABLE {$wpdb->prefix}purecart_subscriptions (
             id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id          BIGINT UNSIGNED NOT NULL DEFAULT 0,
             product_id       BIGINT UNSIGNED NOT NULL DEFAULT 0,
@@ -154,9 +180,11 @@ class Activator {
             KEY idx_user_id      (user_id),
             KEY idx_status       (status),
             KEY idx_next_payment (next_payment_at)
-        ) $charset;" );
+        ) $charset;"
+		);
 
-        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_subscription_logs (
+		dbDelta(
+			"CREATE TABLE {$wpdb->prefix}purecart_subscription_logs (
             id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             subscription_id BIGINT UNSIGNED NOT NULL,
             event           VARCHAR(64)  NOT NULL DEFAULT '',
@@ -165,9 +193,11 @@ class Activator {
             PRIMARY KEY  (id),
             KEY idx_subscription_id (subscription_id),
             KEY idx_event           (event)
-        ) $charset;" );
+        ) $charset;"
+		);
 
-        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_saas_accounts (
+		dbDelta(
+			"CREATE TABLE {$wpdb->prefix}purecart_saas_accounts (
             id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             user_id        BIGINT UNSIGNED NOT NULL DEFAULT 0,
             order_id       BIGINT UNSIGNED NOT NULL DEFAULT 0,
@@ -179,39 +209,45 @@ class Activator {
             PRIMARY KEY  (id),
             UNIQUE KEY  api_key          (api_key),
             KEY idx_user_product (user_id, product_id)
-        ) $charset;" );
-    }
+        ) $charset;"
+		);
+	}
 
-    /** Schedule recurring Action Scheduler jobs. */
-    private static function schedule_jobs(): void {
-        if ( false === as_next_scheduled_action( 'purecart_check_expired_licenses', [], self::AS_GROUP ) ) {
-            as_schedule_recurring_action(
-                time(),
-                DAY_IN_SECONDS,
-                'purecart_check_expired_licenses',
-                [],
-                self::AS_GROUP
-            );
-        }
+	/** Schedule recurring Action Scheduler jobs. */
+	private static function schedule_jobs(): void {
+		if ( false === as_next_scheduled_action( 'purecart_check_expired_licenses', array(), self::AS_GROUP ) ) {
+			as_schedule_recurring_action(
+				time(),
+				DAY_IN_SECONDS,
+				'purecart_check_expired_licenses',
+				array(),
+				self::AS_GROUP
+			);
+		}
 
-        if ( false === as_next_scheduled_action( 'purecart_process_dunning', [], self::AS_GROUP ) ) {
-            as_schedule_recurring_action(
-                time(),
-                12 * HOUR_IN_SECONDS,
-                'purecart_process_dunning',
-                [],
-                self::AS_GROUP
-            );
-        }
-    }
+		if ( false === as_next_scheduled_action( 'purecart_process_dunning', array(), self::AS_GROUP ) ) {
+			as_schedule_recurring_action(
+				time(),
+				12 * HOUR_IN_SECONDS,
+				'purecart_process_dunning',
+				array(),
+				self::AS_GROUP
+			);
+		}
+	}
 
-    /** Run a lightweight DB upgrade if the stored version is older. */
-    public static function maybe_upgrade(): void {
-        $stored = get_option( self::DB_VERSION_KEY, '0.0.0' );
+	/**
+	 * Run a lightweight DB upgrade if the stored schema version is older than the current one.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public static function maybe_upgrade(): void {
+		$stored = get_option( self::DB_VERSION_KEY, '0.0.0' );
 
-        if ( version_compare( (string) $stored, self::DB_VERSION, '<' ) ) {
-            self::create_tables();
-            update_option( self::DB_VERSION_KEY, self::DB_VERSION );
-        }
-    }
+		if ( version_compare( (string) $stored, self::DB_VERSION, '<' ) ) {
+			self::create_tables();
+			update_option( self::DB_VERSION_KEY, self::DB_VERSION );
+		}
+	}
 }

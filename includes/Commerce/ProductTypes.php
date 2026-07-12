@@ -18,47 +18,73 @@ defined( 'ABSPATH' ) || exit;
  */
 class ProductTypes {
 
-    public const TYPE_PLUGIN = 'purecart_plugin';
-    public const TYPE_SAAS   = 'purecart_saas';
-    public const TYPE_BUNDLE = 'purecart_bundle';
+	public const TYPE_PLUGIN = 'purecart_plugin';
+	public const TYPE_SAAS   = 'purecart_saas';
+	public const TYPE_BUNDLE = 'purecart_bundle';
 
-    public function __construct() {
-        add_filter( 'product_type_selector',     [ $this, 'add_types' ] );
-        add_action( 'woocommerce_product_class', [ $this, 'product_class' ], 10, 2 );
-        add_action( 'admin_enqueue_scripts',     [ $this, 'enqueue_type_js' ] );
-    }
+	/**
+	 * Register product type hooks.
+	 *
+	 * @since 1.0.0
+	 */
+	public function __construct() {
+		add_filter( 'product_type_selector', array( $this, 'add_types' ) );
+		add_action( 'woocommerce_product_class', array( $this, 'product_class' ), 10, 2 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_type_js' ) );
+	}
 
-    /** @param array<string,string> $types */
-    public function add_types( array $types ): array {
-        $types[ self::TYPE_PLUGIN ] = __( 'PureCart – Plugin', 'purecart' );
-        $types[ self::TYPE_SAAS ]   = __( 'PureCart – SaaS',   'purecart' );
-        $types[ self::TYPE_BUNDLE ] = __( 'PureCart – Bundle', 'purecart' );
-        return $types;
-    }
+	/**
+	 * Add PureCart product types to the WooCommerce product type selector.
+	 *
+	 * @since  1.0.0
+	 * @param  array<string,string> $types Existing product type slug => label pairs.
+	 * @return array<string,string>
+	 */
+	public function add_types( array $types ): array {
+		$types[ self::TYPE_PLUGIN ] = __( 'PureCart – Plugin', 'purecart' );
+		$types[ self::TYPE_SAAS ]   = __( 'PureCart – SaaS', 'purecart' );
+		$types[ self::TYPE_BUNDLE ] = __( 'PureCart – Bundle', 'purecart' );
+		return $types;
+	}
 
-    public function product_class( string $classname, string $product_type ): string {
-        if ( in_array( $product_type, [ self::TYPE_PLUGIN, self::TYPE_SAAS, self::TYPE_BUNDLE ], true ) ) {
-            return \WC_Product_Simple::class;
-        }
-        return $classname;
-    }
+	/**
+	 * Map PureCart product types to WC_Product_Simple so WooCommerce handles them correctly.
+	 *
+	 * @since  1.0.0
+	 * @param  string $classname    The default WooCommerce product class name.
+	 * @param  string $product_type The product type slug.
+	 * @return string
+	 */
+	public function product_class( string $classname, string $product_type ): string {
+		if ( in_array( $product_type, array( self::TYPE_PLUGIN, self::TYPE_SAAS, self::TYPE_BUNDLE ), true ) ) {
+			return \WC_Product_Simple::class;
+		}
+		return $classname;
+	}
 
-    public function enqueue_type_js( string $hook ): void {
-        if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
-            return;
-        }
+	/**
+	 * Inline JS on the product edit screen to hide the Shipping tab for PureCart types.
+	 *
+	 * @since  1.0.0
+	 * @param  string $hook Current admin page hook suffix.
+	 * @return void
+	 */
+	public function enqueue_type_js( string $hook ): void {
+		if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
+			return;
+		}
 
-        global $post;
-        if ( ! $post || 'product' !== $post->post_type ) {
-            return;
-        }
+		global $post;
+		if ( ! $post || 'product' !== $post->post_type ) {
+			return;
+		}
 
-        $purecart_types = wp_json_encode( [ self::TYPE_PLUGIN, self::TYPE_SAAS, self::TYPE_BUNDLE ] );
+		$purecart_types = wp_json_encode( array( self::TYPE_PLUGIN, self::TYPE_SAAS, self::TYPE_BUNDLE ) );
 
-        wp_add_inline_script(
-            'woocommerce_admin',
-            sprintf(
-                '(function($){
+		wp_add_inline_script(
+			'woocommerce_admin',
+			sprintf(
+				'(function($){
                     var purecartTypes = %s;
                     function purecartToggle(type) {
                         if (purecartTypes.indexOf(type) > -1) {
@@ -72,8 +98,8 @@ class ProductTypes {
                     });
                     purecartToggle($("select#product-type").val());
                 })(jQuery);',
-                $purecart_types
-            )
-        );
-    }
+				$purecart_types
+			)
+		);
+	}
 }

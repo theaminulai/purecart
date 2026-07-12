@@ -24,38 +24,42 @@ use PureCart\Admin\Admin;
  */
 final class Plugin {
 
-    /** @var Plugin|null */
-    private static ?Plugin $instance = null;
+	/**
+	 * Singleton instance.
+	 *
+	 * @var Plugin|null
+	 */
+	private static ?Plugin $instance = null;
 
-    /** Returns the singleton instance. */
-    public static function instance(): self {
-        if ( null === self::$instance ) {
-            self::$instance = new self();
-            self::$instance->init();
-        }
+	/** Returns the singleton instance. */
+	public static function instance(): self {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+			self::$instance->init();
+		}
 
-        return self::$instance;
-    }
+		return self::$instance;
+	}
 
-    /** Private constructor — use ::instance(). */
-    private function __construct() {}
+	/** Private constructor — use ::instance(). */
+	private function __construct() {}
 
-    /** Boot all modules. */
-    private function init(): void {
-        new ProductTypes();
-        new OrderHandler();
-        new RestApi();
-        new Dashboard();
+	/** Boot all modules. */
+	private function init(): void {
+		new ProductTypes();
+		new OrderHandler();
+		new RestApi();
+		new Dashboard();
 
-        if ( is_admin() ) {
-            new Admin();
-        }
+		if ( is_admin() ) {
+			new Admin();
+		}
 
-        do_action( 'purecart_loaded', $this );
-    }
+		do_action( 'purecart_loaded', $this );
+	}
 
-    /** Version helper. */
-    public function version(): string {
-        return PURECART_VERSION;
-    }
+	/** Version helper. */
+	public function version(): string {
+		return PURECART_VERSION;
+	}
 }
