@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       PureCart for WooCommerce
+ * Plugin Name:       PureCart
  * Description:       The complete digital product suite for WooCommerce. Sell plugins, SaaS, and any digital file with secure delivery, licensing, and subscriptions.
  * Version:           1.0.0
  * Requires at least: 6.0

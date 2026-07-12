@@ -1,5 +1,5 @@
 # RND — Plugin Auto-Updates Module
-**Plugin:** woo-digital-downloads
+**Plugin:** purecart
 **Module:** Plugin Auto-Updates
 **Phase:** 1 (MVP) + Phase 4 (Git Integration)
 **Standalone:** Yes — works without Licensing (for free plugins) or with Licensing (for paid plugins)
@@ -41,7 +41,7 @@ The Plugin Updates module turns your WooCommerce store into a self-hosted WordPr
 When a WordPress site checks for plugin updates (on dashboard load or manual check), WordPress calls `plugins_api` filter and checks a transient. The update-checker library installed in your customer's plugin makes a request to your server's endpoint:
 
 ```
-GET /wp-json/wdd/v1/plugin/update-check
+GET /wp-json/purecart/v1/plugin/update-check
     ?slug=my-plugin
     &version=1.2.0
     &license_key=A1B2C3D4-...
@@ -55,10 +55,10 @@ Your server responds with whether an update is available and (if so) a signed do
 ### Update Check Flow
 
 ```
-GET /wdd/v1/plugin/update-check
+GET /purecart/v1/plugin/update-check
     │
     └── UpdateServer::update_check()
-            ├── Validate: slug exists (find product by _wdd_plugin_slug meta)
+            ├── Validate: slug exists (find product by _purecart_plugin_slug meta)
             ├── [If license-gated] LicenseActivator::validate(license_key, domain)
             ├── VersionManager::get_latest(product_id, channel='stable')
             ├── version_compare(request_version, latest_version)
@@ -71,7 +71,7 @@ Response payload:
 {
   "update": true,
   "version": "1.3.0",
-  "download_url": "https://store.com/wdd-download/{token}",
+  "download_url": "https://store.com/purecart-download/{token}",
   "requires": "6.0",
   "tested": "6.9",
   "requires_php": "8.1",
@@ -84,9 +84,9 @@ Response payload:
 
 ## Database Tables
 
-### wp_wdd_product_versions — Version Registry
+### wp_purecart_product_versions — Version Registry
 ```sql
-CREATE TABLE wp_wdd_product_versions (
+CREATE TABLE wp_purecart_product_versions (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     product_id      BIGINT UNSIGNED NOT NULL,
     version         VARCHAR(20) NOT NULL,
@@ -111,11 +111,11 @@ CREATE TABLE wp_wdd_product_versions (
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/wdd/v1/plugin/update-check` | License key (optional) | Check for available update |
-| `GET` | `/wdd/v1/plugin/download/{token}` | Token (time-limited) | Download update ZIP |
-| `GET` | `/wdd/v1/plugin/changelog/{slug}` | Public | Retrieve changelog for all versions |
-| `POST` | `/wdd/v1/plugin/version` | manage_woocommerce | Upload new version (admin) |
-| `POST` | `/wdd/v1/plugin/github-webhook` | HMAC signature | GitHub/Bitbucket webhook receiver |
+| `GET` | `/purecart/v1/plugin/update-check` | License key (optional) | Check for available update |
+| `GET` | `/purecart/v1/plugin/download/{token}` | Token (time-limited) | Download update ZIP |
+| `GET` | `/purecart/v1/plugin/changelog/{slug}` | Public | Retrieve changelog for all versions |
+| `POST` | `/purecart/v1/plugin/version` | manage_woocommerce | Upload new version (admin) |
+| `POST` | `/purecart/v1/plugin/github-webhook` | HMAC signature | GitHub/Bitbucket webhook receiver |
 
 ---
 
@@ -165,7 +165,7 @@ if ( hash_file( 'sha256', $downloaded_zip ) !== $response['checksum_sha256'] ) {
 
 Customers opt in to beta updates by adding a filter in their `wp-config.php` or the customer plugin:
 ```php
-add_filter( 'wdd_update_channel', fn() => 'beta' );
+add_filter( 'purecart_update_channel', fn() => 'beta' );
 ```
 
 The update-check request includes `channel=beta` and the server returns the latest beta version.
@@ -177,16 +177,16 @@ The update-check request includes `channel=beta` and the server returns the late
 `GitHubSync` receives webhook events from GitHub or Bitbucket on tag push:
 
 ```
-POST /wp-json/wdd/v1/plugin/github-webhook
+POST /wp-json/purecart/v1/plugin/github-webhook
 Headers:
   X-Hub-Signature-256: sha256=<HMAC of payload>
 Body: GitHub push event payload
 ```
 
 On valid tag push event:
-1. Verify HMAC signature against `wdd_github_webhook_secret` option
-2. Identify product by matching repository name to `_wdd_github_repo` product meta
-3. Download release ZIP from GitHub API using stored `wdd_github_token`
+1. Verify HMAC signature against `purecart_github_webhook_secret` option
+2. Identify product by matching repository name to `_purecart_github_repo` product meta
+3. Download release ZIP from GitHub API using stored `purecart_github_token`
 4. Call `VersionManager::add()` with tag name as version
 5. Extract changelog from GitHub release description
 
@@ -203,13 +203,13 @@ The customer's plugin must call your update endpoint. The simplest approach uses
 require 'vendor/yahnis-elsts/plugin-update-checker/plugin-update-checker.php';
 
 $update_checker = YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
-    'https://your-store.com/wp-json/wdd/v1/plugin/update-check?slug=my-plugin&license_key=' . get_option('my_plugin_license_key'),
+    'https://your-store.com/wp-json/purecart/v1/plugin/update-check?slug=my-plugin&license_key=' . get_option('my_plugin_license_key'),
     __FILE__,
     'my-plugin'
 );
 ```
 
-Alternatively, WDD provides a lightweight client class customers can include directly.
+Alternatively, PureCart provides a lightweight client class customers can include directly.
 
 ---
 
@@ -217,11 +217,11 @@ Alternatively, WDD provides a lightweight client class customers can include dir
 
 | Meta Key | Type | Description |
 |---|---|---|
-| `_wdd_plugin_slug` | string | Unique plugin slug (matches wp-content/plugins/{slug}) |
-| `_wdd_github_repo` | string | GitHub repo: `owner/repo` (Phase 4) |
-| `_wdd_github_token` | string | GitHub personal access token for private repos |
-| `_wdd_update_requires_license` | bool | Gate updates behind valid license |
-| `_wdd_beta_channel_enabled` | bool | Allow beta release channel for this product |
+| `_purecart_plugin_slug` | string | Unique plugin slug (matches wp-content/plugins/{slug}) |
+| `_purecart_github_repo` | string | GitHub repo: `owner/repo` (Phase 4) |
+| `_purecart_github_token` | string | GitHub personal access token for private repos |
+| `_purecart_update_requires_license` | bool | Gate updates behind valid license |
+| `_purecart_beta_channel_enabled` | bool | Allow beta release channel for this product |
 
 ---
 
@@ -229,23 +229,23 @@ Alternatively, WDD provides a lightweight client class customers can include dir
 
 ```php
 // Filter update response before sending
-apply_filters( 'wdd_update_check_response', $response, $product_id, $request );
+apply_filters( 'purecart_update_check_response', $response, $product_id, $request );
 
 // Fired after new version is added
-do_action( 'wdd_version_added', $version_id, $product_id, $version_number );
+do_action( 'purecart_version_added', $version_id, $product_id, $version_number );
 
 // Fired after GitHub webhook triggers import
-do_action( 'wdd_github_version_imported', $version_id, $product_id, $tag_name );
+do_action( 'purecart_github_version_imported', $version_id, $product_id, $tag_name );
 
 // Filter which channel a customer gets
-apply_filters( 'wdd_update_channel', 'stable', $license_key, $domain );
+apply_filters( 'purecart_update_channel', 'stable', $license_key, $domain );
 ```
 
 ---
 
 ## Competitive Context
 
-| | plugin-update-checker (library) | EDD Software Licensing | woo-digital-downloads |
+| | plugin-update-checker (library) | EDD Software Licensing | purecart |
 |---|---|---|---|
 | Self-hosted update server | Partial (needs custom endpoint) | Yes (extension) | **Yes (built-in)** |
 | License-gated updates | No | Yes | **Yes** |

@@ -1,4 +1,4 @@
-=== PureCart for WooCommerce ===
+=== PureCart ===
 Contributors: mostakimmim123, theaminuldev
 Tags: woocommerce, digital downloads, software licensing, license keys, saas
 Requires at least: 6.0

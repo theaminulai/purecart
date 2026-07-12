@@ -1,8 +1,8 @@
 # RND — Analytics & Reporting Module
-**Plugin:** woo-digital-downloads
+**Plugin:** purecart
 **Module:** Analytics & Reporting
 **Phase:** 6
-**Standalone:** Yes — reads WDD tables and WooCommerce orders independently; richer when Licensing and Downloads modules are active
+**Standalone:** Yes — reads PureCart tables and WooCommerce orders independently; richer when Licensing and Downloads modules are active
 
 ---
 
@@ -10,7 +10,7 @@
 
 The Analytics module provides a revenue and product health dashboard inside the WordPress admin. It surfaces metrics that WooCommerce's built-in reports don't cover for software/SaaS businesses: MRR, ARR, churn, active license counts, download activity, and version adoption.
 
-All data is read from WDD's own tables and WooCommerce orders. No external analytics service required.
+All data is read from PureCart's own tables and WooCommerce orders. No external analytics service required.
 
 ---
 
@@ -18,7 +18,7 @@ All data is read from WDD's own tables and WooCommerce orders. No external analy
 
 Enable the Analytics module in **Settings → Digital Downloads → Modules**.
 
-**Works without other WDD modules:** The module can report on WooCommerce order revenue alone if no other WDD modules are active.
+**Works without other PureCart modules:** The module can report on WooCommerce order revenue alone if no other PureCart modules are active.
 
 **Richer with other modules:**
 - + Licensing module → license health, activation trends, churn
@@ -46,7 +46,7 @@ Enable the Analytics module in **Settings → Digital Downloads → Modules**.
 
 | Metric | Description |
 |---|---|
-| Total active licenses | Count of `status = active` in `wp_wdd_licenses` |
+| Total active licenses | Count of `status = active` in `wp_purecart_licenses` |
 | Total expired licenses | Count of `status = expired` |
 | Licenses expiring in 30 days | Renewal opportunity report |
 | Activation rate | Avg. activations per license |
@@ -57,7 +57,7 @@ Enable the Analytics module in **Settings → Digital Downloads → Modules**.
 
 | Metric | Description |
 |---|---|
-| Total downloads this month | Sum of `wdd_download_logs` entries |
+| Total downloads this month | Sum of `purecart_download_logs` entries |
 | Downloads by product | Per-product breakdown |
 | Downloads by version | Version adoption heatmap |
 | Top countries | Geographic distribution |
@@ -77,7 +77,7 @@ Enable the Analytics module in **Settings → Digital Downloads → Modules**.
 ## Admin Dashboard Layout
 
 ```
-WooDigitalDownloads → Analytics
+PureCart → Analytics
 
 [Date range picker: 30 days | 90 days | 12 months | Custom]
 
@@ -108,7 +108,7 @@ WooDigitalDownloads → Analytics
 ### `RevenueReport`
 
 ```php
-namespace WooDigitalDownloads\Analytics;
+namespace PureCart\Analytics;
 
 class RevenueReport {
 
@@ -138,7 +138,7 @@ class RevenueReport {
 ### `LicenseReport`
 
 ```php
-namespace WooDigitalDownloads\Analytics;
+namespace PureCart\Analytics;
 
 class LicenseReport {
 
@@ -162,7 +162,7 @@ class LicenseReport {
 ### `DownloadReport`
 
 ```php
-namespace WooDigitalDownloads\Analytics;
+namespace PureCart\Analytics;
 
 class DownloadReport {
 
@@ -209,14 +209,14 @@ Date,Product,Version,IP Address,Country,User Agent
 
 | Report | Primary Table | Joins |
 |---|---|---|
-| Revenue / MRR | `wp_wdd_subscriptions` | `posts` (orders) |
-| Churn | `wp_wdd_subscriptions` | — |
-| License counts | `wp_wdd_licenses` | `wc_orders` |
-| Activation trends | `wp_wdd_license_activations` | `wp_wdd_licenses` |
-| Download totals | `wp_wdd_download_logs` | `wp_wdd_downloads` |
-| Version adoption | `wp_wdd_product_versions` | `wp_wdd_download_logs` |
+| Revenue / MRR | `wp_purecart_subscriptions` | `posts` (orders) |
+| Churn | `wp_purecart_subscriptions` | — |
+| License counts | `wp_purecart_licenses` | `wc_orders` |
+| Activation trends | `wp_purecart_license_activations` | `wp_purecart_licenses` |
+| Download totals | `wp_purecart_download_logs` | `wp_purecart_downloads` |
+| Version adoption | `wp_purecart_product_versions` | `wp_purecart_download_logs` |
 
-All queries use `$wpdb->prepare()`. Heavy aggregations are cached in WP transients with a 1-hour TTL (`wdd_analytics_{report}_{hash}`).
+All queries use `$wpdb->prepare()`. Heavy aggregations are cached in WP transients with a 1-hour TTL (`purecart_analytics_{report}_{hash}`).
 
 ---
 
@@ -224,7 +224,7 @@ All queries use `$wpdb->prepare()`. Heavy aggregations are cached in WP transien
 
 ```php
 // Cache key includes date range hash to bust on range change
-$cache_key = 'wdd_mrr_' . md5( $period_start . $period_end );
+$cache_key = 'purecart_mrr_' . md5( $period_start . $period_end );
 $cached = get_transient( $cache_key );
 if ( $cached !== false ) return $cached;
 
@@ -256,10 +256,10 @@ Admin can force-clear analytics cache via **Settings → Digital Downloads → A
 ## Phase 6 Implementation Plan
 
 1. `RevenueReport`, `LicenseReport`, `DownloadReport` in `includes/Analytics/`
-2. Admin dashboard page: **WooDigitalDownloads → Analytics**
+2. Admin dashboard page: **PureCart → Analytics**
 3. React-based charts (using WordPress Scripts + Chart.js or Recharts)
-4. WP REST API endpoint for chart data: `/wdd/v1/analytics/{report}`
-5. CSV export endpoint: `/wdd/v1/analytics/{report}/export`
+4. WP REST API endpoint for chart data: `/purecart/v1/analytics/{report}`
+5. CSV export endpoint: `/purecart/v1/analytics/{report}/export`
 6. Transient-based caching layer
 7. Date range picker (30d / 90d / 12m / custom)
 8. "Licenses Expiring Soon" actionable report with bulk email option
@@ -268,11 +268,11 @@ Admin can force-clear analytics cache via **Settings → Digital Downloads → A
 
 ## Competitor Comparison
 
-| Feature | WooCommerce Analytics | EDD Reports | SureCart Analytics | woo-digital-downloads |
+| Feature | WooCommerce Analytics | EDD Reports | SureCart Analytics | purecart |
 |---|---|---|---|---|
-| MRR / ARR | ❌ | ❌ | ✅ (SaaS-side) | **✅ From WDD subscription table** |
+| MRR / ARR | ❌ | ❌ | ✅ (SaaS-side) | **✅ From PureCart subscription table** |
 | Churn rate | ❌ | ❌ | ✅ (SaaS-side) | **✅ Cancellations / active at period start** |
-| Active license count | ❌ | ✅ (EDD only) | ❌ | **✅ Real-time from wp_wdd_licenses** |
+| Active license count | ❌ | ✅ (EDD only) | ❌ | **✅ Real-time from wp_purecart_licenses** |
 | License expiry forecast | ❌ | ❌ | ❌ | **✅ Expiring in 30/60/90 days** |
 | Download stats by product | ❌ | ✅ | ❌ | **✅ Per product, per version** |
 | Version adoption heatmap | ❌ | ❌ | ❌ | **✅ % of customers on each version** |
@@ -290,7 +290,7 @@ Admin can force-clear analytics cache via **Settings → Digital Downloads → A
 - **A/B test tracking:** Conversion rate by pricing experiment
 - **Dunning outcome report:** Which dunning email recovered the most failed payments
 - **Affiliate performance:** Revenue per affiliate (when Affiliates module active)
-- **WP-CLI commands:** `wp wdd analytics mrr`, `wp wdd analytics export`
+- **WP-CLI commands:** `wp purecart analytics mrr`, `wp purecart analytics export`
 
 ---
 

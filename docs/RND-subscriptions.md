@@ -1,5 +1,5 @@
 # RND — Subscription Module
-**Plugin:** woo-digital-downloads
+**Plugin:** purecart
 **Module:** Subscriptions
 **Phase:** 2
 **Standalone:** Yes — works independently; links to Licensing and SaaS modules when both are active
@@ -9,7 +9,7 @@
 
 ## Overview
 
-The Subscriptions module is a complete, self-contained recurring billing management system built directly into WDD. It adds a subscription product type to WooCommerce, handles recurring billing via Stripe and PayPal (through WooCommerce's gateway layer), manages the full subscription lifecycle (trial → active → paused → cancelled → expired), and ties renewals directly to license expiry and SaaS account status when those modules are enabled.
+The Subscriptions module is a complete, self-contained recurring billing management system built directly into PureCart. It adds a subscription product type to WooCommerce, handles recurring billing via Stripe and PayPal (through WooCommerce's gateway layer), manages the full subscription lifecycle (trial → active → paused → cancelled → expired), and ties renewals directly to license expiry and SaaS account status when those modules are enabled.
 
 This is not a billing layer wrapper — it is a full subscription engine.
 
@@ -19,7 +19,7 @@ This is not a billing layer wrapper — it is a full subscription engine.
 
 Enable this module in **Settings → Digital Downloads → Modules → Subscriptions**.
 
-Without any other WDD module:
+Without any other PureCart module:
 - Create subscription products with recurring pricing, free trials, sign-up fees
 - Auto-renew via Stripe or PayPal
 - Customer self-service: pause, resume, cancel, change payment method, upgrade/downgrade
@@ -38,12 +38,12 @@ With **SaaS** enabled: suspension automatically suspends the SaaS account.
 
 | Feature | Description | Developer Notes |
 |---|---|---|
-| Subscription product type | Admin creates `wdd_subscription` product in WooCommerce | Register via `woocommerce_product_class` + product meta boxes |
-| Recurring price | Set a recurring billing amount | Store in `_wdd_sub_price` product meta |
-| Billing interval | Daily / Weekly / Monthly / Yearly | Store in `_wdd_sub_interval` + `_wdd_sub_period` meta |
-| Free trial | Optional free trial period before billing starts | `_wdd_sub_trial_length` + `_wdd_sub_trial_period` meta |
-| Sign-up fee | Optional one-time fee collected on first payment | `_wdd_sub_signup_fee` meta |
-| Subscription length | Max duration (e.g., 12 months); empty = indefinite | `_wdd_sub_length` meta |
+| Subscription product type | Admin creates `purecart_subscription` product in WooCommerce | Register via `woocommerce_product_class` + product meta boxes |
+| Recurring price | Set a recurring billing amount | Store in `_purecart_sub_price` product meta |
+| Billing interval | Daily / Weekly / Monthly / Yearly | Store in `_purecart_sub_interval` + `_purecart_sub_period` meta |
+| Free trial | Optional free trial period before billing starts | `_purecart_sub_trial_length` + `_purecart_sub_trial_period` meta |
+| Sign-up fee | Optional one-time fee collected on first payment | `_purecart_sub_signup_fee` meta |
+| Subscription length | Max duration (e.g., 12 months); empty = indefinite | `_purecart_sub_length` meta |
 | Variable subscriptions | Support product variations with different prices/intervals | Integrate with WooCommerce variable product structure |
 | Mixed cart | Subscription + non-subscription products in one checkout | WC cart compatibility required |
 | Multiple subscriptions | Multiple subscription products in a single checkout | Create separate subscription records per product |
@@ -100,7 +100,7 @@ With **SaaS** enabled: suspension automatically suspends the SaaS account.
 | Manual renewal | Customer pays renewal invoice manually via any WC gateway |
 | Fallback to manual | If auto-renewal fails or is cancelled, subscription switches to manual mode |
 
-Auto-renewal uses the payment token stored by the gateway on initial purchase. WDD does not store card data — it stores the gateway's token reference.
+Auto-renewal uses the payment token stored by the gateway on initial purchase. PureCart does not store card data — it stores the gateway's token reference.
 
 ---
 
@@ -173,7 +173,7 @@ Order Completed (initial purchase — subscription product)
     │
     └── SubscriptionManager::create_from_order($order_id)
             ├── Extract subscription product meta (price, interval, trial, signup fee)
-            ├── INSERT wp_wdd_subscriptions {
+            ├── INSERT wp_purecart_subscriptions {
             │       status: 'trialing' (if trial) or 'active',
             │       trial_ends_at: NOW() + trial_days (or NULL),
             │       next_payment_at: NOW() + billing_interval
@@ -204,14 +204,14 @@ Payment Failed (Dunning Sequence — 2-phase grace via Action Scheduler)
     ├── Day N:   Retry charge (configurable retry intervals e.g. [1,3,5]).
     │            On success → back to Active flow above.
     │            On failure → send overdue reminder email.
-    ├── Day X:   Active grace days exhausted (wdd_sub_active_grace_days, default 7).
+    ├── Day X:   Active grace days exhausted (purecart_sub_active_grace_days, default 7).
     │            Status → 'suspended'. License suspended. SaaS suspended.
     │            Send "Access suspended" email.
     │            — Suspended grace phase begins —
     ├── Day X+N: Retry charges continue during suspended grace.
     │            On success → reactivate: Status → 'active'. Restore license/SaaS.
     │            Send "Suspended grace ending soon" email when N days remain.
-    └── Day X+Y: Suspended grace days exhausted (wdd_sub_suspended_grace_days, default 7).
+    └── Day X+Y: Suspended grace days exhausted (purecart_sub_suspended_grace_days, default 7).
                  Status → 'cancelled'. Final cancellation email.
                  [If Licensing] License stays until expires_at then expires naturally (no forced revoke).
 
@@ -267,14 +267,14 @@ Customer upgrades from Plan A ($49/mo) to Plan B ($99/mo)
             ├── Prorated charge = Plan B price − unused_credit
             ├── Create WC order for prorated amount
             ├── Charge immediately via stored gateway token
-            ├── UPDATE wp_wdd_subscriptions {product_id = Plan B, price = $99}
+            ├── UPDATE wp_purecart_subscriptions {product_id = Plan B, price = $99}
             ├── [If Licensing] UPDATE plan_type and activation_limit
             └── next_payment_at = NOW() + billing_interval (reset cycle)
 
 Downgrade: same logic, issue store credit for the difference instead of charging
 ```
 
-Three proration modes are configurable per product (`_wdd_sub_proration`) and globally (`wdd_sub_proration_mode`):
+Three proration modes are configurable per product (`_purecart_sub_proration`) and globally (`purecart_sub_proration_mode`):
 
 | Mode | Behaviour |
 |---|---|
@@ -288,10 +288,10 @@ Default: `apply_at_renewal`.
 
 ## Database Schema
 
-### `wp_wdd_subscriptions` (expanded)
+### `wp_purecart_subscriptions` (expanded)
 
 ```sql
-CREATE TABLE {prefix}wdd_subscriptions (
+CREATE TABLE {prefix}purecart_subscriptions (
     id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id             BIGINT UNSIGNED NOT NULL,
     product_id          BIGINT UNSIGNED NOT NULL,
@@ -332,10 +332,10 @@ CREATE TABLE {prefix}wdd_subscriptions (
 );
 ```
 
-### `wp_wdd_subscription_logs`
+### `wp_purecart_subscription_logs`
 
 ```sql
-CREATE TABLE {prefix}wdd_subscription_logs (
+CREATE TABLE {prefix}purecart_subscription_logs (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     subscription_id BIGINT UNSIGNED NOT NULL,
     event           VARCHAR(100) NOT NULL,          -- 'renewal_success', 'payment_failed', 'status_change', etc.
@@ -358,20 +358,20 @@ CREATE TABLE {prefix}wdd_subscription_logs (
 
 | Meta Key | Type | Description |
 |---|---|---|
-| `_wdd_sub_price` | decimal | Recurring price |
-| `_wdd_sub_interval` | int | Billing interval number (e.g., 1, 2, 3) |
-| `_wdd_sub_period` | string | `day`, `week`, `month`, `year` |
-| `_wdd_sub_trial_length` | int | Trial period number |
-| `_wdd_sub_trial_period` | string | `day`, `week`, `month` |
-| `_wdd_sub_signup_fee` | decimal | One-time sign-up fee (0 = none) |
-| `_wdd_sub_length` | int | Max subscription length (0 = indefinite) |
-| `_wdd_sub_length_period` | string | `month`, `year` |
-| `_wdd_sub_limit` | int | Max active subscriptions per customer (0 = unlimited) |
-| `_wdd_sub_proration` | string | `prorate_immediately`, `apply_at_renewal`, or `no_proration` |
-| `_wdd_sub_step_price` | decimal | Stepped renewal price after N cycles (0 = disabled) |
-| `_wdd_sub_step_after` | int | Number of billing cycles before stepped price takes effect |
-| `_wdd_sub_include_shipping` | bool | Include shipping in renewal orders |
-| `_wdd_sub_include_tax` | bool | Include tax in renewal orders |
+| `_purecart_sub_price` | decimal | Recurring price |
+| `_purecart_sub_interval` | int | Billing interval number (e.g., 1, 2, 3) |
+| `_purecart_sub_period` | string | `day`, `week`, `month`, `year` |
+| `_purecart_sub_trial_length` | int | Trial period number |
+| `_purecart_sub_trial_period` | string | `day`, `week`, `month` |
+| `_purecart_sub_signup_fee` | decimal | One-time sign-up fee (0 = none) |
+| `_purecart_sub_length` | int | Max subscription length (0 = indefinite) |
+| `_purecart_sub_length_period` | string | `month`, `year` |
+| `_purecart_sub_limit` | int | Max active subscriptions per customer (0 = unlimited) |
+| `_purecart_sub_proration` | string | `prorate_immediately`, `apply_at_renewal`, or `no_proration` |
+| `_purecart_sub_step_price` | decimal | Stepped renewal price after N cycles (0 = disabled) |
+| `_purecart_sub_step_after` | int | Number of billing cycles before stepped price takes effect |
+| `_purecart_sub_include_shipping` | bool | Include shipping in renewal orders |
+| `_purecart_sub_include_tax` | bool | Include tax in renewal orders |
 
 ---
 
@@ -379,24 +379,24 @@ CREATE TABLE {prefix}wdd_subscription_logs (
 
 | Option | Default | Description |
 |---|---|---|
-| `wdd_sub_auto_renew` | `true` | Enable automatic renewal |
-| `wdd_sub_retry_attempts` | `3` | Number of failed payment retry attempts |
-| `wdd_sub_retry_intervals` | `[1, 3, 5]` | Days between retries |
-| `wdd_sub_active_grace_days` | `7` | Days in past_due before suspension (access remains active) |
-| `wdd_sub_suspended_grace_days` | `7` | Days suspended before hard cancellation (retries continue) |
-| `wdd_sub_proration_mode` | `apply_at_renewal` | `prorate_immediately`, `apply_at_renewal`, or `no_proration` |
-| `wdd_sub_skip_limit` | `1` | Max skip-next-renewal uses per billing year per customer (0 = unlimited) |
-| `wdd_sub_renewal_sync` | `false` | Align all renewals to a fixed calendar date on first payment |
-| `wdd_sub_renewal_sync_date` | `1` | Day of month to align renewals to (1–28) when sync enabled |
-| `wdd_sub_one_trial_per_customer` | `true` | Block trial if `_wdd_trial_used` user meta is set |
-| `wdd_sub_trial_role` | `''` | WP role assigned during active trial (reverted on conversion or cancel) |
-| `wdd_sub_active_role` | `''` | WP role assigned when subscription is active |
-| `wdd_sub_cancelled_role` | `''` | WP role assigned when subscription is cancelled/expired |
-| `wdd_sub_renewal_reminder_days` | `[7, 3, 1]` | Days before renewal to send reminder emails |
-| `wdd_sub_allow_pause` | `true` | Allow customers to pause |
-| `wdd_sub_allow_cancel` | `true` | Allow customers to self-cancel |
-| `wdd_sub_allow_upgrade` | `true` | Allow customers to upgrade/downgrade |
-| `wdd_sub_cancel_saas_immediately` | `false` | Suspend SaaS on cancel (vs. at period end) |
+| `purecart_sub_auto_renew` | `true` | Enable automatic renewal |
+| `purecart_sub_retry_attempts` | `3` | Number of failed payment retry attempts |
+| `purecart_sub_retry_intervals` | `[1, 3, 5]` | Days between retries |
+| `purecart_sub_active_grace_days` | `7` | Days in past_due before suspension (access remains active) |
+| `purecart_sub_suspended_grace_days` | `7` | Days suspended before hard cancellation (retries continue) |
+| `purecart_sub_proration_mode` | `apply_at_renewal` | `prorate_immediately`, `apply_at_renewal`, or `no_proration` |
+| `purecart_sub_skip_limit` | `1` | Max skip-next-renewal uses per billing year per customer (0 = unlimited) |
+| `purecart_sub_renewal_sync` | `false` | Align all renewals to a fixed calendar date on first payment |
+| `purecart_sub_renewal_sync_date` | `1` | Day of month to align renewals to (1–28) when sync enabled |
+| `purecart_sub_one_trial_per_customer` | `true` | Block trial if `_purecart_trial_used` user meta is set |
+| `purecart_sub_trial_role` | `''` | WP role assigned during active trial (reverted on conversion or cancel) |
+| `purecart_sub_active_role` | `''` | WP role assigned when subscription is active |
+| `purecart_sub_cancelled_role` | `''` | WP role assigned when subscription is cancelled/expired |
+| `purecart_sub_renewal_reminder_days` | `[7, 3, 1]` | Days before renewal to send reminder emails |
+| `purecart_sub_allow_pause` | `true` | Allow customers to pause |
+| `purecart_sub_allow_cancel` | `true` | Allow customers to self-cancel |
+| `purecart_sub_allow_upgrade` | `true` | Allow customers to upgrade/downgrade |
+| `purecart_sub_cancel_saas_immediately` | `false` | Suspend SaaS on cancel (vs. at period end) |
 
 ---
 
@@ -422,26 +422,26 @@ Customer clicks "Cancel" → Retention Flow starts
 
 Retention data is stored in subscription logs and surfaced in admin reports (reason breakdown, offer acceptance rate).
 
-**Product meta:** `_wdd_sub_retention_enabled` (bool), `_wdd_sub_retention_reasons` (JSON array), `_wdd_sub_retention_offer_type` (string).
+**Product meta:** `_purecart_sub_retention_enabled` (bool), `_purecart_sub_retention_reasons` (JSON array), `_purecart_sub_retention_offer_type` (string).
 
 ---
 
 ## One Trial Per Customer
 
-When `wdd_sub_one_trial_per_customer` is enabled, the trial period is only available to customers who have never trialled this product before.
+When `purecart_sub_one_trial_per_customer` is enabled, the trial period is only available to customers who have never trialled this product before.
 
 ```php
 // On checkout: if product has trial AND option is enabled
-$used = get_user_meta( $user_id, '_wdd_trial_used_' . $product_id, true );
+$used = get_user_meta( $user_id, '_purecart_trial_used_' . $product_id, true );
 if ( $used ) {
     // Strip trial from subscription; charge full price from Day 1
 }
 
 // On trial conversion (first charge collected):
-update_user_meta( $user_id, '_wdd_trial_used_' . $product_id, true );
+update_user_meta( $user_id, '_purecart_trial_used_' . $product_id, true );
 ```
 
-Meta key per product: `_wdd_trial_used_{product_id}`. This prevents trial abuse via cancel + resubscribe.
+Meta key per product: `_purecart_trial_used_{product_id}`. This prevents trial abuse via cancel + resubscribe.
 
 ---
 
@@ -453,18 +453,18 @@ Allows an introductory price for the first N billing cycles, then a permanent st
 
 ```
 Product meta:
-    _wdd_sub_price      = 9.00   (introductory price)
-    _wdd_sub_step_price = 29.00  (price after N cycles)
-    _wdd_sub_step_after = 3      (switch after cycle 3)
+    _purecart_sub_price      = 9.00   (introductory price)
+    _purecart_sub_step_price = 29.00  (price after N cycles)
+    _purecart_sub_step_after = 3      (switch after cycle 3)
 
-DB: wp_wdd_subscriptions.renewal_count (INT) — incremented on each successful renewal.
+DB: wp_purecart_subscriptions.renewal_count (INT) — incremented on each successful renewal.
 
 RenewalEngine::process_renewal():
     if step_price > 0 AND renewal_count >= step_after:
         use step_price for this renewal order
 ```
 
-**DB addition:** add `renewal_count INT UNSIGNED DEFAULT 0` to `wp_wdd_subscriptions`.
+**DB addition:** add `renewal_count INT UNSIGNED DEFAULT 0` to `wp_purecart_subscriptions`.
 
 ---
 
@@ -474,7 +474,7 @@ When enabled, all subscriptions for a product align to a fixed calendar date (e.
 
 ```
 Customer subscribes on June 15.
-wdd_sub_renewal_sync = true, wdd_sub_renewal_sync_date = 1
+purecart_sub_renewal_sync = true, purecart_sub_renewal_sync_date = 1
 
 First payment: prorated amount for June 15 → July 1 (16 days / 30 days × price).
 Second payment: full price on July 1.
@@ -487,18 +487,18 @@ When sync is enabled, the first renewal order is a partial charge (prorated to t
 
 ## Role Mapping
 
-WDD can automatically assign WordPress user roles based on subscription status. Useful for gating content behind subscriber roles (e.g., MemberPress-style).
+PureCart can automatically assign WordPress user roles based on subscription status. Useful for gating content behind subscriber roles (e.g., MemberPress-style).
 
 | Status transition | Role action |
 |---|---|
-| Trial starts | Assign `wdd_sub_trial_role` (if configured) |
-| Trial converts → active | Remove trial role, assign `wdd_sub_active_role` |
-| Active → suspended / cancelled / expired | Remove active role, assign `wdd_sub_cancelled_role` |
+| Trial starts | Assign `purecart_sub_trial_role` (if configured) |
+| Trial converts → active | Remove trial role, assign `purecart_sub_active_role` |
+| Active → suspended / cancelled / expired | Remove active role, assign `purecart_sub_cancelled_role` |
 | Resubscribe | Re-assign active role |
 
-**Implementation:** `RoleManager` class listens to `wdd_subscription_status_changed` action. Uses `wp_update_user` / `WP_User::add_role()` / `WP_User::remove_role()`.
+**Implementation:** `RoleManager` class listens to `purecart_subscription_status_changed` action. Uses `wp_update_user` / `WP_User::add_role()` / `WP_User::remove_role()`.
 
-Roles are per-subscription-product, configured via product meta: `_wdd_sub_role_trial`, `_wdd_sub_role_active`, `_wdd_sub_role_cancelled`.
+Roles are per-subscription-product, configured via product meta: `_purecart_sub_role_trial`, `_purecart_sub_role_active`, `_purecart_sub_role_cancelled`.
 
 ---
 
@@ -506,14 +506,14 @@ Roles are per-subscription-product, configured via product meta: `_wdd_sub_role_
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/wdd/v1/subscriptions` | manage_woocommerce | List all subscriptions |
-| `GET` | `/wdd/v1/subscriptions/{id}` | manage_woocommerce | Get subscription detail |
-| `POST` | `/wdd/v1/subscriptions/{id}/pause` | Customer / Admin | Pause subscription |
-| `POST` | `/wdd/v1/subscriptions/{id}/resume` | Customer / Admin | Resume subscription |
-| `POST` | `/wdd/v1/subscriptions/{id}/cancel` | Customer / Admin | Cancel subscription |
-| `POST` | `/wdd/v1/subscriptions/{id}/renew` | manage_woocommerce | Manual renewal trigger |
-| `POST` | `/wdd/v1/subscriptions/{id}/upgrade` | Customer / Admin | Upgrade/downgrade plan |
-| `GET` | `/wdd/v1/subscriptions/{id}/logs` | manage_woocommerce | Get event log for subscription |
+| `GET` | `/purecart/v1/subscriptions` | manage_woocommerce | List all subscriptions |
+| `GET` | `/purecart/v1/subscriptions/{id}` | manage_woocommerce | Get subscription detail |
+| `POST` | `/purecart/v1/subscriptions/{id}/pause` | Customer / Admin | Pause subscription |
+| `POST` | `/purecart/v1/subscriptions/{id}/resume` | Customer / Admin | Resume subscription |
+| `POST` | `/purecart/v1/subscriptions/{id}/cancel` | Customer / Admin | Cancel subscription |
+| `POST` | `/purecart/v1/subscriptions/{id}/renew` | manage_woocommerce | Manual renewal trigger |
+| `POST` | `/purecart/v1/subscriptions/{id}/upgrade` | Customer / Admin | Upgrade/downgrade plan |
+| `GET` | `/purecart/v1/subscriptions/{id}/logs` | manage_woocommerce | Get event log for subscription |
 
 ---
 
@@ -543,7 +543,7 @@ Filterable by: status, product, date range, customer.
 - **Status History** — every status change with timestamp and reason
 - **Emails Sent** — log of all notifications sent for this subscription
 
-### Settings Tabs (inside WDD Settings → Subscriptions)
+### Settings Tabs (inside PureCart Settings → Subscriptions)
 
 | Tab | Key Options |
 |---|---|
@@ -574,53 +574,53 @@ Filterable by: status, product, date range, customer.
 
 ```php
 // After subscription record is created
-do_action( 'wdd_subscription_created', $subscription_id, $order_id, $product_id );
+do_action( 'purecart_subscription_created', $subscription_id, $order_id, $product_id );
 
 // After trial ends and first real payment occurs
-do_action( 'wdd_subscription_trial_ended', $subscription_id );
+do_action( 'purecart_subscription_trial_ended', $subscription_id );
 
 // After successful renewal
-do_action( 'wdd_subscription_renewed', $subscription_id, $order_id, $new_next_payment_at );
+do_action( 'purecart_subscription_renewed', $subscription_id, $order_id, $new_next_payment_at );
 
 // When license is extended on renewal
-do_action( 'wdd_license_renewed', $license_id, $new_expires_at );
+do_action( 'purecart_license_renewed', $license_id, $new_expires_at );
 
 // After payment fails (before dunning starts)
-do_action( 'wdd_subscription_payment_failed', $subscription_id, $order_id, $retry_count );
+do_action( 'purecart_subscription_payment_failed', $subscription_id, $order_id, $retry_count );
 
 // When subscription is suspended (overdue period exceeded)
-do_action( 'wdd_subscription_suspended', $subscription_id );
+do_action( 'purecart_subscription_suspended', $subscription_id );
 
 // When subscription is cancelled
-do_action( 'wdd_subscription_cancelled', $subscription_id, $cancelled_by );
+do_action( 'purecart_subscription_cancelled', $subscription_id, $cancelled_by );
 
 // When subscription expires (fixed length)
-do_action( 'wdd_subscription_expired', $subscription_id );
+do_action( 'purecart_subscription_expired', $subscription_id );
 
 // When subscription is paused
-do_action( 'wdd_subscription_paused', $subscription_id );
+do_action( 'purecart_subscription_paused', $subscription_id );
 
 // When subscription is resumed
-do_action( 'wdd_subscription_resumed', $subscription_id );
+do_action( 'purecart_subscription_resumed', $subscription_id );
 
 // When plan is upgraded or downgraded
-do_action( 'wdd_subscription_plan_changed', $subscription_id, $old_product_id, $new_product_id, $prorated_charge );
+do_action( 'purecart_subscription_plan_changed', $subscription_id, $old_product_id, $new_product_id, $prorated_charge );
 
 // Filter dunning schedule (return array of days after failure)
-apply_filters( 'wdd_dunning_schedule', [ 1, 3, 7, 14 ], $subscription_id );
+apply_filters( 'purecart_dunning_schedule', [ 1, 3, 7, 14 ], $subscription_id );
 
 // Filter proration calculation
-apply_filters( 'wdd_proration_amount', $amount, $subscription_id, $new_product_id );
+apply_filters( 'purecart_proration_amount', $amount, $subscription_id, $new_product_id );
 
 // Filter renewal order args before creation
-apply_filters( 'wdd_renewal_order_args', $args, $subscription_id );
+apply_filters( 'purecart_renewal_order_args', $args, $subscription_id );
 ```
 
 ---
 
 ## Competitor Comparison
 
-| Feature | WooCommerce Subscriptions ($199/yr) | SUMO Subscriptions ($49) | WP Swings (free) | woo-digital-downloads |
+| Feature | WooCommerce Subscriptions ($199/yr) | SUMO Subscriptions ($49) | WP Swings (free) | purecart |
 |---|---|---|---|---|
 | WooCommerce native | ✅ | ✅ | ✅ | **✅** |
 | Simple product subscriptions | ✅ | ✅ | ✅ | **✅** |
@@ -653,13 +653,13 @@ apply_filters( 'wdd_renewal_order_args', $args, $subscription_id );
 | Drip content / downloads | ❌ | ✅ | ❌ | **✅ (Phase 4)** |
 | Update subscription quantity | ✅ | ✅ | ❌ | **✅** |
 | HPOS compatible | ✅ | ⚠️ | ⚠️ | **✅** |
-| Single-site license only | N/A | ✅ only | N/A | **N/A (multi-site WDD)** |
-| Price | $199/yr | $49 one-time | Free | **Included in WDD** |
+| Single-site license only | N/A | ✅ only | N/A | **N/A (multi-site PureCart)** |
+| Price | $199/yr | $49 one-time | Free | **Included in PureCart** |
 
-### Key WDD Differentiators
+### Key PureCart Differentiators
 
 1. **License-linked renewals** — renewal payment automatically extends software license expiry; no manual work
 2. **SaaS-linked renewals** — renewal re-activates a suspended SaaS account automatically
-3. **Built into WDD** — no separate plugin install, no compatibility risk with WDD modules
+3. **Built into PureCart** — no separate plugin install, no compatibility risk with PureCart modules
 4. **CSV export** — SUMO Subscriptions lacks this; WC Subscriptions requires extra steps
 5. **Unified admin** — subscriptions, licenses, and downloads in one admin area

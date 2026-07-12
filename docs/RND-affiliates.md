@@ -1,15 +1,15 @@
 # RND — Affiliate Program Module
-**Plugin:** woo-digital-downloads
+**Plugin:** purecart
 **Module:** Affiliate Program
 **Phase:** 5
-**Standalone:** Yes — works without any other WDD module
+**Standalone:** Yes — works without any other PureCart module
 **Third-party dependency:** None — fully built-in
 
 ---
 
 ## Overview
 
-The Affiliate Program module is a complete, self-contained affiliate management system built directly into WDD. Affiliates register via a dedicated page, receive a unique referral link, and earn commissions on every qualifying WooCommerce order that comes through their link. Commissions are tracked in WDD's own DB tables, and payouts are managed from the WDD admin panel. No external plugin or SaaS affiliate platform is required.
+The Affiliate Program module is a complete, self-contained affiliate management system built directly into PureCart. Affiliates register via a dedicated page, receive a unique referral link, and earn commissions on every qualifying WooCommerce order that comes through their link. Commissions are tracked in PureCart's own DB tables, and payouts are managed from the PureCart admin panel. No external plugin or SaaS affiliate platform is required.
 
 ---
 
@@ -50,7 +50,7 @@ No external plugin is required.
 Affiliate visits /affiliate-registration/ page
     │
     └── AffiliateManager::register()
-            INSERT wp_wdd_affiliates {user_id, status: pending, code: random 8-char slug}
+            INSERT wp_purecart_affiliates {user_id, status: pending, code: random 8-char slug}
             [If auto-approve enabled] → status: 'active', send welcome email
 
 Admin approves affiliate
@@ -65,25 +65,25 @@ Visitor lands on store via referral link
     │
     └── ReferralTracker::on_init()
             IF ?ref={code} in URL AND affiliate is active:
-                Set cookie: wdd_affiliate_ref = {code}
-                TTL: wdd_cookie_days (default: 30 days)
+                Set cookie: purecart_affiliate_ref = {code}
+                TTL: purecart_cookie_days (default: 30 days)
                 Respect last-click attribution
 
 Visitor places order
     │
     └── CommissionEngine::on_order_completed($order_id)
-            ├── Read cookie: wdd_affiliate_ref
+            ├── Read cookie: purecart_affiliate_ref
             ├── Find affiliate by code → get commission rate
             ├── Calculate commission: order_total × rate (or flat amount)
-            ├── INSERT wp_wdd_commissions {affiliate_id, order_id, amount, status: pending}
+            ├── INSERT wp_purecart_commissions {affiliate_id, order_id, amount, status: pending}
             ├── [If auto-approve enabled] → status: 'approved'
-            └── Fire: do_action('wdd_commission_created', $commission_id, $affiliate_id)
+            └── Fire: do_action('purecart_commission_created', $commission_id, $affiliate_id)
 
 Admin runs payout
     │
     └── PayoutManager::create_payout($affiliate_id, $period)
             ├── Sum all approved commissions for affiliate in period
-            ├── INSERT wp_wdd_payouts {affiliate_id, amount, status: pending}
+            ├── INSERT wp_purecart_payouts {affiliate_id, amount, status: pending}
             ├── Export CSV with PayPal emails for bulk payment
             └── Mark commissions as 'paid'
 ```
@@ -95,7 +95,7 @@ Admin runs payout
 ```php
 // ReferralTracker::set_cookie()
 setcookie(
-    'wdd_affiliate_ref',
+    'purecart_affiliate_ref',
     sanitize_text_field( $affiliate_code ),
     [
         'expires'  => time() + ( $cookie_days * DAY_IN_SECONDS ),
@@ -107,9 +107,9 @@ setcookie(
 );
 ```
 
-**Attribution model:** Last-click by default. If a visitor arrives via two different affiliate links, the most recent cookie wins. First-click attribution is available via `wdd_affiliate_attribution_model` filter.
+**Attribution model:** Last-click by default. If a visitor arrives via two different affiliate links, the most recent cookie wins. First-click attribution is available via `purecart_affiliate_attribution_model` filter.
 
-**Self-referral prevention:** If the logged-in user is an affiliate and also the buyer, the commission is not recorded (configurable via `wdd_allow_self_referral` option, default: false).
+**Self-referral prevention:** If the logged-in user is an affiliate and also the buyer, the commission is not recorded (configurable via `purecart_allow_self_referral` option, default: false).
 
 ---
 
@@ -117,7 +117,7 @@ setcookie(
 
 Commissions are configured at three levels (highest specificity wins):
 
-1. **Per-product override** — set on individual WooCommerce products via WDD meta box
+1. **Per-product override** — set on individual WooCommerce products via PureCart meta box
 2. **Per-affiliate override** — set in affiliate profile (admin-only)
 3. **Global default** — set in Settings → Digital Downloads → Affiliates
 
@@ -130,7 +130,7 @@ Commissions are configured at three levels (highest specificity wins):
 
 ```php
 // CommissionEngine::calculate($order_id, $affiliate_id)
-$rate = apply_filters( 'wdd_commission_rate', $global_rate, $affiliate_id, $order_id );
+$rate = apply_filters( 'purecart_commission_rate', $global_rate, $affiliate_id, $order_id );
 $base = $order->get_subtotal();  // excl. shipping, excl. tax (configurable)
 return round( $base * $rate, 2 );
 ```
@@ -156,10 +156,10 @@ Enabled via a custom rewrite rule in `AffiliateManager::register_rewrite_rules()
 
 ## Database Tables
 
-### `wp_wdd_affiliates`
+### `wp_purecart_affiliates`
 
 ```sql
-CREATE TABLE {prefix}wdd_affiliates (
+CREATE TABLE {prefix}purecart_affiliates (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id         BIGINT UNSIGNED NOT NULL UNIQUE,
     affiliate_code  VARCHAR(20) NOT NULL UNIQUE,
@@ -181,10 +181,10 @@ CREATE TABLE {prefix}wdd_affiliates (
 );
 ```
 
-### `wp_wdd_commissions`
+### `wp_purecart_commissions`
 
 ```sql
-CREATE TABLE {prefix}wdd_commissions (
+CREATE TABLE {prefix}purecart_commissions (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     affiliate_id    BIGINT UNSIGNED NOT NULL,
     order_id        BIGINT UNSIGNED NOT NULL,
@@ -204,10 +204,10 @@ CREATE TABLE {prefix}wdd_commissions (
 );
 ```
 
-### `wp_wdd_affiliate_clicks`
+### `wp_purecart_affiliate_clicks`
 
 ```sql
-CREATE TABLE {prefix}wdd_affiliate_clicks (
+CREATE TABLE {prefix}purecart_affiliate_clicks (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     affiliate_id    BIGINT UNSIGNED NOT NULL,
     ip_address      VARCHAR(45) NOT NULL,
@@ -220,10 +220,10 @@ CREATE TABLE {prefix}wdd_affiliate_clicks (
 );
 ```
 
-### `wp_wdd_payouts`
+### `wp_purecart_payouts`
 
 ```sql
-CREATE TABLE {prefix}wdd_payouts (
+CREATE TABLE {prefix}purecart_payouts (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     affiliate_id    BIGINT UNSIGNED NOT NULL,
     amount          DECIMAL(10,2) NOT NULL,
@@ -247,15 +247,15 @@ CREATE TABLE {prefix}wdd_payouts (
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `POST` | `/wdd/v1/affiliates/register` | Public | Submit affiliate registration |
-| `GET` | `/wdd/v1/affiliates` | manage_woocommerce | List all affiliates |
-| `GET` | `/wdd/v1/affiliates/{id}` | manage_woocommerce | Get single affiliate |
-| `POST` | `/wdd/v1/affiliates/{id}/approve` | manage_woocommerce | Approve affiliate |
-| `POST` | `/wdd/v1/affiliates/{id}/suspend` | manage_woocommerce | Suspend affiliate |
-| `GET` | `/wdd/v1/affiliates/{id}/commissions` | manage_woocommerce | Get affiliate commissions |
-| `POST` | `/wdd/v1/commissions/{id}/approve` | manage_woocommerce | Approve a commission |
-| `GET` | `/wdd/v1/payouts` | manage_woocommerce | List payouts |
-| `POST` | `/wdd/v1/payouts/generate` | manage_woocommerce | Generate payout batch for a period |
+| `POST` | `/purecart/v1/affiliates/register` | Public | Submit affiliate registration |
+| `GET` | `/purecart/v1/affiliates` | manage_woocommerce | List all affiliates |
+| `GET` | `/purecart/v1/affiliates/{id}` | manage_woocommerce | Get single affiliate |
+| `POST` | `/purecart/v1/affiliates/{id}/approve` | manage_woocommerce | Approve affiliate |
+| `POST` | `/purecart/v1/affiliates/{id}/suspend` | manage_woocommerce | Suspend affiliate |
+| `GET` | `/purecart/v1/affiliates/{id}/commissions` | manage_woocommerce | Get affiliate commissions |
+| `POST` | `/purecart/v1/commissions/{id}/approve` | manage_woocommerce | Approve a commission |
+| `GET` | `/purecart/v1/payouts` | manage_woocommerce | List payouts |
+| `POST` | `/purecart/v1/payouts/generate` | manage_woocommerce | Generate payout batch for a period |
 
 ---
 
@@ -282,7 +282,7 @@ Displays:
 - Payout history
 - Payout method settings (PayPal email)
 
-Shortcode for standalone page: `[wdd_affiliate_dashboard]`
+Shortcode for standalone page: `[purecart_affiliate_dashboard]`
 
 ---
 
@@ -309,38 +309,38 @@ Shortcode for standalone page: `[wdd_affiliate_dashboard]`
 
 ```php
 // Fired after affiliate registration
-do_action( 'wdd_affiliate_registered', $affiliate_id, $user_id );
+do_action( 'purecart_affiliate_registered', $affiliate_id, $user_id );
 
 // Fired after affiliate is approved
-do_action( 'wdd_affiliate_approved', $affiliate_id );
+do_action( 'purecart_affiliate_approved', $affiliate_id );
 
 // Fired after commission is created
-do_action( 'wdd_commission_created', $commission_id, $affiliate_id, $order_id );
+do_action( 'purecart_commission_created', $commission_id, $affiliate_id, $order_id );
 
 // Fired after commission is approved
-do_action( 'wdd_commission_approved', $commission_id );
+do_action( 'purecart_commission_approved', $commission_id );
 
 // Fired after commission is reversed (on refund)
-do_action( 'wdd_commission_reversed', $commission_id, $order_id );
+do_action( 'purecart_commission_reversed', $commission_id, $order_id );
 
 // Fired after payout batch is created
-do_action( 'wdd_payout_created', $payout_id, $affiliate_id, $amount );
+do_action( 'purecart_payout_created', $payout_id, $affiliate_id, $amount );
 
 // Filter: commission rate for a specific order
-apply_filters( 'wdd_commission_rate', $rate, $affiliate_id, $order_id );
+apply_filters( 'purecart_commission_rate', $rate, $affiliate_id, $order_id );
 
 // Filter: commission base amount (e.g., exclude specific products)
-apply_filters( 'wdd_commission_base', $order_subtotal, $order_id, $affiliate_id );
+apply_filters( 'purecart_commission_base', $order_subtotal, $order_id, $affiliate_id );
 
 // Filter: whether to record commission (return false to skip)
-apply_filters( 'wdd_should_record_commission', true, $order_id, $affiliate_id );
+apply_filters( 'purecart_should_record_commission', true, $order_id, $affiliate_id );
 ```
 
 ---
 
 ## Competitor Comparison
 
-| Feature | AffiliateWP ($149/yr) | SUMO Affiliates Pro ($49) | Solid Affiliate ($149/yr) | woo-digital-downloads |
+| Feature | AffiliateWP ($149/yr) | SUMO Affiliates Pro ($49) | Solid Affiliate ($149/yr) | purecart |
 |---|---|---|---|---|
 | Built into plugin (no install) | ❌ Separate plugin | ❌ Separate plugin | ❌ Separate plugin | **✅ Built-in** |
 | Third-party dependency | ❌ Required | ❌ Required | ❌ Required | **✅ None** |
@@ -356,4 +356,4 @@ apply_filters( 'wdd_should_record_commission', true, $order_id, $affiliate_id );
 | WooCommerce native | ✅ | ✅ | ✅ | **✅** |
 | Self-referral prevention | ✅ | ✅ | ✅ | **✅** |
 | Attribution model options | ✅ | Partial | ✅ | **✅ last/first-click** |
-| Price | $149/yr | $49 one-time | $149/yr | **✅ Included in WDD** |
+| Price | $149/yr | $49 one-time | $149/yr | **✅ Included in PureCart** |

@@ -1,5 +1,5 @@
-# R&D Document — woo-digital-downloads
-**Project:** `woo-digital-downloads`
+# R&D Document — PureCart for WooCommerce
+**Project:** `purecart`
 **Path:** `D:\wampserver\www\wp-plugin\digital-downloads\wp-content\plugins\woo-digital-downloads`
 **Date:** 2026-06-24
 **Goal:** A WooCommerce extension that sells and manages WordPress Plugins and SaaS Products from a single platform — with licensing, auto-updates, secure downloads, subscription billing, SaaS provisioning, and anti-piracy built in.
@@ -175,7 +175,7 @@ Sign-up fee coupon type. Recurring fee coupon type.
 - SUMO Reward Points as renewal method requires their separate plugin
 - Single-site CodeCanyon license — no multi-site option at $49
 
-#### Key Gaps vs WDD
+#### Key Gaps vs PureCart
 - No software license key generation or activation tracking
 - No plugin update server
 - No SaaS account provisioning
@@ -198,7 +198,7 @@ Sign-up fee coupon type. Recurring fee coupon type.
 | Abandoned Cart Lite (Tychesoftwares) | Free | 20,000+ | 4.1/5 | Webhooks in free tier, Action Scheduler |
 | CartBounty | Free | 10,000+ | 4.8/5 | Exit Intent free, anonymous cart capture, best hooks |
 
-**WDD Strategy:** Fire `wdd_cart_abandoned` / `wdd_cart_recovered` action hooks — any of these plugins can integrate.
+**PureCart Strategy:** Fire `purecart_cart_abandoned` / `purecart_cart_recovered` action hooks — any of these plugins can integrate.
 
 ---
 
@@ -209,7 +209,7 @@ Sign-up fee coupon type. Recurring fee coupon type.
 | SUMO Affiliates for WooCommerce | $39 | 620 | 4.25/5 | WooCommerce-only |
 | SUMO Affiliates Pro | $49 | 954 | 4.53/5 | Any WordPress site, form/email commissions |
 
-**WDD Strategy:** Webhook bridge — fire events on `license_activated`, `order_completed`, `subscription_renewed` so affiliate plugins can consume commission data.
+**PureCart Strategy:** Webhook bridge — fire events on `license_activated`, `order_completed`, `subscription_renewed` so affiliate plugins can consume commission data.
 
 ---
 
@@ -221,7 +221,7 @@ Sign-up fee coupon type. Recurring fee coupon type.
 | Subscription & Recurring Payment (Convers Lab) | Free | 700+ | 4.9/5 | iDEAL/SEPA free, highest rated |
 | Subscriptions by Sublium (FunnelKit) | Free + 2.9% fee | 300+ | 5.0/5 | Variable products + installments free, FunnelKit ecosystem |
 
-**WDD Position:** WDD builds its own full subscription engine (see `docs/RND-subscriptions.md`). It handles recurring billing via Stripe and PayPal through WooCommerce's gateway layer, plus links subscription state to license expiry and SaaS account status. WDD does not depend on any of the free plugins above.
+**PureCart Position:** PureCart builds its own full subscription engine (see `docs/RND-subscriptions.md`). It handles recurring billing via Stripe and PayPal through WooCommerce's gateway layer, plus links subscription state to license expiry and SaaS account status. PureCart does not depend on any of the free plugins above.
 
 ---
 
@@ -232,12 +232,12 @@ Free + Pro | 1,000+ installs | 4.7/5 | Updated May 2026
 
 Pre-generated key delivery: import keys via CSV/TXT, auto-deliver on order complete, HTTP API + REST API for validate/activate/deactivate, DB encryption, customer portal, HPOS + Blocks + WPML. Pro adds: key generator, variable products, bulk export, Twilio SMS.
 
-**WDD vs WC Serial Numbers:**
-| | WC Serial Numbers | woo-digital-downloads |
+**PureCart vs WC Serial Numbers:**
+| | WC Serial Numbers | purecart |
 |---|---|---|
 | Key generation | Import or Pro generator | Dynamic random_bytes() — no import needed |
 | Activation tracking | Basic API | Full domain+environment with staging exemption |
-| Update delivery | Not included | /wdd/v1/plugin/update-check |
+| Update delivery | Not included | /purecart/v1/plugin/update-check |
 | ZIP versioning | Not included | Multi-channel, checksum, changelog |
 | SaaS provisioning | Not included | Full webhook-based |
 | Download tokens | Not included | Signed expiring tokens per order |
@@ -281,7 +281,7 @@ WPDM is a standalone file management and digital store system — it is NOT a Wo
 - 2-click checkout — simplest possible checkout for digital goods
 - Manual order creation from admin
 
-**WPDM Weaknesses / WDD Opportunity:**
+**WPDM Weaknesses / PureCart Opportunity:**
 - Not WooCommerce native — merchants must maintain a second commerce system
 - Critical review: "People end up downloading content for FREE" — delivery security gap
 - No staging/local environment exemption for licenses
@@ -289,13 +289,13 @@ WPDM is a standalone file management and digital store system — it is NOT a Wo
 - No SaaS provisioning, no JWT, no GitHub sync
 - No WooCommerce HPOS compatibility by definition
 
-**WDD Decisions from WPDM Research:**
+**PureCart Decisions from WPDM Research:**
 - Adopt ad blocker detection feature for Downloads module
 - Adopt "play but don't download" for video files
 - Adopt dark/light/system color scheme toggle in admin UI
 - Adopt dynamic payment link concept as a WooCommerce quick-buy mechanism
 - Adopt 2-click checkout concept via Digital Goods Checkout integration (§1.11)
-- Adopt order expiration as a WDD entitlement feature (already planned)
+- Adopt order expiration as a PureCart entitlement feature (already planned)
 
 ---
 
@@ -304,7 +304,7 @@ WPDM is a standalone file management and digital store system — it is NOT a Wo
 **URL:** https://wordpress.org/plugins/digital-license-manager/
 Free + Pro | 700+ installs | 4.7/5 | Updated Feb 2026 (v1.8.4) | By CodeVerve
 
-DLM is a WooCommerce extension for selling and managing license keys. It is the closest free direct competitor to WDD's Licensing module.
+DLM is a WooCommerce extension for selling and managing license keys. It is the closest free direct competitor to PureCart's Licensing module.
 
 **DLM Free — what it covers:**
 - Licenses table with search, filter, edit
@@ -339,8 +339,8 @@ DLM is a WooCommerce extension for selling and managing license keys. It is the 
 - WPML support
 - License Revealing (blur key until customer clicks)
 
-**WDD vs DLM:**
-| Feature | DLM | woo-digital-downloads |
+**PureCart vs DLM:**
+| Feature | DLM | purecart |
 |---|---|---|
 | Key generation | Generator (configurable format) | `random_bytes()` — cryptographically secure |
 | Activation tracking | DB row per activation with IP/UA/label | Same + environment (staging/local) + geo |
@@ -355,15 +355,15 @@ DLM is a WooCommerce extension for selling and managing license keys. It is the 
 | Encryption | defuse/PHP-Encryption | Encrypt in DB + rotating keys |
 | Works without WooCommerce | Yes | No — WooCommerce extension only |
 
-**WDD Decisions from DLM Research:**
+**PureCart Decisions from DLM Research:**
 - **PDF License Certificate** is a meaningful feature — add to roadmap (Phase 3 or later, use `spipu/html2pdf`)
 - **Manual activation from My Account** — let customers activate without API. Add to My Account license tab.
 - **License Revealing** (blur key, click to reveal) — good UX. Adopt in My Account.
 - **Copy to clipboard** button on license key display — adopt everywhere
-- **Per-item `_wdd_license_id` order meta** — already planned; confirm it matches DLM pattern
-- **Migration tool** — build a DLM → WDD migration tool for v1.1
-- **Tom-Select instead of Select2** — confirm WDD admin also avoids jQuery for dropdowns
-- Encryption: store encrypted in DB, key file in `wp-content/uploads/wdd-keys/` — document backup requirement
+- **Per-item `_purecart_license_id` order meta** — already planned; confirm it matches DLM pattern
+- **Migration tool** — build a DLM → PureCart migration tool for v1.1
+- **Tom-Select instead of Select2** — confirm PureCart admin also avoids jQuery for dropdowns
+- Encryption: store encrypted in DB, key file in `wp-content/uploads/purecart-keys/` — document backup requirement
 
 ---
 
@@ -390,11 +390,11 @@ A focused WooCommerce plugin that removes unnecessary billing/shipping fields fr
 
 **Known issue:** Conflict with FluentCRM SMTP driver (one user report).
 
-**WDD Decision:**
-WDD should build this behavior directly into its checkout module rather than requiring a separate plugin. The existing §6.6 Checkout Optimization covers this. Specifically:
+**PureCart Decision:**
+PureCart should build this behavior directly into its checkout module rather than requiring a separate plugin. The existing §6.6 Checkout Optimization covers this. Specifically:
 - `woocommerce_checkout_fields` filter to remove address fields when cart is digital-only
-- Quick checkout button: a `[wdd_quick_checkout]` shortcode option
-- The Pro's "delayed account creation" pattern is useful for WDD's "optional account creation" UX goal
+- Quick checkout button: a `[purecart_quick_checkout]` shortcode option
+- The Pro's "delayed account creation" pattern is useful for PureCart's "optional account creation" UX goal
 - Document the FluentCRM SMTP incompatibility pattern — avoid hooking `wp_mail` filters
 
 ---
@@ -404,7 +404,7 @@ WDD should build this behavior directly into its checkout module rather than req
 **URL:** https://wordpress.org/plugins/arraysubs/
 Free | 80+ installs | No reviews yet (launched March 2026) | By Emran
 
-ArraySubs is a comprehensive free WooCommerce subscription + membership plugin. It is the most feature-complete free alternative to WooCommerce Subscriptions discovered in WDD research.
+ArraySubs is a comprehensive free WooCommerce subscription + membership plugin. It is the most feature-complete free alternative to WooCommerce Subscriptions discovered in PureCart research.
 
 **What's free (complete list of notable features):**
 - Subscription products: simple + variable, per-variation configuration
@@ -434,8 +434,8 @@ ArraySubs is a comprehensive free WooCommerce subscription + membership plugin. 
 - HPOS compatible, Block checkout compatible
 - CSV/JSON subscription export
 
-**WDD vs ArraySubs:**
-| Feature | ArraySubs | woo-digital-downloads |
+**PureCart vs ArraySubs:**
+| Feature | ArraySubs | purecart |
 |---|---|---|
 | Subscription engine | Full built-in | Full built-in (planned) |
 | Retention flow | 4 offer types + analytics | Not planned (Phase 5+) |
@@ -451,26 +451,26 @@ ArraySubs is a comprehensive free WooCommerce subscription + membership plugin. 
 | JWT for SaaS auth | No | Yes (Phase 2) |
 | Focuses on WooCommerce | Yes | Yes |
 
-**WDD Decisions from ArraySubs Research:**
+**PureCart Decisions from ArraySubs Research:**
 - **Retention flow** (cancellation reason → offer → confirm) is a high-value subscription feature. Add to Subscriptions module roadmap (Phase 2 extension).
-- **2-phase grace period** (active grace → on-hold → cancel) is the right pattern. Adopt for WDD dunning: `_wdd_sub_active_grace_days` + `_wdd_sub_onhold_grace_days` settings.
-- **Skip next renewal** — add to customer My Account portal for WDD subscriptions.
+- **2-phase grace period** (active grace → on-hold → cancel) is the right pattern. Adopt for PureCart dunning: `_purecart_sub_active_grace_days` + `_purecart_sub_onhold_grace_days` settings.
+- **Skip next renewal** — add to customer My Account portal for PureCart subscriptions.
 - **Pause/vacation mode** — add with configurable max duration and cooldown.
 - **Plan switching with 3 proration methods** — adopt: Prorate Immediately / Apply at Renewal / No Proration.
-- **Renewal sync** (align all renewals to a fixed calendar date) — useful for subscription box scenario. Add to WDD Subscriptions.
-- **Login as User** — add to WDD admin tools (helps support staff debug customer issues).
-- **One-trial-per-customer enforcement** — prevent trial abuse. Add `_wdd_trial_used` user meta check.
-- **Stepped renewal pricing** (different price after N cycles) — store as `_wdd_sub_step_price` + `_wdd_sub_step_after` product meta.
-- ArraySubs' download restriction uses signed URLs — confirms WDD's token approach is correct.
-- ArraySubs' role mapping (assign WP roles on subscription status) — add as optional WDD feature.
+- **Renewal sync** (align all renewals to a fixed calendar date) — useful for subscription box scenario. Add to PureCart Subscriptions.
+- **Login as User** — add to PureCart admin tools (helps support staff debug customer issues).
+- **One-trial-per-customer enforcement** — prevent trial abuse. Add `_purecart_trial_used` user meta check.
+- **Stepped renewal pricing** (different price after N cycles) — store as `_purecart_sub_step_price` + `_purecart_sub_step_after` product meta.
+- ArraySubs' download restriction uses signed URLs — confirms PureCart's token approach is correct.
+- ArraySubs' role mapping (assign WP roles on subscription status) — add as optional PureCart feature.
 
 ---
 
 ### 1.13 Payment Gateways — Reference
 
-**WooCommerce Stripe:** 700,000+ installs, free, 23 payment methods, Stripe Radar, Apple/Google Pay, BNPL. WDD hooks into Stripe-fired renewal events.
+**WooCommerce Stripe:** 700,000+ installs, free, 23 payment methods, Stripe Radar, Apple/Google Pay, BNPL. PureCart hooks into Stripe-fired renewal events.
 
-**WooCommerce PayPal Payments:** 800,000+ installs, free, PayPal + Venmo + Pay Later + Fastlane + Apple/Google Pay + Crypto. WDD hooks into PayPal-fired order status events.
+**WooCommerce PayPal Payments:** 800,000+ installs, free, PayPal + Venmo + Pay Later + Fastlane + Apple/Google Pay + Crypto. PureCart hooks into PayPal-fired order status events.
 
 ---
 
@@ -480,7 +480,7 @@ ArraySubs is a comprehensive free WooCommerce subscription + membership plugin. 
 
 **JWT Authentication for WP REST API (tmeister):** 60,000+ installs, 4.4/5, React admin dashboard, actively maintained. No refresh token in free tier — Pro required.
 
-**WDD Decision:** Use `firebase/php-jwt` directly in `includes/SaaS/JwtIssuer.php` — avoids namespace collisions, plugin conflicts, and external dependency risks. HS256, 10-min access tokens, 30-day refresh tokens stored server-side.
+**PureCart Decision:** Use `firebase/php-jwt` directly in `includes/SaaS/JwtIssuer.php` — avoids namespace collisions, plugin conflicts, and external dependency risks. HS256, 10-min access tokens, 30-day refresh tokens stored server-side.
 
 ---
 
@@ -567,24 +567,24 @@ LMFWC stores its encryption secrets as two files on disk. If these files are los
 - WooCommerce order → SaaS account creation webhook flow (no competitor)
 - Dynamic `random_bytes()` key generation without static crypto files (no competitor — LMFWC/DLM use disk-stored secrets)
 
-**Features competitors do have that WDD should match or exceed:**
-- PDF license certificate (DLM free, LMFWC free) → WDD roadmap Phase 3
-- Manual license activation from My Account (DLM free, LMFWC free) → WDD My Account tab
-- License key "copy to clipboard" (DLM free, LMFWC free) → WDD My Account + order page
-- License key reveal/blur (DLM free, LMFWC free) → WDD My Account
-- QR Code on license certificate (LMFWC Pro) → WDD roadmap Phase 3/4
-- Multiple keys per purchase quantity (LMFWC free) → WDD OrderHandler quantity loop
-- Delivery on "processing" status option (LMFWC free) → WDD settings `add_license_delivery_status`
-- Past-order retroactive key generation (LMFWC free) → WDD admin tool
-- 2-click / quick checkout for digital-only carts (Digital Goods Checkout) → WDD checkout module
-- Ad blocker detection on download page (WPDM) → WDD Downloads module
-- Video play-but-no-download protection (WPDM) → WDD Downloads module
-- Retention flow builder on subscription cancellation (ArraySubs free) → WDD Subscriptions Phase 2
-- 2-phase grace period on subscription payment failure (ArraySubs) → WDD dunning engine
-- Skip next renewal + pause/vacation mode (ArraySubs free) → WDD customer portal
-- Stepped renewal pricing after N cycles (ArraySubs free) → WDD subscription product config
-- Dark/light/system color scheme toggle in admin (WPDM) → WDD admin panel
-- New key vs. extend key on subscription renewal (LMFWC Pro) → WDD `_add_renewal_behavior` product meta
+**Features competitors do have that PureCart should match or exceed:**
+- PDF license certificate (DLM free, LMFWC free) → PureCart roadmap Phase 3
+- Manual license activation from My Account (DLM free, LMFWC free) → PureCart My Account tab
+- License key "copy to clipboard" (DLM free, LMFWC free) → PureCart My Account + order page
+- License key reveal/blur (DLM free, LMFWC free) → PureCart My Account
+- QR Code on license certificate (LMFWC Pro) → PureCart roadmap Phase 3/4
+- Multiple keys per purchase quantity (LMFWC free) → PureCart OrderHandler quantity loop
+- Delivery on "processing" status option (LMFWC free) → PureCart settings `purecart_license_delivery_status`
+- Past-order retroactive key generation (LMFWC free) → PureCart admin tool
+- 2-click / quick checkout for digital-only carts (Digital Goods Checkout) → PureCart checkout module
+- Ad blocker detection on download page (WPDM) → PureCart Downloads module
+- Video play-but-no-download protection (WPDM) → PureCart Downloads module
+- Retention flow builder on subscription cancellation (ArraySubs free) → PureCart Subscriptions Phase 2
+- 2-phase grace period on subscription payment failure (ArraySubs) → PureCart dunning engine
+- Skip next renewal + pause/vacation mode (ArraySubs free) → PureCart customer portal
+- Stepped renewal pricing after N cycles (ArraySubs free) → PureCart subscription product config
+- Dark/light/system color scheme toggle in admin (WPDM) → PureCart admin panel
+- New key vs. extend key on subscription renewal (LMFWC Pro) → PureCart `_purecart_renewal_behavior` product meta
 
 ---
 
@@ -592,13 +592,13 @@ LMFWC stores its encryption secrets as two files on disk. If these files are los
 
 ### 3.1 Core Philosophy
 **WooCommerce handles:** Checkout, cart, orders, coupons, payment gateways, customer accounts.
-**woo-digital-downloads handles:** Everything else — licensing, downloads, updates, SaaS, subscriptions, security, and analytics.
+**PureCart handles:** Everything else — licensing, downloads, updates, SaaS, subscriptions, security, and analytics.
 
 ### 3.2 Module Structure
 
 ```
 woo-digital-downloads/
-├── woo-digital-downloads.php        # Main plugin file
+├── purecart.php                     # Main plugin file
 ├── includes/
 │   ├── Commerce/                    # WooCommerce integration layer
 │   │   ├── OrderHandler.php         # woocommerce_order_status_completed
@@ -619,7 +619,7 @@ woo-digital-downloads/
 │   │   └── GeoBlocker.php           # Country-level block list
 │   │
 │   ├── Updates/                     # WordPress plugin auto-update API
-│   │   ├── UpdateServer.php         # /wp-json/wdd/v1/plugin/update
+│   │   ├── UpdateServer.php         # /wp-json/purecart/v1/plugin/update
 │   │   ├── VersionManager.php       # Upload/manage plugin ZIP versions
 │   │   ├── ChangelogManager.php     # Version notes storage
 │   │   └── GitHubSync.php           # GitHub webhook → auto ZIP import
@@ -675,9 +675,9 @@ woo-digital-downloads/
 
 ## 4. Database Schema
 
-### wp_wdd_licenses
+### wp_purecart_licenses
 ```sql
-CREATE TABLE wp_wdd_licenses (
+CREATE TABLE wp_purecart_licenses (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     order_id        BIGINT UNSIGNED NOT NULL,
     user_id         BIGINT UNSIGNED NOT NULL,
@@ -696,9 +696,9 @@ CREATE TABLE wp_wdd_licenses (
 );
 ```
 
-### wp_wdd_license_activations
+### wp_purecart_license_activations
 ```sql
-CREATE TABLE wp_wdd_license_activations (
+CREATE TABLE wp_purecart_license_activations (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     license_id      BIGINT UNSIGNED NOT NULL,
     domain          VARCHAR(255) NOT NULL,
@@ -712,9 +712,9 @@ CREATE TABLE wp_wdd_license_activations (
 );
 ```
 
-### wp_wdd_downloads
+### wp_purecart_downloads
 ```sql
-CREATE TABLE wp_wdd_downloads (
+CREATE TABLE wp_purecart_downloads (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     order_id        BIGINT UNSIGNED NOT NULL,
     user_id         BIGINT UNSIGNED NOT NULL,
@@ -732,9 +732,9 @@ CREATE TABLE wp_wdd_downloads (
 );
 ```
 
-### wp_wdd_download_logs
+### wp_purecart_download_logs
 ```sql
-CREATE TABLE wp_wdd_download_logs (
+CREATE TABLE wp_purecart_download_logs (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     download_id     BIGINT UNSIGNED NOT NULL,
     ip_address      VARCHAR(45),
@@ -745,9 +745,9 @@ CREATE TABLE wp_wdd_download_logs (
 );
 ```
 
-### wp_wdd_product_versions
+### wp_purecart_product_versions
 ```sql
-CREATE TABLE wp_wdd_product_versions (
+CREATE TABLE wp_purecart_product_versions (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     product_id      BIGINT UNSIGNED NOT NULL,
     version         VARCHAR(20) NOT NULL,
@@ -764,9 +764,9 @@ CREATE TABLE wp_wdd_product_versions (
 );
 ```
 
-### wp_wdd_subscriptions
+### wp_purecart_subscriptions
 ```sql
-CREATE TABLE wp_wdd_subscriptions (
+CREATE TABLE wp_purecart_subscriptions (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id         BIGINT UNSIGNED NOT NULL,
     product_id      BIGINT UNSIGNED NOT NULL,
@@ -784,9 +784,9 @@ CREATE TABLE wp_wdd_subscriptions (
 );
 ```
 
-### wp_wdd_saas_accounts
+### wp_purecart_saas_accounts
 ```sql
-CREATE TABLE wp_wdd_saas_accounts (
+CREATE TABLE wp_purecart_saas_accounts (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     user_id         BIGINT UNSIGNED NOT NULL,
     order_id        BIGINT UNSIGNED NOT NULL,
@@ -802,7 +802,7 @@ CREATE TABLE wp_wdd_saas_accounts (
 
 ---
 
-## 5. All endpoints registered under `/wp-json/wdd/v1/`
+## 5. All endpoints registered under `/wp-json/purecart/v1/`
 
 ### License API
 ```
@@ -852,17 +852,17 @@ add_filter('woocommerce_downloadable_file_download_url',     [$this, 'secure_dow
 ```
 WooCommerce Order Completed
         │
-        ├─ Is product type "wdd_plugin"?
+        ├─ Is product type "purecart_plugin"?
         │       ├─ Generate license key
-        │       ├─ Store in wp_wdd_licenses
+        │       ├─ Store in wp_purecart_licenses
         │       ├─ Send email with license + download link
-        │       └─ Log to wp_wdd_downloads
+        │       └─ Log to wp_purecart_downloads
         │
-        └─ Is product type "wdd_saas"?
+        └─ Is product type "purecart_saas"?
                 ├─ Call SaaS provisioner
                 ├─ Create account (via API or internal)
                 ├─ Generate API key
-                ├─ Store in wp_wdd_saas_accounts
+                ├─ Store in wp_purecart_saas_accounts
                 └─ Send login credentials email
 ```
 
@@ -871,12 +871,12 @@ WooCommerce Order Completed
 ## 7. Feature Roadmap & Build Priority
 
 ### Phase 1 — MVP (Must Ship First)
-- [ ] WooCommerce product type: `wdd_plugin` and `wdd_saas`
+- [ ] WooCommerce product type: `purecart_plugin` and `purecart_saas`
 - [ ] License generation on order complete
 - [ ] License activation / deactivation REST API
 - [ ] Secure download token system (expiry + count limit)
 - [ ] Download log (IP, country, timestamp)
-- [ ] Plugin update API (`/wdd/v1/plugin/update-check`)
+- [ ] Plugin update API (`/purecart/v1/plugin/update-check`)
 - [ ] ZIP version upload and management (Admin UI)
 - [ ] Customer My Account: License tab + Download tab
 - [ ] Email notifications: purchase, license key, download link
@@ -956,7 +956,7 @@ WooCommerce Order Completed
 
 ## 9. Differentiation Table
 
-| Capability | EDD | SureCart | FluentCart | SUMO Subs | WC Serial Numbers | WPDM+PP | DLM | LMFWC | ArraySubs | woo-digital-downloads |
+| Capability | EDD | SureCart | FluentCart | SUMO Subs | WC Serial Numbers | WPDM+PP | DLM | LMFWC | ArraySubs | purecart |
 |---|---|---|---|---|---|---|---|---|---|---|
 | WooCommerce native | No | No | No | Yes | Yes | No | Yes | Yes | Yes | **Yes** |
 | Self-hosted | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **Yes** |
