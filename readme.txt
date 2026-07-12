@@ -1,5 +1,5 @@
 === PureCart ===
-Contributors: mostakimmim123, theaminuldev
+Contributors: mostakimmim123, nym02, theaminuldev, 
 Tags: woocommerce, digital downloads, software licensing, license keys, saas
 Requires at least: 6.0
 Tested up to: 7.0
