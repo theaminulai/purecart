@@ -1,5 +1,5 @@
 # RND — Security & Anti-Piracy Module
-**Plugin:** woo-digital-downloads
+**Plugin:** purecart
 **Module:** Security & Anti-Piracy
 **Phase:** 3
 **Standalone:** Partial — rate limiting and geo-blocking work standalone; abuse detection requires Licensing module
@@ -16,7 +16,7 @@ The Security module adds multiple layers of protection to prevent license abuse,
 
 **Without Licensing module:**
 - Geo-blocking on downloads
-- Rate limiting on any WDD REST endpoint
+- Rate limiting on any PureCart REST endpoint
 - SHA-256 checksum verification (requires Plugin Updates module)
 
 **With Licensing module:**
@@ -42,16 +42,16 @@ The Security module adds multiple layers of protection to prevent license abuse,
 
 ## 1. Rate Limiting
 
-`RateLimiter` intercepts every call to `POST /wdd/v1/license/activate` before it reaches `LicenseActivator`.
+`RateLimiter` intercepts every call to `POST /purecart/v1/license/activate` before it reaches `LicenseActivator`.
 
 ### Implementation
 
 ```php
-// Stored in WP transients: key = 'wdd_rl_{ip_hash}', value = attempt count
-// TTL = wdd_rate_limit_window_seconds (default: 3600)
+// Stored in WP transients: key = 'purecart_rl_{ip_hash}', value = attempt count
+// TTL = purecart_rate_limit_window_seconds (default: 3600)
 
 $ip_hash   = md5( $ip_address );
-$transient = "wdd_rl_{$ip_hash}";
+$transient = "purecart_rl_{$ip_hash}";
 $attempts  = (int) get_transient( $transient );
 
 if ( $attempts >= $limit ) {
@@ -65,10 +65,10 @@ set_transient( $transient, $attempts + 1, $window_seconds );
 
 | Option | Default | Description |
 |---|---|---|
-| `wdd_rate_limit_enabled` | `true` | Enable rate limiting |
-| `wdd_rate_limit_max_attempts` | `10` | Max activations from one IP per window |
-| `wdd_rate_limit_window_seconds` | `3600` | Window duration (1 hour) |
-| `wdd_rate_limit_endpoints` | `['license/activate']` | Which endpoints to rate-limit |
+| `purecart_rate_limit_enabled` | `true` | Enable rate limiting |
+| `purecart_rate_limit_max_attempts` | `10` | Max activations from one IP per window |
+| `purecart_rate_limit_window_seconds` | `3600` | Window duration (1 hour) |
+| `purecart_rate_limit_endpoints` | `['license/activate']` | Which endpoints to rate-limit |
 
 ### IP Detection
 
@@ -94,18 +94,18 @@ $headers = [
 ```
 For each active license:
     │
-    ├── Fetch all activation records from wp_wdd_license_activations
+    ├── Fetch all activation records from wp_purecart_license_activations
     │
     ├── Check: activations from > N distinct countries in last 30 days?
-    │       Threshold: wdd_abuse_max_countries (default: 3)
-    │       Source: wp_wdd_download_logs.country_code per license_id
+    │       Threshold: purecart_abuse_max_countries (default: 3)
+    │       Source: wp_purecart_download_logs.country_code per license_id
     │
     ├── Check: activation requests from > N distinct IPs in 24 hours?
-    │       Threshold: wdd_abuse_max_ips_24h (default: 10)
+    │       Threshold: purecart_abuse_max_ips_24h (default: 10)
     │
     └── If threshold exceeded:
             ├── SET license status = 'suspended'
-            ├── Fire: do_action('wdd_license_abuse_detected', $license_id, $reason, $data)
+            ├── Fire: do_action('purecart_license_abuse_detected', $license_id, $reason, $data)
             └── Send admin notification email
 ```
 
@@ -113,11 +113,11 @@ For each active license:
 
 | Option | Default | Description |
 |---|---|---|
-| `wdd_abuse_detection_enabled` | `true` | Enable abuse detection |
-| `wdd_abuse_max_countries` | `3` | Max distinct countries per license per 30 days |
-| `wdd_abuse_max_ips_24h` | `10` | Max distinct IPs activating a license in 24 hours |
-| `wdd_abuse_action` | `suspend` | `suspend` or `notify_only` |
-| `wdd_abuse_notify_email` | admin email | Email to receive abuse alerts |
+| `purecart_abuse_detection_enabled` | `true` | Enable abuse detection |
+| `purecart_abuse_max_countries` | `3` | Max distinct countries per license per 30 days |
+| `purecart_abuse_max_ips_24h` | `10` | Max distinct IPs activating a license in 24 hours |
+| `purecart_abuse_action` | `suspend` | `suspend` or `notify_only` |
+| `purecart_abuse_notify_email` | admin email | Email to receive abuse alerts |
 
 ---
 
@@ -128,7 +128,7 @@ When a plugin ZIP is uploaded via the version manager:
 ```php
 // VersionManager::add()
 $checksum = hash_file( 'sha256', $absolute_file_path );
-// Stored in wp_wdd_product_versions.checksum_sha256
+// Stored in wp_purecart_product_versions.checksum_sha256
 ```
 
 The checksum is returned in the update-check response. The customer's plugin verifies it before installation:
@@ -150,11 +150,11 @@ if ( $actual_checksum !== $response['checksum_sha256'] ) {
 
 Documented in full in `docs/RND-secure-downloads.md`. Summary:
 
-- Country list maintained in `wdd_geo_blocked_countries` (2-letter ISO codes)
+- Country list maintained in `purecart_geo_blocked_countries` (2-letter ISO codes)
 - Mode: `block` (deny listed) or `allow` (only allow listed)
 - Detection: ip-api.com (free, rate-limited) or MaxMind GeoLite2 (local, free)
 - Applied: every download request through DownloadDispatcher
-- Bypass: filterable via `wdd_geo_block_bypass` hook
+- Bypass: filterable via `purecart_geo_block_bypass` hook
 
 ---
 
@@ -167,7 +167,7 @@ Domains matching these patterns do not count against the activation limit:
 - `.local`, `.test`, `.dev`
 - `.staging.`, `staging.`
 
-Environment is recorded as `local` or `staging` in `wp_wdd_license_activations` for audit purposes. Filterable via `wdd_staging_exempt_patterns` hook.
+Environment is recorded as `local` or `staging` in `wp_purecart_license_activations` for audit purposes. Filterable via `purecart_staging_exempt_patterns` hook.
 
 ---
 
@@ -178,15 +178,15 @@ If a download token is being used from more than one IP simultaneously (possible
 Detection rule (runs hourly via Action Scheduler):
 ```
 SELECT download_id, COUNT(DISTINCT ip_address) as ip_count
-FROM wp_wdd_download_logs
+FROM wp_purecart_download_logs
 WHERE downloaded_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
 GROUP BY download_id
 HAVING ip_count > 2
 ```
 
 If concurrent IPs detected:
-- Admin notification fired: `do_action('wdd_concurrent_download_detected', $token_id, $ips)`
-- Optional: revoke token (`wdd_revoke_on_concurrent_download` option, default: false)
+- Admin notification fired: `do_action('purecart_concurrent_download_detected', $token_id, $ips)`
+- Optional: revoke token (`purecart_revoke_on_concurrent_download` option, default: false)
 
 ---
 
@@ -232,13 +232,13 @@ Not implemented in Phase 3 MVP; planned as an opt-in option in Phase 3 final.
 - [ ] All custom queries use `$wpdb->prepare()`
 - [ ] License keys stored in DB (not encrypted, but not transmitted in logs)
 - [ ] API keys stored in DB — never logged or exposed in error messages
-- [ ] `wp_wdd_download_logs` retains IPs — handle in privacy policy and GDPR erasure
+- [ ] `wp_purecart_download_logs` retains IPs — handle in privacy policy and GDPR erasure
 
 ---
 
 ## Competitor Comparison
 
-| Feature | WooCommerce Native | EDD | Wordfence | woo-digital-downloads |
+| Feature | WooCommerce Native | EDD | Wordfence | purecart |
 |---|---|---|---|---|
 | License activation rate limiting | ❌ | Partial | ❌ | **✅ WP transients, per-IP, configurable** |
 | Multi-country / shared license detection | ❌ | ❌ | ❌ | **✅ Country threshold per license** |
@@ -247,9 +247,9 @@ Not implemented in Phase 3 MVP; planned as an opt-in option in Phase 3 final.
 | Concurrent download detection | ❌ | ❌ | ❌ | **✅ Multi-IP same token detection** |
 | Remote license kill-switch | ❌ | ✅ (paid) | ❌ | **✅ Instant revoke via REST** |
 | Staging/localhost exemption | ❌ | Basic | ❌ | **✅ Pattern-based, no activation cost** |
-| Webhook HMAC-SHA256 signing | ❌ | ❌ | ❌ | **✅ X-WDD-Sig on all outbound calls** |
+| Webhook HMAC-SHA256 signing | ❌ | ❌ | ❌ | **✅ X-PureCart-Sig on all outbound calls** |
 | GDPR-aware IP logging | ❌ | Partial | ❌ | **✅ Erasure hook, configurable retention** |
-| Zero extra plugin dependencies | — | Paid add-on | Separate plugin | **✅ Built into WDD** |
+| Zero extra plugin dependencies | — | Paid add-on | Separate plugin | **✅ Built into PureCart** |
 
 ---
 
@@ -257,17 +257,17 @@ Not implemented in Phase 3 MVP; planned as an opt-in option in Phase 3 final.
 
 ```php
 // Rate limiter — filter the limit per endpoint
-apply_filters( 'wdd_rate_limit_max', $max, $endpoint, $ip );
+apply_filters( 'purecart_rate_limit_max', $max, $endpoint, $ip );
 
 // Abuse detector — fire when license flagged
-do_action( 'wdd_license_abuse_detected', $license_id, $reason, $data );
+do_action( 'purecart_license_abuse_detected', $license_id, $reason, $data );
 
 // Geo-block bypass — return true to allow regardless of country
-apply_filters( 'wdd_geo_block_bypass', false, $ip, $country_code, $token_id );
+apply_filters( 'purecart_geo_block_bypass', false, $ip, $country_code, $token_id );
 
 // Concurrent download detected
-do_action( 'wdd_concurrent_download_detected', $token_id, $ip_list );
+do_action( 'purecart_concurrent_download_detected', $token_id, $ip_list );
 
 // Checksum mismatch on update download
-do_action( 'wdd_checksum_mismatch', $version_id, $expected, $actual );
+do_action( 'purecart_checksum_mismatch', $version_id, $expected, $actual );
 ```

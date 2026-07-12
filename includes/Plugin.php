@@ -2,66 +2,64 @@
 /**
  * Main plugin class — bootstraps all modules.
  *
- * @package WooDigitalDownloads
+ * @package PureCart
  */
 
-namespace WooDigitalDownloads;
+declare( strict_types=1 );
+
+namespace PureCart;
 
 defined( 'ABSPATH' ) || exit;
 
-use WooDigitalDownloads\Commerce\OrderHandler;
-use WooDigitalDownloads\Commerce\ProductTypes;
-use WooDigitalDownloads\API\RestApi;
-use WooDigitalDownloads\CustomerDashboard\Dashboard;
-use WooDigitalDownloads\Admin\Admin;
+use PureCart\Commerce\OrderHandler;
+use PureCart\Commerce\ProductTypes;
+use PureCart\API\RestApi;
+use PureCart\CustomerDashboard\Dashboard;
+use PureCart\Admin\Admin;
 
 /**
  * Plugin singleton.
+ *
+ * @since 1.0.0
  */
 final class Plugin {
 
-    /** @var Plugin|null */
-    private static ?Plugin $instance = null;
+	/**
+	 * Singleton instance.
+	 *
+	 * @var Plugin|null
+	 */
+	private static ?Plugin $instance = null;
 
-    /**
-     * Returns the singleton instance.
-     */
-    public static function instance(): self {
-        if ( null === self::$instance ) {
-            self::$instance = new self();
-            self::$instance->init();
-        }
+	/** Returns the singleton instance. */
+	public static function instance(): self {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+			self::$instance->init();
+		}
 
-        return self::$instance;
-    }
+		return self::$instance;
+	}
 
-    /** Private constructor — use ::instance(). */
-    private function __construct() {}
+	/** Private constructor — use ::instance(). */
+	private function __construct() {}
 
-    /**
-     * Boot all modules.
-     */
-    private function init(): void {
-        // Commerce layer (WooCommerce hooks).
-        new ProductTypes();
-        new OrderHandler();
+	/** Boot all modules. */
+	private function init(): void {
+		new ProductTypes();
+		new OrderHandler();
+		new RestApi();
+		new Dashboard();
 
-        // REST API.
-        new RestApi();
+		if ( is_admin() ) {
+			new Admin();
+		}
 
-        // Customer-facing My Account dashboard tabs.
-        new Dashboard();
+		do_action( 'purecart_loaded', $this );
+	}
 
-        // Admin screens (only in wp-admin).
-        if ( is_admin() ) {
-            new Admin();
-        }
-
-        do_action( 'wdd_loaded', $this );
-    }
-
-    /** Version helper. */
-    public function version(): string {
-        return WDD_VERSION;
-    }
+	/** Version helper. */
+	public function version(): string {
+		return PURECART_VERSION;
+	}
 }

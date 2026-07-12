@@ -2,198 +2,282 @@
 /**
  * Bootstraps all REST API route groups.
  *
- * @package WooDigitalDownloads\API
+ * Namespace: purecart/v1
+ *
+ * @package PureCart\API
  */
 
-namespace WooDigitalDownloads\API;
+declare( strict_types=1 );
+
+namespace PureCart\API;
 
 defined( 'ABSPATH' ) || exit;
 
-use WooDigitalDownloads\Licensing\LicenseActivator;
-use WooDigitalDownloads\Updates\UpdateServer;
-use WooDigitalDownloads\Downloads\TokenManager;
-use WooDigitalDownloads\Downloads\DownloadDispatcher;
-use WooDigitalDownloads\SaaS\AccountProvisioner;
+use PureCart\Licensing\LicenseActivator;
+use PureCart\Updates\UpdateServer;
+use PureCart\Downloads\DownloadDispatcher;
 
 /**
  * Central REST API registrar.
- *
- * Namespace: wdd/v1
- *
- * Routes registered here:
- *   POST  /license/activate
- *   POST  /license/deactivate
- *   GET   /license/check
- *   GET   /plugin/update-check       (delegated to UpdateServer)
- *   GET   /plugin/changelog/{slug}   (delegated to UpdateServer)
- *   GET   /saas/usage/{api_key}
  */
 class RestApi {
 
-    public function __construct() {
-        // UpdateServer self-registers; instantiate it here so it's always loaded.
-        new UpdateServer();
-        // DownloadDispatcher uses rewrite rules, not REST routes.
-        new DownloadDispatcher();
+	/**
+	 * Boot sub-modules and register the rest_api_init hook.
+	 *
+	 * @since 1.0.0
+	 */
+	public function __construct() {
+		new UpdateServer();
+		new DownloadDispatcher();
 
-        add_action( 'rest_api_init', [ $this, 'register_routes' ] );
-    }
+		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
+	}
 
-    public function register_routes(): void {
-        // ── License endpoints ──────────────────────────────────────────────
+	/**
+	 * Register all PureCart REST API routes.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	public function register_routes(): void {
+		register_rest_route(
+			PURECART_API_NAMESPACE,
+			'/license/activate',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'license_activate' ),
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'license_key' => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'domain'      => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'environment' => array(
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => 'production',
+					),
+				),
+			)
+		);
 
-        register_rest_route( WDD_API_NAMESPACE, '/license/activate', [
-            'methods'             => \WP_REST_Server::CREATABLE,
-            'callback'            => [ $this, 'license_activate' ],
-            'permission_callback' => '__return_true',
-            'args'                => [
-                'license_key' => [ 'required' => true,  'sanitize_callback' => 'sanitize_text_field' ],
-                'domain'      => [ 'required' => true,  'sanitize_callback' => 'sanitize_text_field' ],
-                'environment' => [ 'required' => false, 'sanitize_callback' => 'sanitize_text_field', 'default' => 'production' ],
-            ],
-        ] );
+		register_rest_route(
+			PURECART_API_NAMESPACE,
+			'/license/deactivate',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'license_deactivate' ),
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'license_key' => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'domain'      => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
 
-        register_rest_route( WDD_API_NAMESPACE, '/license/deactivate', [
-            'methods'             => \WP_REST_Server::CREATABLE,
-            'callback'            => [ $this, 'license_deactivate' ],
-            'permission_callback' => '__return_true',
-            'args'                => [
-                'license_key' => [ 'required' => true, 'sanitize_callback' => 'sanitize_text_field' ],
-                'domain'      => [ 'required' => true, 'sanitize_callback' => 'sanitize_text_field' ],
-            ],
-        ] );
+		register_rest_route(
+			PURECART_API_NAMESPACE,
+			'/license/check',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'license_check' ),
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'license_key' => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+					'domain'      => array(
+						'required'          => false,
+						'sanitize_callback' => 'sanitize_text_field',
+						'default'           => '',
+					),
+				),
+			)
+		);
 
-        register_rest_route( WDD_API_NAMESPACE, '/license/check', [
-            'methods'             => \WP_REST_Server::READABLE,
-            'callback'            => [ $this, 'license_check' ],
-            'permission_callback' => '__return_true',
-            'args'                => [
-                'license_key' => [ 'required' => true, 'sanitize_callback' => 'sanitize_text_field' ],
-                'domain'      => [ 'required' => false, 'sanitize_callback' => 'sanitize_text_field', 'default' => '' ],
-            ],
-        ] );
+		register_rest_route(
+			PURECART_API_NAMESPACE,
+			'/license/revoke',
+			array(
+				'methods'             => \WP_REST_Server::CREATABLE,
+				'callback'            => array( $this, 'license_revoke' ),
+				'permission_callback' => static fn() => current_user_can( 'manage_woocommerce' ),
+				'args'                => array(
+					'license_key' => array(
+						'required'          => true,
+						'sanitize_callback' => 'sanitize_text_field',
+					),
+				),
+			)
+		);
 
-        // ── License admin revoke (requires manage_woocommerce) ─────────────
+		register_rest_route(
+			PURECART_API_NAMESPACE,
+			'/saas/usage/(?P<api_key>[a-z0-9_]+)',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'saas_usage' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+	}
 
-        register_rest_route( WDD_API_NAMESPACE, '/license/revoke', [
-            'methods'             => \WP_REST_Server::CREATABLE,
-            'callback'            => [ $this, 'license_revoke' ],
-            'permission_callback' => static fn() => current_user_can( 'manage_woocommerce' ),
-            'args'                => [
-                'license_key' => [ 'required' => true, 'sanitize_callback' => 'sanitize_text_field' ],
-            ],
-        ] );
+	/**
+	 * Handle POST /purecart/v1/license/activate.
+	 *
+	 * @since  1.0.0
+	 * @param  \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function license_activate( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$result = ( new LicenseActivator() )->activate(
+			$request->get_param( 'license_key' ),
+			$request->get_param( 'domain' ),
+			$request->get_param( 'environment' )
+		);
 
-        // ── SaaS usage ─────────────────────────────────────────────────────
+		if ( ! $result['success'] ) {
+			return new \WP_Error( 'purecart_activation_failed', $result['message'], array( 'status' => 403 ) );
+		}
 
-        register_rest_route( WDD_API_NAMESPACE, '/saas/usage/(?P<api_key>[a-z0-9_]+)', [
-            'methods'             => \WP_REST_Server::READABLE,
-            'callback'            => [ $this, 'saas_usage' ],
-            'permission_callback' => '__return_true',
-        ] );
-    }
+		return rest_ensure_response( $result );
+	}
 
-    // ─── Callbacks ────────────────────────────────────────────────────────────
+	/**
+	 * Handle POST /purecart/v1/license/deactivate.
+	 *
+	 * @since  1.0.0
+	 * @param  \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function license_deactivate( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$result = ( new LicenseActivator() )->deactivate(
+			$request->get_param( 'license_key' ),
+			$request->get_param( 'domain' )
+		);
 
-    public function license_activate( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-        $activator = new LicenseActivator();
-        $result    = $activator->activate(
-            $request->get_param( 'license_key' ),
-            $request->get_param( 'domain' ),
-            $request->get_param( 'environment' )
-        );
+		if ( ! $result['success'] ) {
+			return new \WP_Error( 'purecart_deactivation_failed', $result['message'], array( 'status' => 400 ) );
+		}
 
-        if ( ! $result['success'] ) {
-            return new \WP_Error( 'wdd_activation_failed', $result['message'], [ 'status' => 403 ] );
-        }
+		return rest_ensure_response( $result );
+	}
 
-        return rest_ensure_response( $result );
-    }
+	/**
+	 * Handle GET /purecart/v1/license/check.
+	 *
+	 * @since  1.0.0
+	 * @param  \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function license_check( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		global $wpdb;
 
-    public function license_deactivate( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-        $activator = new LicenseActivator();
-        $result    = $activator->deactivate(
-            $request->get_param( 'license_key' ),
-            $request->get_param( 'domain' )
-        );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- License check is security-critical; cached status could allow revoked/expired licenses through.
+		$license = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}purecart_licenses WHERE license_key = %s LIMIT 1",
+				$request->get_param( 'license_key' )
+			)
+		);
 
-        if ( ! $result['success'] ) {
-            return new \WP_Error( 'wdd_deactivation_failed', $result['message'], [ 'status' => 400 ] );
-        }
+		if ( ! $license ) {
+			return new \WP_Error( 'purecart_not_found', __( 'Invalid license key.', 'purecart' ), array( 'status' => 404 ) );
+		}
 
-        return rest_ensure_response( $result );
-    }
+		return rest_ensure_response(
+			array(
+				'status'           => $license->status,
+				'plan_type'        => $license->plan_type,
+				'activation_limit' => $license->activation_limit,
+				'activated_count'  => $license->activated_count,
+				'expires_at'       => $license->expires_at,
+			)
+		);
+	}
 
-    public function license_check( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-        global $wpdb;
+	/**
+	 * Handle POST /purecart/v1/license/revoke (requires manage_woocommerce).
+	 *
+	 * @since  1.0.0
+	 * @param  \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function license_revoke( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		global $wpdb;
 
-        $key = $request->get_param( 'license_key' );
+		$key = $request->get_param( 'license_key' );
 
-        $license = $wpdb->get_row(
-            $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}wdd_licenses WHERE license_key = %s LIMIT 1",
-                $key
-            )
-        );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Status update on custom table; must be real-time.
+		$updated = $wpdb->update(
+			$wpdb->prefix . 'purecart_licenses',
+			array(
+				'status'     => 'revoked',
+				'updated_at' => current_time( 'mysql' ),
+			),
+			array( 'license_key' => $key ),
+			array( '%s', '%s' ),
+			array( '%s' )
+		);
 
-        if ( ! $license ) {
-            return new \WP_Error( 'wdd_not_found', __( 'Invalid license key.', 'woo-digital-downloads' ), [ 'status' => 404 ] );
-        }
+		if ( false === $updated ) {
+			return new \WP_Error( 'purecart_revoke_failed', __( 'Could not revoke license.', 'purecart' ), array( 'status' => 500 ) );
+		}
 
-        return rest_ensure_response( [
-            'status'           => $license->status,
-            'plan_type'        => $license->plan_type,
-            'activation_limit' => $license->activation_limit,
-            'activated_count'  => $license->activated_count,
-            'expires_at'       => $license->expires_at,
-        ] );
-    }
+		do_action( 'purecart_license_revoked_via_api', $key );
 
-    public function license_revoke( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-        global $wpdb;
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'message' => __( 'License revoked.', 'purecart' ),
+			)
+		);
+	}
 
-        $key     = $request->get_param( 'license_key' );
-        $updated = $wpdb->update(
-            $wpdb->prefix . 'wdd_licenses',
-            [ 'status' => 'revoked', 'updated_at' => current_time( 'mysql' ) ],
-            [ 'license_key' => $key ],
-            [ '%s', '%s' ],
-            [ '%s' ]
-        );
+	/**
+	 * Handle GET /purecart/v1/saas/usage/{api_key}.
+	 *
+	 * @since  1.0.0
+	 * @param  \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function saas_usage( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		global $wpdb;
 
-        if ( false === $updated ) {
-            return new \WP_Error( 'wdd_revoke_failed', __( 'Could not revoke license.', 'woo-digital-downloads' ), [ 'status' => 500 ] );
-        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- API key authentication; cached status could allow suspended accounts through.
+		$account = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}purecart_saas_accounts WHERE api_key = %s LIMIT 1",
+				sanitize_text_field( $request->get_param( 'api_key' ) )
+			)
+		);
 
-        do_action( 'wdd_license_revoked_via_api', $key );
+		if ( ! $account ) {
+			return new \WP_Error( 'purecart_not_found', __( 'Invalid API key.', 'purecart' ), array( 'status' => 401 ) );
+		}
 
-        return rest_ensure_response( [ 'success' => true, 'message' => __( 'License revoked.', 'woo-digital-downloads' ) ] );
-    }
+		if ( 'active' !== $account->status ) {
+			return new \WP_Error( 'purecart_account_suspended', __( 'Account is not active.', 'purecart' ), array( 'status' => 403 ) );
+		}
 
-    public function saas_usage( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
-        global $wpdb;
-
-        $api_key = $request->get_param( 'api_key' );
-
-        $account = $wpdb->get_row(
-            $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}wdd_saas_accounts WHERE api_key = %s LIMIT 1",
-                sanitize_text_field( $api_key )
-            )
-        );
-
-        if ( ! $account ) {
-            return new \WP_Error( 'wdd_not_found', __( 'Invalid API key.', 'woo-digital-downloads' ), [ 'status' => 401 ] );
-        }
-
-        if ( 'active' !== $account->status ) {
-            return new \WP_Error( 'wdd_account_suspended', __( 'Account is not active.', 'woo-digital-downloads' ), [ 'status' => 403 ] );
-        }
-
-        return rest_ensure_response( [
-            'plan'           => $account->plan,
-            'status'         => $account->status,
-            'provisioned_at' => $account->provisioned_at,
-        ] );
-    }
+		return rest_ensure_response(
+			array(
+				'plan'           => $account->plan,
+				'status'         => $account->status,
+				'provisioned_at' => $account->provisioned_at,
+			)
+		);
+	}
 }

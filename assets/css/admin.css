@@ -1,16 +1,16 @@
 /* =========================================================
-   Woo Digital Downloads — Admin Styles
+   PureCart for WooCommerce — Admin Styles
    ========================================================= */
 
 /* ── Dashboard stats grid ─────────────────────────────── */
-.wdd-stats-grid {
+.purecart-stats-grid {
     display: grid;
     grid-template-columns: repeat( auto-fit, minmax( 160px, 1fr ) );
     gap: 16px;
     margin: 20px 0;
 }
 
-.wdd-stat-card {
+.purecart-stat-card {
     background: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
@@ -19,22 +19,22 @@
     box-shadow: 0 1px 3px rgba(0,0,0,.06);
 }
 
-.wdd-stat-card h3 {
+.purecart-stat-card h3 {
     font-size: 2rem;
     font-weight: 700;
     margin: 0 0 4px;
     color: #2c3e50;
 }
 
-.wdd-stat-card p {
+.purecart-stat-card p {
     margin: 0;
     color: #666;
     font-size: .85rem;
 }
 
 /* ── Status badges ────────────────────────────────────── */
-.wdd-badge,
-.wdd-status {
+.purecart-badge,
+.purecart-status {
     display: inline-block;
     padding: 2px 8px;
     border-radius: 12px;
@@ -43,35 +43,55 @@
     text-transform: capitalize;
 }
 
-.wdd-badge--active,
-.wdd-status--active    { background: #d4edda; color: #155724; }
+.purecart-badge--active,
+.purecart-status--active    { background: #d4edda; color: #155724; }
 
-.wdd-badge--expired,
-.wdd-status--expired   { background: #fff3cd; color: #856404; }
+.purecart-badge--expired,
+.purecart-status--expired   { background: #fff3cd; color: #856404; }
 
-.wdd-badge--revoked,
-.wdd-status--revoked   { background: #f8d7da; color: #721c24; }
+.purecart-badge--revoked,
+.purecart-status--revoked   { background: #f8d7da; color: #721c24; }
 
-.wdd-badge--suspended,
-.wdd-status--suspended { background: #e2e3e5; color: #383d41; }
+.purecart-badge--suspended,
+.purecart-status--suspended { background: #e2e3e5; color: #383d41; }
 
 /* ── Meta table ───────────────────────────────────────── */
-.wdd-meta-table th {
+.purecart-meta-table th {
     width: 220px;
     padding: 12px 0;
     vertical-align: top;
 }
 
-.wdd-meta-table td {
+.purecart-meta-table td {
     padding: 10px 0;
 }
 
-/* ── Licenses table ───────────────────────────────────── */
-.wdd-licenses-table code,
-.wdd-api-keys-table   code {
+/* ── Licenses / API-keys tables ───────────────────────── */
+.purecart-licenses-table code,
+.purecart-api-keys-table   code {
     font-size: .8rem;
     background: #f1f1f1;
     padding: 2px 6px;
     border-radius: 3px;
     word-break: break-all;
+    cursor: pointer;
+}
+
+/* ── Expired download label ───────────────────────────── */
+.purecart-expired {
+    color: #856404;
+    font-style: italic;
+}
+
+/* ── Flash notice ─────────────────────────────────────── */
+.purecart-flash {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #2c3e50;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    z-index: 99999;
+    font-size: 14px;
 }
