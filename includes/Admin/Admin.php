@@ -61,15 +61,6 @@ class Admin {
 
 		add_submenu_page(
 			'purecart-dashboard',
-			__( 'Plugin Versions', 'purecart' ),
-			__( 'Plugin Versions', 'purecart' ),
-			'manage_woocommerce',
-			'purecart-versions',
-			array( $this, 'page_versions' )
-		);
-
-		add_submenu_page(
-			'purecart-dashboard',
 			__( 'Settings', 'purecart' ),
 			__( 'Settings', 'purecart' ),
 			'manage_options',
@@ -231,8 +222,6 @@ class Admin {
 		}
 	}
 
-	// ─── Admin pages ─────────────────────────────────────────────────────────
-
 	/**
 	 * Render the PureCart overview dashboard page.
 	 *
@@ -330,17 +319,6 @@ class Admin {
 			</table>
 		</div>
 		<?php
-	}
-
-	/**
-	 * Render the plugin versions admin page.
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	public function page_versions(): void {
-		echo '<div class="wrap"><h1>' . esc_html__( 'Plugin Versions', 'purecart' ) . '</h1>';
-		echo '<p>' . esc_html__( 'Upload new plugin ZIPs from the product edit screen or via the REST API.', 'purecart' ) . '</p></div>';
 	}
 
 	/**

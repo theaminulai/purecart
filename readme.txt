@@ -10,7 +10,7 @@ WC tested up to: 10.8.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Sell plugins, SaaS, and any digital file on WooCommerce — with secure delivery, license keys, auto-updates, and SaaS provisioning.
+Sell software, SaaS, and any digital file on WooCommerce — with secure delivery, license keys, auto-updates, and SaaS provisioning.
 
 == Description ==
 
