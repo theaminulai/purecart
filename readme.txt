@@ -193,7 +193,6 @@ Files are stored in a directory of your choosing (typically `wp-content/uploads/
 8. **Affiliates** — Commission approvals, payout generation, and referral link performance.
 9. **Analytics** — MRR/ARR, churn rate, version adoption, and geographic download distribution.
 10. **Settings — Modules** — Toggle each feature module on or off with a single switch.
-11. **Customer My Account** — Licenses tab, Downloads tab, and API Keys tab.
 
 == Changelog ==
 
