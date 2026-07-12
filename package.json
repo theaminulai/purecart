@@ -1,9 +1,9 @@
 {
-    "name": "woo-digital-downloads",
+    "name": "purecart",
     "version": "1.0.0",
-    "description": "Build tooling for Woo Digital Downloads admin dashboard",
-    "author": "Digital Downloads",
-    "license": "GPL-2.0-or-later",
+    "description": "Build tooling for PureCart for WooCommerce admin dashboard",
+    "author": "PureCart",
+    "license": "GPL-3.0-or-later",
     "private": true,
     "scripts": {
         "build":           "wp-scripts build",
@@ -16,7 +16,7 @@
         "lint:pkg-json":   "wp-scripts lint-pkg-json",
         "packages-update": "wp-scripts packages-update",
         "plugin-zip":      "wp-scripts plugin-zip",
-        "make-pot":        "wp i18n make-pot . languages/woo-digital-downloads.pot --domain=woo-digital-downloads --exclude=node_modules,vendor,tests"
+        "make-pot":        "wp i18n make-pot . languages/purecart.pot --domain=purecart --exclude=node_modules,vendor,tests"
     },
     "devDependencies": {
         "@wordpress/scripts": "^30.23.0",

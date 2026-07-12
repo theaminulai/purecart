@@ -484,21 +484,98 @@ ArraySubs is a comprehensive free WooCommerce subscription + membership plugin. 
 
 ---
 
+### 1.15 License Manager for WooCommerce (LMFWC)
+
+**URL:** https://wordpress.org/plugins/license-manager-for-woocommerce/
+**By:** Saad Iqbal / WPExperts.io | **Price:** Free + Pro | **Installs:** 6,000+ | **Rating:** 4.6/5 (148 reviews) | **Version:** 3.0.15 (Dec 2025)
+
+LMFWC is a WooCommerce license key management plugin forked from / inspired by the original Digital License Manager codebase. It is one of the most actively maintained free WooCommerce licensing plugins on WordPress.org, and DLM's migration tool explicitly supports migrating from it.
+
+**LMFWC Free — what it covers:**
+- Automated license key generation and delivery on order complete or processing
+- Encrypted storage — keys stored using two cryptographic secret files (`defuse.txt`, `secret.txt`) in `wp-content/uploads/lmfwc-files/`
+- License key generators with configurable format, character set, and length
+- Import license keys from CSV or TXT file
+- Export license keys as CSV or PDF
+- Variable product support (per-variation generator assignment)
+- Automatic stock management — stock count auto-syncs with key inventory
+- REST API — activate, deactivate, validate, create, update, delete licenses and generators
+- Customer My Account — single license page with activation log
+- Manual activation/deactivation from My Account
+- License PDF Certificate download (with optional company logo)
+- Copy-to-clipboard button on license key display
+- Key reveal (show/hide) in My Account
+- Re-send license key email from admin
+- Bulk import and "Mark as sold / Mark as delivered" actions
+- Migration tool from Digital License Manager (DLM)
+- Past-order license generator (retroactively issue keys for old orders)
+- HPOS compatible
+- Configurable delivery trigger: order status "Completed" or "Processing"
+- Duplicate key prevention (configurable — allow or block)
+- Multiple keys per purchase (quantity-aware delivery)
+
+**LMFWC Pro — what requires paid upgrade:**
+- **Download Expires** — re-generate expired product downloads
+- **Product Download Detail** — changelog and version per product tied to license
+- **Validate by Customer ID** — verify license via customer ID or serial key (not just license key string)
+- **Ping Request** — lightweight client-server connection check endpoint
+- **New License Key Upon Subscription Renewal** — issue a brand-new key on each renewal
+- **Extend License Key Upon Subscription** — extend expiry on the existing key instead of issuing a new one
+- **Webhooks Integration** — event-based license and key triggers to external endpoints
+- **QR Code Activation** — scannable QR code linked to each license for instant access
+
+**Critical Risk — Crypto Key File Loss:**
+LMFWC stores its encryption secrets as two files on disk. If these files are lost (server migration, accidental deletion, backup failure), **all encrypted license keys in the database become permanently unrecoverable**. This is a significant production risk that multiple users have hit.
+
+**LMFWC Weaknesses / ADD Opportunity:**
+
+| Weakness | ADD Opportunity |
+|---|---|
+| Crypto key files can be lost → permanent data loss | ADD uses `random_bytes()` dynamic generation — no static crypto files to lose |
+| No staging/localhost environment exemption | ADD auto-exempts staging/local from activation limits |
+| Activation records accumulate on deactivate/reactivate | ADD has `UNIQUE KEY idx_license_domain` — prevents duplicates |
+| Plugin update API = Pro only (via product download detail) | ADD includes plugin update API in Phase 1 free |
+| No subscription engine | ADD has built-in subscription module |
+| No SaaS provisioning | ADD includes SaaS provisioning |
+| No signed download tokens | ADD uses token-gated secure delivery |
+| No geo-blocking | ADD supports country-level block lists |
+| No GitHub sync | ADD plans GitHub webhook integration (Phase 4) |
+| No JWT for SaaS | ADD issues JWTs for SaaS login flows |
+| Migration only from DLM | ADD's migration tool targets DLM, WC Serial Numbers, AND LMFWC |
+
+**ADD Decisions from LMFWC Research:**
+- **QR Code Activation** — useful for physical product bundles, conference passes, printed licenses. Add to roadmap (Phase 3 or 4). Render QR via `endroid/qr-code` Composer package on the license certificate PDF.
+- **Ping endpoint** — lightweight `GET /add/v1/license/ping` that returns `{ status: 'ok', timestamp }` without consuming an activation. Useful for remote plugin health checks. Add to Phase 1 REST API.
+- **Two subscription renewal behaviors** — ADD should support both LMFWC Pro modes: (a) issue a brand-new key on renewal, or (b) extend existing key expiry. Controlled by `_add_renewal_behavior` product meta with values `new_key` | `extend`.
+- **Multiple keys per purchase quantity** — when an order line item has qty > 1, ADD's `OrderHandler` must generate `qty` license keys, one per unit, and deliver all in the confirmation email. Store as multiple `add_licenses` rows with the same `order_id`.
+- **Delivery order status** — add a setting `add_license_delivery_status` with options `completed` | `processing` | `both`. Default: `completed`.
+- **Migration from LMFWC** — the `LicenseMigrator` WP-CLI command should support `--from=lmfwc` as a third source alongside `dlm` and `wc-serial-numbers`.
+- **Past-order key generation** — add an admin tool to retroactively generate license keys for historical orders that predate the plugin. Useful for merchants migrating from manual key delivery.
+- **Validate by Customer ID** — add a `GET /add/v1/license/check?user_id={id}` variant so merchants can look up all licenses for a customer in one API call.
+
+---
+
 ## 2. Competitor Feature Gap Analysis
 
 **Features none of the researched competitors handle for WooCommerce natively:**
-- Automatic plugin update delivery tied to WooCommerce order (DLM Pro only)
+- Automatic plugin update delivery tied to WooCommerce order (DLM Pro only; LMFWC Pro only)
 - GitHub/Bitbucket private repo → auto ZIP build → update API (no competitor)
 - JWT-based SaaS account provisioning from WooCommerce checkout (no competitor)
 - Geo-blocking on file downloads (no competitor)
 - Remote license kill-switch (no competitor)
-- Staging/localhost exemption for site-limit licenses (no competitor)
+- Staging/localhost exemption for site-limit licenses (no competitor — LMFWC/DLM do not have this)
 - WooCommerce order → SaaS account creation webhook flow (no competitor)
+- Dynamic `random_bytes()` key generation without static crypto files (no competitor — LMFWC/DLM use disk-stored secrets)
 
 **Features competitors do have that WDD should match or exceed:**
-- PDF license certificate (DLM free) → WDD roadmap Phase 3
-- Manual license activation from My Account (DLM free) → WDD My Account tab
-- License key "copy to clipboard" (DLM free) → WDD My Account + order page
+- PDF license certificate (DLM free, LMFWC free) → WDD roadmap Phase 3
+- Manual license activation from My Account (DLM free, LMFWC free) → WDD My Account tab
+- License key "copy to clipboard" (DLM free, LMFWC free) → WDD My Account + order page
+- License key reveal/blur (DLM free, LMFWC free) → WDD My Account
+- QR Code on license certificate (LMFWC Pro) → WDD roadmap Phase 3/4
+- Multiple keys per purchase quantity (LMFWC free) → WDD OrderHandler quantity loop
+- Delivery on "processing" status option (LMFWC free) → WDD settings `add_license_delivery_status`
+- Past-order retroactive key generation (LMFWC free) → WDD admin tool
 - 2-click / quick checkout for digital-only carts (Digital Goods Checkout) → WDD checkout module
 - Ad blocker detection on download page (WPDM) → WDD Downloads module
 - Video play-but-no-download protection (WPDM) → WDD Downloads module
@@ -507,6 +584,7 @@ ArraySubs is a comprehensive free WooCommerce subscription + membership plugin. 
 - Skip next renewal + pause/vacation mode (ArraySubs free) → WDD customer portal
 - Stepped renewal pricing after N cycles (ArraySubs free) → WDD subscription product config
 - Dark/light/system color scheme toggle in admin (WPDM) → WDD admin panel
+- New key vs. extend key on subscription renewal (LMFWC Pro) → WDD `_add_renewal_behavior` product meta
 
 ---
 
@@ -878,29 +956,37 @@ WooCommerce Order Completed
 
 ## 9. Differentiation Table
 
-| Capability | EDD | SureCart | FluentCart | SUMO Subs | WC Serial Numbers | WPDM+PP | DLM | ArraySubs | woo-digital-downloads |
-|---|---|---|---|---|---|---|---|---|---|
-| WooCommerce native | No | No | No | Yes | Yes | No | Yes | Yes | **Yes** |
-| Self-hosted | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | **Yes** |
-| Licensing built-in | $199/yr | Yes | Yes | No | Yes (import) | Basic | Yes (free) | No | **Yes (generated)** |
-| Plugin auto-update API | Yes (ext) | No | Partial | No | No | No | Pro only | No | **Yes** |
-| GitHub update sync | No | No | No | No | No | No | No | No | **Yes** |
-| SaaS provisioning | No | Partial | Partial | No | No | No | No | No | **Yes** |
-| Geo-blocking | No | No | No | No | No | No | No | No | **Yes** |
-| JWT for SaaS auth | No | No | No | No | No | No | No | No | **Yes** |
-| Staging exemption | Basic | No | No | No | No | No | No | No | **Yes** |
-| Remote kill-switch | Partial | No | No | No | No | No | No | No | **Yes** |
-| Subscription billing | $209/yr | Yes | Yes | Yes ($49) | No | PayPal only | Pro sync | Yes (free) | **Yes** |
-| Retention flow | No | No | No | No | No | No | No | Yes (free) | **Roadmap P2** |
-| 2-phase grace period | No | No | No | Yes | No | No | No | Yes (free) | **Yes** |
-| Skip/pause subscription | No | No | No | Pause only | No | No | No | Yes (free) | **Yes** |
-| PDF license certificate | No | No | No | No | No | No | Yes (free) | No | **Roadmap P3** |
-| Manual My Account activation | No | No | No | No | No | No | Yes (free) | No | **Yes** |
-| Ad blocker detection | No | No | No | No | No | Yes | No | No | **Yes** |
-| Video play-protect | No | No | No | No | No | Yes | No | No | **Yes** |
-| Quick digital checkout | No | No | No | No | No | 2-click | No | No | **Yes (built-in)** |
-| Multi-site license | Yes | Yes | Yes | No | No | No | No | No | **Yes** |
-| Extends WooCommerce | No | No | No | Yes | Yes | No | Yes | Yes | **Yes** |
+| Capability | EDD | SureCart | FluentCart | SUMO Subs | WC Serial Numbers | WPDM+PP | DLM | LMFWC | ArraySubs | woo-digital-downloads |
+|---|---|---|---|---|---|---|---|---|---|---|
+| WooCommerce native | No | No | No | Yes | Yes | No | Yes | Yes | Yes | **Yes** |
+| Self-hosted | Yes | No | Yes | Yes | Yes | Yes | Yes | Yes | Yes | **Yes** |
+| Licensing built-in | $199/yr | Yes | Yes | No | Yes (import) | Basic | Yes (free) | Yes (free) | No | **Yes (generated)** |
+| Dynamic key generation | Yes | No | Yes | No | Pro only | No | Yes | Yes (generator) | No | **Yes (random_bytes)** |
+| Safe crypto (no file loss risk) | Yes | Yes | Yes | — | — | — | Partial | **No** | — | **Yes** |
+| Plugin auto-update API | Yes (ext) | No | Partial | No | No | No | Pro only | Pro only | No | **Yes** |
+| GitHub update sync | No | No | No | No | No | No | No | No | No | **Yes** |
+| SaaS provisioning | No | Partial | Partial | No | No | No | No | No | No | **Yes** |
+| Geo-blocking | No | No | No | No | No | No | No | No | No | **Yes** |
+| JWT for SaaS auth | No | No | No | No | No | No | No | No | No | **Yes** |
+| Staging exemption | Basic | No | No | No | No | No | No | **No** | No | **Yes** |
+| Remote kill-switch | Partial | No | No | No | No | No | No | No | No | **Yes** |
+| QR code on certificate | No | No | No | No | No | No | No | Pro | No | **Roadmap P3** |
+| Ping endpoint | No | No | No | No | No | No | No | Pro | No | **Yes (P1)** |
+| Subscription billing | $209/yr | Yes | Yes | Yes ($49) | No | PayPal only | Pro sync | WC Subs | Yes (free) | **Yes** |
+| New key vs extend on renewal | No | No | No | No | No | No | No | Pro | No | **Yes (`_add_renewal_behavior`)** |
+| Retention flow | No | No | No | No | No | No | No | No | Yes (free) | **Roadmap P2** |
+| 2-phase grace period | No | No | No | Yes | No | No | No | No | Yes (free) | **Yes** |
+| Skip/pause subscription | No | No | No | Pause only | No | No | No | No | Yes (free) | **Yes** |
+| PDF license certificate | No | No | No | No | No | No | Yes (free) | Yes (free) | No | **Roadmap P3** |
+| Manual My Account activation | No | No | No | No | No | No | Yes (free) | Yes (free) | No | **Yes** |
+| Multi-qty key delivery | No | No | No | No | No | No | No | Yes (free) | No | **Yes** |
+| Past-order key generation | No | No | No | No | No | No | No | Yes (free) | No | **Yes (admin tool)** |
+| Migrate from LMFWC | — | — | — | — | — | — | Yes (free) | — | — | **Yes (P3 CLI)** |
+| Ad blocker detection | No | No | No | No | No | Yes | No | No | No | **Yes** |
+| Video play-protect | No | No | No | No | No | Yes | No | No | No | **Yes** |
+| Quick digital checkout | No | No | No | No | No | 2-click | No | No | No | **Yes (built-in)** |
+| Multi-site license | Yes | Yes | Yes | No | No | No | No | No | No | **Yes** |
+| Extends WooCommerce | No | No | No | Yes | Yes | No | Yes | Yes | Yes | **Yes** |
 
 ---
 
@@ -921,6 +1007,7 @@ WooCommerce Order Completed
 - Subscription & Recurring Payment (Convers Lab): https://wordpress.org/plugins/subscription/
 - Subscriptions by Sublium: https://wordpress.org/plugins/sublium-subscriptions-for-woocommerce/
 - WC Serial Numbers: https://wordpress.org/plugins/wc-serial-numbers/
+- License Manager for WooCommerce (LMFWC): https://wordpress.org/plugins/license-manager-for-woocommerce/
 - WooCommerce PayPal Payments: https://wordpress.org/plugins/woocommerce-paypal-payments/
 - WooCommerce Stripe Gateway: https://wordpress.org/plugins/woocommerce-gateway-stripe/
 - JWT Auth (usefulteam): https://wordpress.org/plugins/jwt-auth/

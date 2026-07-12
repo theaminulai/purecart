@@ -2,76 +2,80 @@
 /**
  * Manages product version records (plugin ZIPs).
  *
- * @package WooDigitalDownloads\Updates
+ * @package PureCart\Updates
  */
 
-namespace WooDigitalDownloads\Updates;
+declare( strict_types=1 );
+
+namespace PureCart\Updates;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * CRUD for wp_wdd_product_versions.
+ * CRUD for the purecart_product_versions table.
  */
 class VersionManager {
 
     /**
-     * Add a new version for a product.
+     * Insert a new version record.
      *
-     * @param array{
-     *   product_id: int,
-     *   version: string,
-     *   file_path: string,
-     *   requires_wp?: string,
-     *   tested_wp?: string,
-     *   requires_php?: string,
-     *   channel?: string,
-     *   changelog?: string
-     * } $args
-     * @return int|false  Inserted ID or false.
+     * @param array<string,mixed> $data
      */
-    public function add( array $args ): int|false {
+    public function create( array $data ): ?object {
         global $wpdb;
 
-        $file_path = sanitize_text_field( $args['file_path'] );
+        $file_path = (string) ( $data['file_path'] ?? '' );
         $checksum  = file_exists( $file_path ) ? hash_file( 'sha256', $file_path ) : '';
 
-        $result = $wpdb->insert(
-            $wpdb->prefix . 'wdd_product_versions',
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table INSERT; no WP API available.
+        $inserted = $wpdb->insert(
+            $wpdb->prefix . 'purecart_product_versions',
             [
-                'product_id'      => (int) $args['product_id'],
-                'version'         => sanitize_text_field( $args['version'] ),
+                'product_id'      => (int)    ( $data['product_id']   ?? 0 ),
+                'version'         => (string) ( $data['version']      ?? '' ),
                 'file_path'       => $file_path,
                 'checksum_sha256' => $checksum,
-                'requires_wp'     => sanitize_text_field( $args['requires_wp']  ?? '' ),
-                'tested_wp'       => sanitize_text_field( $args['tested_wp']    ?? '' ),
-                'requires_php'    => sanitize_text_field( $args['requires_php'] ?? '' ),
-                'channel'         => in_array( $args['channel'] ?? 'stable', [ 'stable', 'beta' ], true )
-                                        ? $args['channel']
-                                        : 'stable',
-                'changelog'       => wp_kses_post( $args['changelog'] ?? '' ),
+                'requires_wp'     => (string) ( $data['requires_wp']  ?? '' ),
+                'tested_wp'       => (string) ( $data['tested_wp']    ?? '' ),
+                'requires_php'    => (string) ( $data['requires_php'] ?? '' ),
+                'channel'         => in_array( $data['channel'] ?? '', [ 'beta', 'stable' ], true )
+                                        ? $data['channel'] : 'stable',
+                'changelog'       => wp_kses_post( (string) ( $data['changelog'] ?? '' ) ),
                 'released_at'     => current_time( 'mysql' ),
             ],
             [ '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
         );
 
-        do_action( 'wdd_version_added', $wpdb->insert_id, $args['product_id'] );
+        if ( ! $inserted ) {
+            return null;
+        }
 
-        return $result ? (int) $wpdb->insert_id : false;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Fetching the row just inserted; no stale cache risk.
+        $version = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}purecart_product_versions WHERE id = %d",
+                $wpdb->insert_id
+            )
+        );
+
+        do_action( 'purecart_version_added', $version );
+
+        return $version;
     }
 
-    /**
-     * Get the latest stable version for a product.
-     *
-     * @param int    $product_id
-     * @param string $channel  'stable' | 'beta'
-     * @return object|null
-     */
     public function get_latest( int $product_id, string $channel = 'stable' ): ?object {
         global $wpdb;
 
-        return $wpdb->get_row(
+        $cache_key = "purecart_version_latest_{$product_id}_{$channel}";
+        $cached    = wp_cache_get( $cache_key, 'purecart' );
+        if ( false !== $cached ) {
+            return $cached ?: null;
+        }
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; result cached above.
+        $result = $wpdb->get_row(
             $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}wdd_product_versions
+                "SELECT * FROM {$wpdb->prefix}purecart_product_versions
                   WHERE product_id = %d AND channel = %s
                   ORDER BY released_at DESC
                   LIMIT 1",
@@ -79,20 +83,19 @@ class VersionManager {
                 $channel
             )
         ) ?: null;
+
+        wp_cache_set( $cache_key, $result ?? false, 'purecart', 5 * MINUTE_IN_SECONDS );
+
+        return $result;
     }
 
-    /**
-     * Get all versions for a product, newest first.
-     *
-     * @param int $product_id
-     * @return object[]
-     */
     public function get_all( int $product_id ): array {
         global $wpdb;
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin-only list; changes on every upload, caching would show stale versions.
         return $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}wdd_product_versions
+                "SELECT * FROM {$wpdb->prefix}purecart_product_versions
                   WHERE product_id = %d
                   ORDER BY released_at DESC",
                 $product_id
@@ -100,36 +103,51 @@ class VersionManager {
         ) ?: [];
     }
 
-    /**
-     * Get a specific version record by ID.
-     *
-     * @param int $version_id
-     * @return object|null
-     */
     public function get_by_id( int $version_id ): ?object {
         global $wpdb;
 
-        return $wpdb->get_row(
+        $cache_key = "purecart_version_{$version_id}";
+        $cached    = wp_cache_get( $cache_key, 'purecart' );
+        if ( false !== $cached ) {
+            return $cached ?: null;
+        }
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table; result cached above.
+        $result = $wpdb->get_row(
             $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}wdd_product_versions WHERE id = %d LIMIT 1",
+                "SELECT * FROM {$wpdb->prefix}purecart_product_versions WHERE id = %d LIMIT 1",
                 $version_id
             )
         ) ?: null;
+
+        wp_cache_set( $cache_key, $result ?? false, 'purecart', 5 * MINUTE_IN_SECONDS );
+
+        return $result;
     }
 
-    /**
-     * Delete a version record.
-     *
-     * @param int $version_id
-     * @return bool
-     */
     public function delete( int $version_id ): bool {
         global $wpdb;
 
-        return (bool) $wpdb->delete(
-            $wpdb->prefix . 'wdd_product_versions',
+        $version = $this->get_by_id( $version_id );
+        if ( $version && file_exists( $version->file_path ) ) {
+            wp_delete_file( $version->file_path );
+        }
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- DELETE from custom table; cache bust follows.
+        $deleted = (bool) $wpdb->delete(
+            $wpdb->prefix . 'purecart_product_versions',
             [ 'id' => $version_id ],
             [ '%d' ]
         );
+
+        if ( $deleted ) {
+            wp_cache_delete( "purecart_version_{$version_id}", 'purecart' );
+            if ( $version ) {
+                wp_cache_delete( "purecart_version_latest_{$version->product_id}_stable", 'purecart' );
+                wp_cache_delete( "purecart_version_latest_{$version->product_id}_beta",   'purecart' );
+            }
+        }
+
+        return $deleted;
     }
 }

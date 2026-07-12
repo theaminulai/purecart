@@ -1,11 +1,10 @@
-
 {
-    "name": "woodigitaldownloads/woo-digital-downloads",
-    "description": "The ultimate digital downloads extension for WooCommerce. A powerful, lightweight alternative to Easy Digital Downloads (EDD).",
+    "name": "purecart/purecart",
+    "description": "The complete digital product suite for WooCommerce. Sell plugins, SaaS, and any digital file with secure delivery, licensing, and subscriptions.",
     "type": "wordpress-plugin",
     "license": "GPL-3.0-or-later",
     "require": {
-        "php": ">=8.0"
+        "php": ">=8.1"
     },
     "require-dev": {
         "php-stubs/wordpress-stubs": "^6.9",
@@ -19,12 +18,12 @@
     },
     "autoload": {
         "psr-4": {
-            "WooDigitalDownloads\\": "includes/"
+            "PureCart\\": "includes/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "WooDigitalDownloads\\Tests\\": "tests/"
+            "PureCart\\Tests\\": "tests/"
         }
     },
     "scripts": {

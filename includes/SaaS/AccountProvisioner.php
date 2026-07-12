@@ -2,41 +2,39 @@
 /**
  * Provisions SaaS accounts when WooCommerce orders are completed.
  *
- * @package WooDigitalDownloads\SaaS
+ * @package PureCart\SaaS
  */
 
-namespace WooDigitalDownloads\SaaS;
+declare( strict_types=1 );
+
+namespace PureCart\SaaS;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Creates SaaS account records and dispatches provisioning webhooks.
+ * Manages the purecart_saas_accounts table and webhook calls.
  */
 class AccountProvisioner {
 
-    /**
-     * Provision a new SaaS account.
-     *
-     * @param array{
-     *   order_id: int,
-     *   user_id: int,
-     *   product_id: int,
-     *   plan: string
-     * } $args
-     * @return int|false  New account ID or false on failure.
-     */
-    public function provision( array $args ): int|false {
+    public function provision( int $order_id, int $user_id, int $product_id ): ?object {
         global $wpdb;
 
-        $api_key = $this->generate_api_key();
+        $product = wc_get_product( $product_id );
+        if ( ! $product ) {
+            return null;
+        }
 
-        $result = $wpdb->insert(
-            $wpdb->prefix . 'wdd_saas_accounts',
+        $plan    = $product->get_meta( '_purecart_saas_plan' ) ?: 'starter';
+        $api_key = 'purecart_' . bin2hex( random_bytes( 24 ) );
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table INSERT; no WP API available.
+        $inserted = $wpdb->insert(
+            $wpdb->prefix . 'purecart_saas_accounts',
             [
-                'user_id'        => (int) $args['user_id'],
-                'order_id'       => (int) $args['order_id'],
-                'product_id'     => (int) $args['product_id'],
-                'plan'           => sanitize_text_field( $args['plan'] ),
+                'user_id'        => $user_id,
+                'order_id'       => $order_id,
+                'product_id'     => $product_id,
+                'plan'           => $plan,
                 'api_key'        => $api_key,
                 'status'         => 'active',
                 'provisioned_at' => current_time( 'mysql' ),
@@ -44,73 +42,77 @@ class AccountProvisioner {
             [ '%d', '%d', '%d', '%s', '%s', '%s', '%s' ]
         );
 
-        if ( ! $result ) {
-            return false;
+        if ( ! $inserted ) {
+            return null;
         }
 
-        $account_id = (int) $wpdb->insert_id;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Fetching the row just inserted; no stale cache risk.
+        $account = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}purecart_saas_accounts WHERE id = %d",
+                $wpdb->insert_id
+            )
+        );
 
-        // Fire external provisioning webhook if configured.
-        $webhook_url = get_option( 'wdd_saas_webhook_url' );
-        if ( $webhook_url ) {
-            $this->fire_webhook( $webhook_url, $account_id, $args, $api_key );
-        }
+        $this->send_webhook( $account, 'provision' );
 
-        // Send login email to customer.
-        $this->send_access_email( $args['user_id'], $args['product_id'], $api_key );
+        do_action( 'purecart_saas_provisioned', $account );
 
-        return $account_id;
+        return $account;
     }
 
-    /**
-     * Suspend a SaaS account (e.g. on failed payment).
-     *
-     * @param int $account_id
-     * @return bool
-     */
     public function suspend( int $account_id ): bool {
         global $wpdb;
 
-        return (bool) $wpdb->update(
-            $wpdb->prefix . 'wdd_saas_accounts',
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Status update on custom table; must be real-time.
+        $updated = $wpdb->update(
+            $wpdb->prefix . 'purecart_saas_accounts',
             [ 'status' => 'suspended' ],
             [ 'id'     => $account_id ],
             [ '%s' ],
             [ '%d' ]
         );
+
+        if ( $updated ) {
+            $account = $this->get_by_id( $account_id );
+            if ( $account ) {
+                $this->send_webhook( $account, 'suspend' );
+            }
+        }
+
+        return (bool) $updated;
     }
 
-    /**
-     * Re-activate a suspended account.
-     *
-     * @param int $account_id
-     * @return bool
-     */
     public function activate( int $account_id ): bool {
         global $wpdb;
 
-        return (bool) $wpdb->update(
-            $wpdb->prefix . 'wdd_saas_accounts',
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Status update on custom table; must be real-time.
+        $updated = $wpdb->update(
+            $wpdb->prefix . 'purecart_saas_accounts',
             [ 'status' => 'active' ],
             [ 'id'     => $account_id ],
             [ '%s' ],
             [ '%d' ]
         );
+
+        if ( $updated ) {
+            $account = $this->get_by_id( $account_id );
+            if ( $account ) {
+                $this->send_webhook( $account, 'activate' );
+            }
+        }
+
+        return (bool) $updated;
     }
 
-    /**
-     * Fetch all SaaS accounts for a user.
-     *
-     * @param int $user_id
-     * @return object[]
-     */
     public function get_by_user( int $user_id ): array {
         global $wpdb;
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- User account list changes on every order/status update; caching would show stale data in the customer dashboard.
         return $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT a.*, p.post_title AS product_name
-                   FROM {$wpdb->prefix}wdd_saas_accounts a
+                   FROM {$wpdb->prefix}purecart_saas_accounts a
                    LEFT JOIN {$wpdb->posts} p ON p.ID = a.product_id
                   WHERE a.user_id = %d
                   ORDER BY a.provisioned_at DESC",
@@ -119,83 +121,44 @@ class AccountProvisioner {
         ) ?: [];
     }
 
-    // ─── Private helpers ─────────────────────────────────────────────────────
+    private function get_by_id( int $account_id ): ?object {
+        global $wpdb;
 
-    /**
-     * Generate a secure API key prefixed with 'wdd_'.
-     *
-     * @return string
-     */
-    private function generate_api_key(): string {
-        return 'wdd_' . bin2hex( random_bytes( 24 ) );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Internal helper called immediately after an UPDATE; must reflect the just-written state.
+        return $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}purecart_saas_accounts WHERE id = %d LIMIT 1",
+                $account_id
+            )
+        ) ?: null;
     }
 
-    /**
-     * Fire a provisioning webhook to an external SaaS backend.
-     *
-     * @param string              $url
-     * @param int                 $account_id
-     * @param array<string,mixed> $args
-     * @param string              $api_key
-     */
-    private function fire_webhook( string $url, int $account_id, array $args, string $api_key ): void {
-        $user = get_userdata( $args['user_id'] );
+    private function send_webhook( object $account, string $event ): void {
+        $webhook_url = get_option( 'purecart_saas_webhook_url', '' );
+        $secret      = get_option( 'purecart_webhook_secret',   '' );
 
-        $body = wp_json_encode( [
-            'event'      => 'account.provisioned',
-            'account_id' => $account_id,
-            'user_email' => $user ? $user->user_email : '',
-            'plan'       => $args['plan'],
-            'product_id' => $args['product_id'],
-            'order_id'   => $args['order_id'],
-            'api_key'    => $api_key,
-            'timestamp'  => time(),
-        ] );
-
-        wp_remote_post( $url, [
-            'body'    => $body,
-            'headers' => [
-                'Content-Type'  => 'application/json',
-                'X-WDD-Webhook' => 'account.provisioned',
-                'X-WDD-Sig'     => hash_hmac( 'sha256', $body, get_option( 'wdd_webhook_secret', '' ) ),
-            ],
-            'timeout'  => 10,
-            'blocking' => false,
-        ] );
-    }
-
-    /**
-     * Email the customer their SaaS access details.
-     *
-     * @param int    $user_id
-     * @param int    $product_id
-     * @param string $api_key
-     */
-    private function send_access_email( int $user_id, int $product_id, string $api_key ): void {
-        $user    = get_userdata( $user_id );
-        $product = wc_get_product( $product_id );
-
-        if ( ! $user || ! $product ) {
+        if ( empty( $webhook_url ) ) {
             return;
         }
 
-        $subject = sprintf(
-            /* translators: %s = product name */
-            __( 'Your %s access is ready', 'woo-digital-downloads' ),
-            $product->get_name()
-        );
+        $payload = wp_json_encode( [
+            'event'   => $event,
+            'api_key' => $account->api_key,
+            'plan'    => $account->plan,
+            'user_id' => $account->user_id,
+        ] );
 
-        $message = sprintf(
-            /* translators: 1: first name, 2: product name, 3: api key */
-            __(
-                "Hi %1\$s,\n\nYour %2\$s account has been provisioned.\n\nAPI Key: %3\$s\n\nKeep this key safe — it grants access to your account.\n\nThank you!",
-                'woo-digital-downloads'
-            ),
-            $user->first_name ?: $user->display_name,
-            $product->get_name(),
-            $api_key
-        );
+        $sig = hash_hmac( 'sha256', (string) $payload, (string) $secret );
 
-        wp_mail( $user->user_email, $subject, $message );
+        wp_remote_post( $webhook_url, [
+            'timeout'     => 15,
+            'redirection' => 0,
+            'headers'     => [
+                'Content-Type'       => 'application/json',
+                'X-PureCart-Webhook' => $event,
+                'X-PureCart-Sig'     => $sig,
+            ],
+            'body' => $payload,
+        ] );
     }
 }

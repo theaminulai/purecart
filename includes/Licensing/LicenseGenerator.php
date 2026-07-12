@@ -2,108 +2,107 @@
 /**
  * Generates and stores license keys.
  *
- * @package WooDigitalDownloads\Licensing
+ * @package PureCart\Licensing
  */
 
-namespace WooDigitalDownloads\Licensing;
+declare( strict_types=1 );
+
+namespace PureCart\Licensing;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Creates license records in the database.
+ * CRUD for the purecart_licenses table.
  */
 class LicenseGenerator {
 
-    /**
-     * Create a new license and return its ID.
-     *
-     * @param array{
-     *   order_id: int,
-     *   user_id: int,
-     *   product_id: int,
-     *   plan_type: string,
-     *   activation_limit: int,
-     *   expires_at: string|null
-     * } $args
-     * @return int|false  New license ID on success, false on failure.
-     */
-    public function create( array $args ): int|false {
+    public function create( int $order_id, int $user_id, int $product_id ): ?object {
         global $wpdb;
 
-        $key = $this->generate_key();
+        $product = wc_get_product( $product_id );
+        if ( ! $product ) {
+            return null;
+        }
 
-        $now = current_time( 'mysql' );
+        $plan_type     = $product->get_meta( '_purecart_license_type' )          ?: 'single';
+        $act_limit     = (int) ( $product->get_meta( '_purecart_activation_limit' ) ?: 1 );
+        $duration_days = (int) ( $product->get_meta( '_purecart_license_duration_days' ) ?: 365 );
+        $expires_at    = 'lifetime' === $plan_type
+            ? null
+            : gmdate( 'Y-m-d H:i:s', strtotime( "+{$duration_days} days" ) );
 
-        $result = $wpdb->insert(
-            $wpdb->prefix . 'wdd_licenses',
+        $license_key = $this->generate_key();
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table INSERT; no WP API available.
+        $inserted = $wpdb->insert(
+            $wpdb->prefix . 'purecart_licenses',
             [
-                'order_id'        => (int) $args['order_id'],
-                'user_id'         => (int) $args['user_id'],
-                'product_id'      => (int) $args['product_id'],
-                'license_key'     => $key,
-                'plan_type'       => sanitize_text_field( $args['plan_type'] ),
-                'status'          => 'active',
-                'activation_limit' => (int) $args['activation_limit'],
+                'order_id'         => $order_id,
+                'user_id'          => $user_id,
+                'product_id'       => $product_id,
+                'license_key'      => $license_key,
+                'plan_type'        => $plan_type,
+                'status'           => 'active',
+                'activation_limit' => $act_limit,
                 'activated_count'  => 0,
-                'expires_at'      => $args['expires_at'] ?? null,
-                'created_at'      => $now,
-                'updated_at'      => $now,
+                'expires_at'       => $expires_at,
+                'created_at'       => current_time( 'mysql' ),
+                'updated_at'       => current_time( 'mysql' ),
             ],
             [ '%d', '%d', '%d', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%s' ]
         );
 
-        return $result ? (int) $wpdb->insert_id : false;
+        if ( ! $inserted ) {
+            return null;
+        }
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Fetching the row just inserted; no stale cache risk.
+        $license = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}purecart_licenses WHERE id = %d",
+                $wpdb->insert_id
+            )
+        );
+
+        do_action( 'purecart_license_created', $license );
+
+        return $license;
     }
 
-    /**
-     * Generate a cryptographically secure license key.
-     * Format: XXXX-XXXX-XXXX-XXXX-XXXX (uppercase hex groups).
-     *
-     * @return string
-     */
-    private function generate_key(): string {
-        $bytes  = random_bytes( 20 );
-        $hex    = strtoupper( bin2hex( $bytes ) );
-        $groups = str_split( $hex, 8 );
-
-        return implode( '-', $groups );
-    }
-
-    /**
-     * Fetch a license record by key.
-     *
-     * @param string $key
-     * @return object|null
-     */
-    public function get_by_key( string $key ): ?object {
+    public function get_by_key( string $license_key ): ?object {
         global $wpdb;
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- License validation is security-critical; cached results could allow revoked/expired licenses through.
         return $wpdb->get_row(
             $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}wdd_licenses WHERE license_key = %s LIMIT 1",
-                $key
+                "SELECT * FROM {$wpdb->prefix}purecart_licenses WHERE license_key = %s LIMIT 1",
+                $license_key
             )
         ) ?: null;
     }
 
-    /**
-     * Fetch all licenses for a user.
-     *
-     * @param int $user_id
-     * @return object[]
-     */
     public function get_by_user( int $user_id ): array {
         global $wpdb;
 
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- User license list changes on every order/activation; caching would show stale data in the customer dashboard.
         return $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT l.*, p.post_title AS product_name
-                   FROM {$wpdb->prefix}wdd_licenses l
+                   FROM {$wpdb->prefix}purecart_licenses l
                    LEFT JOIN {$wpdb->posts} p ON p.ID = l.product_id
                   WHERE l.user_id = %d
                   ORDER BY l.created_at DESC",
                 $user_id
             )
         ) ?: [];
+    }
+
+    /** Generate a formatted license key: XXXXXX-XXXXXX-XXXXXX-XXXXXX */
+    private function generate_key(): string {
+        $segments = [];
+        for ( $i = 0; $i < 4; $i++ ) {
+            $segments[] = strtoupper( bin2hex( random_bytes( 3 ) ) );
+        }
+        return implode( '-', $segments );
     }
 }

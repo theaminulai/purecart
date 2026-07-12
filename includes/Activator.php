@@ -1,51 +1,48 @@
 <?php
 /**
- * Plugin activation / deactivation — creates & removes custom DB tables.
+ * Plugin activation / deactivation — creates & upgrades custom DB tables.
  *
- * @package WooDigitalDownloads
+ * @package PureCart
  */
 
-namespace WooDigitalDownloads;
+declare( strict_types=1 );
+
+namespace PureCart;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Handles activation, deactivation, and DB schema.
+ *
+ * @since 1.0.0
  */
 class Activator {
 
     /** DB version option key. */
-    private const DB_VERSION_KEY = 'wdd_db_version';
+    private const DB_VERSION_KEY = 'purecart_db_version';
 
     /** Current DB schema version. */
-    private const DB_VERSION = '1.0.0';
+    private const DB_VERSION = '1.1.0';
 
-    /**
-     * Runs on plugin activation.
-     */
+    /** Action Scheduler group for all plugin jobs. */
+    private const AS_GROUP = 'purecart';
+
+    /** Runs on plugin activation. */
     public static function activate(): void {
         self::create_tables();
-        self::schedule_crons();
-
+        self::schedule_jobs();
         update_option( self::DB_VERSION_KEY, self::DB_VERSION );
-
-        // Flush rewrite rules so our custom endpoints work immediately.
         flush_rewrite_rules();
     }
 
-    /**
-     * Runs on plugin deactivation.
-     */
+    /** Runs on plugin deactivation. */
     public static function deactivate(): void {
-        wp_clear_scheduled_hook( 'wdd_check_expired_licenses' );
-        wp_clear_scheduled_hook( 'wdd_process_dunning' );
-
+        as_unschedule_all_actions( 'purecart_check_expired_licenses', [], self::AS_GROUP );
+        as_unschedule_all_actions( 'purecart_process_dunning',        [], self::AS_GROUP );
         flush_rewrite_rules();
     }
 
-    /**
-     * Creates all custom database tables using dbDelta().
-     */
+    /** Creates all custom database tables using dbDelta(). */
     public static function create_tables(): void {
         global $wpdb;
 
@@ -53,76 +50,71 @@ class Activator {
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-        // ── Licenses ──────────────────────────────────────────────────────────
-        dbDelta( "CREATE TABLE {$wpdb->prefix}wdd_licenses (
-            id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            order_id        BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            user_id         BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            product_id      BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            license_key     VARCHAR(64)  NOT NULL DEFAULT '',
-            plan_type       ENUM('single','multi','unlimited','lifetime') NOT NULL DEFAULT 'single',
-            status          ENUM('active','expired','revoked','suspended') NOT NULL DEFAULT 'active',
+        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_licenses (
+            id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            order_id         BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            user_id          BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            product_id       BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            license_key      VARCHAR(64)  NOT NULL DEFAULT '',
+            plan_type        ENUM('single','multi','unlimited','lifetime') NOT NULL DEFAULT 'single',
+            status           ENUM('active','expired','revoked','suspended') NOT NULL DEFAULT 'active',
             activation_limit INT UNSIGNED NOT NULL DEFAULT 1,
             activated_count  INT UNSIGNED NOT NULL DEFAULT 0,
-            expires_at      DATETIME NULL DEFAULT NULL,
-            created_at      DATETIME NOT NULL,
-            updated_at      DATETIME NOT NULL,
+            expires_at       DATETIME NULL DEFAULT NULL,
+            created_at       DATETIME NOT NULL,
+            updated_at       DATETIME NOT NULL,
             PRIMARY KEY  (id),
             UNIQUE KEY  license_key (license_key),
-            KEY idx_user_id   (user_id),
-            KEY idx_order_id  (order_id),
-            KEY idx_product   (product_id),
-            KEY idx_status    (status)
+            KEY idx_user_id  (user_id),
+            KEY idx_order_id (order_id),
+            KEY idx_product  (product_id),
+            KEY idx_status   (status)
         ) $charset;" );
 
-        // ── License activations (one row per activated domain) ────────────────
-        dbDelta( "CREATE TABLE {$wpdb->prefix}wdd_license_activations (
-            id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            license_id      BIGINT UNSIGNED NOT NULL,
-            domain          VARCHAR(255) NOT NULL DEFAULT '',
-            ip_address      VARCHAR(45)  NOT NULL DEFAULT '',
-            environment     ENUM('production','staging','local') NOT NULL DEFAULT 'production',
-            activated_at    DATETIME NOT NULL,
-            last_check      DATETIME NULL DEFAULT NULL,
+        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_license_activations (
+            id           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            license_id   BIGINT UNSIGNED NOT NULL,
+            domain       VARCHAR(255) NOT NULL DEFAULT '',
+            ip_address   VARCHAR(45)  NOT NULL DEFAULT '',
+            environment  ENUM('production','staging','local') NOT NULL DEFAULT 'production',
+            activated_at DATETIME NOT NULL,
+            last_check   DATETIME NULL DEFAULT NULL,
             PRIMARY KEY  (id),
             KEY idx_license_id (license_id),
             KEY idx_domain     (domain)
         ) $charset;" );
 
-        // ── Secure download tokens ────────────────────────────────────────────
-        dbDelta( "CREATE TABLE {$wpdb->prefix}wdd_downloads (
-            id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            order_id        BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            user_id         BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            product_id      BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            file_id         BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            token           VARCHAR(128) NOT NULL DEFAULT '',
-            download_count  INT UNSIGNED NOT NULL DEFAULT 0,
-            max_downloads   INT UNSIGNED NOT NULL DEFAULT 3,
-            expires_at      DATETIME NOT NULL,
-            ip_address      VARCHAR(45) NOT NULL DEFAULT '',
-            country_code    VARCHAR(2)  NOT NULL DEFAULT '',
-            created_at      DATETIME NOT NULL,
+        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_downloads (
+            id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            order_id       BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            user_id        BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            product_id     BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            file_id        BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            token          VARCHAR(128) NOT NULL DEFAULT '',
+            download_count INT UNSIGNED NOT NULL DEFAULT 0,
+            max_downloads  INT UNSIGNED NOT NULL DEFAULT 3,
+            expires_at     DATETIME NOT NULL,
+            ip_address     VARCHAR(45) NOT NULL DEFAULT '',
+            country_code   VARCHAR(2)  NOT NULL DEFAULT '',
+            created_at     DATETIME NOT NULL,
             PRIMARY KEY  (id),
             UNIQUE KEY  token (token),
             KEY idx_order_user (order_id, user_id)
         ) $charset;" );
 
-        // ── Download logs (one row per download attempt) ──────────────────────
-        dbDelta( "CREATE TABLE {$wpdb->prefix}wdd_download_logs (
-            id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            download_id     BIGINT UNSIGNED NOT NULL,
-            ip_address      VARCHAR(45) NOT NULL DEFAULT '',
-            user_agent      TEXT,
-            country_code    VARCHAR(2)  NOT NULL DEFAULT '',
-            downloaded_at   DATETIME NOT NULL,
+        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_download_logs (
+            id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            download_id   BIGINT UNSIGNED NOT NULL,
+            ip_address    VARCHAR(45) NOT NULL DEFAULT '',
+            user_agent    TEXT,
+            country_code  VARCHAR(2)  NOT NULL DEFAULT '',
+            downloaded_at DATETIME NOT NULL,
             PRIMARY KEY  (id),
             KEY idx_download_id (download_id),
             KEY idx_downloaded  (downloaded_at)
         ) $charset;" );
 
-        // ── Product versions (plugin ZIP history) ─────────────────────────────
-        dbDelta( "CREATE TABLE {$wpdb->prefix}wdd_product_versions (
+        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_product_versions (
             id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             product_id      BIGINT UNSIGNED NOT NULL,
             version         VARCHAR(20) NOT NULL DEFAULT '',
@@ -139,61 +131,85 @@ class Activator {
             KEY idx_channel         (channel)
         ) $charset;" );
 
-        // ── Subscriptions ─────────────────────────────────────────────────────
-        dbDelta( "CREATE TABLE {$wpdb->prefix}wdd_subscriptions (
-            id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id         BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            product_id      BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            order_id        BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            license_id      BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            status          ENUM('active','cancelled','paused','expired','past_due') NOT NULL DEFAULT 'active',
-            billing_cycle   ENUM('monthly','yearly') NOT NULL DEFAULT 'yearly',
-            starts_at       DATETIME NOT NULL,
-            expires_at      DATETIME NULL DEFAULT NULL,
-            renewal_at      DATETIME NULL DEFAULT NULL,
-            cancelled_at    DATETIME NULL DEFAULT NULL,
+        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_subscriptions (
+            id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id          BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            product_id       BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            order_id         BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            license_id       BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            status           ENUM('active','trialing','paused','suspended','cancelled','expired','past_due') NOT NULL DEFAULT 'active',
+            billing_interval INT UNSIGNED NOT NULL DEFAULT 1,
+            billing_period   VARCHAR(20)  NOT NULL DEFAULT 'month',
+            recurring_amount DECIMAL(10,2) NOT NULL DEFAULT '0.00',
+            currency         VARCHAR(3)   NOT NULL DEFAULT 'USD',
+            renewal_count    INT UNSIGNED NOT NULL DEFAULT 0,
+            trial_ends_at    DATETIME NULL DEFAULT NULL,
+            next_payment_at  DATETIME NULL DEFAULT NULL,
+            last_payment_at  DATETIME NULL DEFAULT NULL,
+            starts_at        DATETIME NOT NULL,
+            expires_at       DATETIME NULL DEFAULT NULL,
+            paused_at        DATETIME NULL DEFAULT NULL,
+            cancelled_at     DATETIME NULL DEFAULT NULL,
             PRIMARY KEY  (id),
-            KEY idx_user_id   (user_id),
-            KEY idx_status    (status),
-            KEY idx_renewal   (renewal_at)
+            KEY idx_user_id      (user_id),
+            KEY idx_status       (status),
+            KEY idx_next_payment (next_payment_at)
         ) $charset;" );
 
-        // ── SaaS accounts ─────────────────────────────────────────────────────
-        dbDelta( "CREATE TABLE {$wpdb->prefix}wdd_saas_accounts (
+        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_subscription_logs (
             id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-            user_id         BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            order_id        BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            product_id      BIGINT UNSIGNED NOT NULL DEFAULT 0,
-            plan            VARCHAR(50)  NOT NULL DEFAULT '',
-            api_key         VARCHAR(128) NOT NULL DEFAULT '',
-            status          ENUM('active','suspended','cancelled') NOT NULL DEFAULT 'active',
-            provisioned_at  DATETIME NOT NULL,
+            subscription_id BIGINT UNSIGNED NOT NULL,
+            event           VARCHAR(64)  NOT NULL DEFAULT '',
+            note            TEXT,
+            created_at      DATETIME NOT NULL,
             PRIMARY KEY  (id),
-            UNIQUE KEY  api_key           (api_key),
+            KEY idx_subscription_id (subscription_id),
+            KEY idx_event           (event)
+        ) $charset;" );
+
+        dbDelta( "CREATE TABLE {$wpdb->prefix}purecart_saas_accounts (
+            id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            user_id        BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            order_id       BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            product_id     BIGINT UNSIGNED NOT NULL DEFAULT 0,
+            plan           VARCHAR(50)  NOT NULL DEFAULT '',
+            api_key        VARCHAR(128) NOT NULL DEFAULT '',
+            status         ENUM('active','suspended','cancelled') NOT NULL DEFAULT 'active',
+            provisioned_at DATETIME NOT NULL,
+            PRIMARY KEY  (id),
+            UNIQUE KEY  api_key          (api_key),
             KEY idx_user_product (user_id, product_id)
         ) $charset;" );
     }
 
-    /**
-     * Register WP-Cron recurring events.
-     */
-    private static function schedule_crons(): void {
-        if ( ! wp_next_scheduled( 'wdd_check_expired_licenses' ) ) {
-            wp_schedule_event( time(), 'daily', 'wdd_check_expired_licenses' );
+    /** Schedule recurring Action Scheduler jobs. */
+    private static function schedule_jobs(): void {
+        if ( false === as_next_scheduled_action( 'purecart_check_expired_licenses', [], self::AS_GROUP ) ) {
+            as_schedule_recurring_action(
+                time(),
+                DAY_IN_SECONDS,
+                'purecart_check_expired_licenses',
+                [],
+                self::AS_GROUP
+            );
         }
 
-        if ( ! wp_next_scheduled( 'wdd_process_dunning' ) ) {
-            wp_schedule_event( time(), 'twicedaily', 'wdd_process_dunning' );
+        if ( false === as_next_scheduled_action( 'purecart_process_dunning', [], self::AS_GROUP ) ) {
+            as_schedule_recurring_action(
+                time(),
+                12 * HOUR_IN_SECONDS,
+                'purecart_process_dunning',
+                [],
+                self::AS_GROUP
+            );
         }
     }
 
-    /**
-     * Run a lightweight DB upgrade if the stored version is older.
-     */
+    /** Run a lightweight DB upgrade if the stored version is older. */
     public static function maybe_upgrade(): void {
         $stored = get_option( self::DB_VERSION_KEY, '0.0.0' );
 
-        if ( version_compare( $stored, self::DB_VERSION, '<' ) ) {
+        if ( version_compare( (string) $stored, self::DB_VERSION, '<' ) ) {
             self::create_tables();
             update_option( self::DB_VERSION_KEY, self::DB_VERSION );
         }

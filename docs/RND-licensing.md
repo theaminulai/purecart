@@ -14,6 +14,7 @@ The Licensing module generates cryptographically random license keys on order co
 - WooCommerce has no concept of software licenses
 - EDD's Software Licensing costs $199/yr
 - WC Serial Numbers requires pre-generating keys and importing them manually
+- DLM and LMFWC store encryption secrets in files — permanent data loss if files are lost
 - No existing free WooCommerce solution tracks domain-level activations with staging exemption
 
 ---
@@ -271,8 +272,9 @@ Template overridable in `your-theme/wdd/license-certificate.html`.
 `LicenseMigrator` provides a WP-CLI command and admin UI to import existing licenses:
 
 ```bash
-wp wdd license migrate --from=dlm --dry-run
-wp wdd license migrate --from=wc-serial-numbers
+wp add license migrate --from=dlm --dry-run
+wp add license migrate --from=wc-serial-numbers
+wp add license migrate --from=lmfwc
 ```
 
 Imports:
@@ -281,7 +283,9 @@ Imports:
 - Order and user associations
 - Status (active/expired/revoked)
 
-Supported sources: Digital License Manager (DLM), WC Serial Numbers.
+Supported sources: Digital License Manager (DLM), WC Serial Numbers, License Manager for WooCommerce (LMFWC).
+
+**Note on LMFWC migration:** LMFWC encrypts keys using two disk-stored secret files (`defuse.txt`, `secret.txt`). The migration tool requires those files to be present and readable to decrypt keys before re-storing them in ADD's format. If the files are missing, keys are unrecoverable — document this prominently.
 
 ---
 
@@ -308,6 +312,7 @@ Set via WDD meta box on each WooCommerce product:
 | `_wdd_license_duration_days` | int | Days until expiry; empty = lifetime |
 | `_wdd_plugin_slug` | string | Plugin slug (used by Update module) |
 | `_wdd_license_certificate` | bool | Show PDF certificate download button in My Account |
+| `_add_renewal_behavior` | string | `extend` (default) or `new_key` — controls what happens to the license on subscription renewal |
 
 ---
 
@@ -370,28 +375,105 @@ do_action( 'wdd_licenses_expired', $expired_license_ids );
 
 // Filter staging/local exempt patterns
 apply_filters( 'wdd_staging_exempt_patterns', $patterns );
+
+// Filter renewal behavior (override product meta)
+apply_filters( 'add_license_renewal_behavior', $behavior, $license_id, $subscription_id );
+
+// After past-order retroactive key generation
+do_action( 'add_license_past_order_generated', $license_id, $order_id, $product_id );
 ```
+
+---
+
+## Additional REST Endpoints
+
+Beyond the four core endpoints, the Licensing module also exposes:
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/add/v1/license/ping` | None | Lightweight connection test — returns `{ status: 'ok', timestamp }`. Does not consume an activation or validate a key. Used by remote plugins to verify server reachability. |
+| `GET` | `/add/v1/license/check?user_id={id}` | manage_woocommerce | Return all licenses for a customer (admin/server-to-server use). |
+
+---
+
+## Subscription Renewal Behavior
+
+When a subscription renews, ADD supports two configurable modes controlled by `_add_renewal_behavior` product meta:
+
+| Value | Behavior |
+|---|---|
+| `extend` (default) | Extend the existing license key's `expires_at` by the subscription period. Customer keeps the same key. |
+| `new_key` | Generate a brand-new license key on each renewal. Old key is marked `revoked`. Useful for metered/seat-limited models. |
+
+This setting is configurable per product in the ADD meta box.
+
+---
+
+## Multi-Quantity Key Delivery
+
+When a customer purchases an `add_plugin` product with qty > 1, `OrderHandler` generates one license key per unit:
+
+```php
+// In OrderHandler::add_provision_license()
+$quantity = $item->get_quantity();
+for ( $i = 0; $i < $quantity; $i++ ) {
+    $license_id = LicenseGenerator::add_create( [...] );
+    wc_add_order_item_meta( $item_id, '_add_license_id_' . $i, $license_id );
+}
+```
+
+All generated keys are delivered in the order confirmation email and listed in the My Account Licenses tab grouped by order.
+
+---
+
+## Delivery Order Status Setting
+
+Option: `add_license_delivery_status` (admin Settings → Licensing)
+
+| Value | Trigger |
+|---|---|
+| `completed` (default) | `woocommerce_order_status_completed` |
+| `processing` | `woocommerce_order_status_processing` |
+| `both` | Both hooks, idempotent (won't re-issue if already provisioned) |
+
+---
+
+## Past-Order Retroactive Key Generation
+
+An admin tool under **ADD → Licenses → Tools** lets store owners generate license keys for historical orders that predate the plugin installation. Useful for merchants migrating from manual key delivery or another system.
+
+- Filters by product, date range, and order status
+- Dry-run mode shows what would be generated
+- Skips orders that already have ADD license meta
+- WP-CLI equivalent: `wp add license generate-past-orders --product-id=123 --dry-run`
 
 ---
 
 ## Competitor Comparison
 
-| Feature | WC Serial Numbers (free) | EDD Software Licensing ($199/yr) | Digital License Manager (DLM) | woo-digital-downloads |
-|---|---|---|---|---|
-| Key generation | Import required (auto-gen = Pro) | Yes | Yes (dynamic) | **Yes (dynamic, no import)** |
-| Domain activation tracking | Basic via API | Yes | Yes | **Yes, per-domain DB record** |
-| Staging/localhost exemption | No | Basic | No | **Yes, pattern-based** |
-| Activation limit enforcement | Yes | Yes | Yes | **Yes** |
-| Remote kill-switch | No | Yes | Yes | **Yes** |
-| Lifetime licenses | No | Yes | Yes | **Yes** |
-| Multi-site plans | Partial | Yes | Yes | **Yes** |
-| REST API | Yes | Yes | Yes | **Yes** |
-| WooCommerce native | Yes | No (EDD only) | Yes | **Yes** |
-| Plugin Update delivery | No | Yes (add-on) | No | **Yes (separate module)** |
-| PDF license certificate | No | No | Yes (Pro) | **Yes (Phase 3)** |
-| License reveal (blur/click) | No | No | Yes | **Yes** |
-| Copy-to-clipboard | No | No | Yes | **Yes** |
-| My Account manual activation | No | No | Yes (free) | **Yes** |
-| Migration tool (from DLM/SN) | No | No | No | **Yes (Phase 3)** |
-| HPOS compatible | Yes | No | Partial | **Yes** |
-| Price | Free + Pro | $199/yr | Free + Pro | **Included in WDD** |
+| Feature | WC Serial Numbers (free) | EDD Software Licensing ($199/yr) | Digital License Manager (DLM) | License Manager for WooCommerce (LMFWC) | woo-digital-downloads |
+|---|---|---|---|---|---|
+| Key generation | Import required (auto-gen = Pro) | Yes | Yes (dynamic) | Yes (generator) | **Yes (random_bytes, dynamic)** |
+| Safe crypto storage | — | Yes | Partial | **No — file loss = permanent loss** | **Yes — no static files** |
+| Domain activation tracking | Basic via API | Yes | Yes | Yes | **Yes, per-domain DB record** |
+| Staging/localhost exemption | No | Basic | No | **No** | **Yes, pattern-based** |
+| Activation limit enforcement | Yes | Yes | Yes | Yes | **Yes** |
+| Remote kill-switch | No | Yes | Yes | No | **Yes** |
+| Lifetime licenses | No | Yes | Yes | Yes | **Yes** |
+| Multi-site plans | Partial | Yes | Yes | Yes | **Yes** |
+| Multi-qty key delivery | No | No | No | **Yes (free)** | **Yes** |
+| Delivery on processing status | No | No | No | **Yes (free)** | **Yes (configurable)** |
+| Past-order key generation | No | No | No | **Yes (free)** | **Yes (admin tool)** |
+| Ping endpoint | No | No | No | Pro | **Yes (free)** |
+| QR code activation | No | No | No | Pro | **Roadmap P3** |
+| New key vs extend on renewal | No | No | No | Pro | **Yes (`_add_renewal_behavior`)** |
+| REST API | Yes | Yes | Yes | Yes | **Yes** |
+| WooCommerce native | Yes | No (EDD only) | Yes | Yes | **Yes** |
+| Plugin Update delivery | No | Yes (add-on) | No | Pro only | **Yes (separate module)** |
+| PDF license certificate | No | No | Yes (free) | **Yes (free)** | **Yes (Phase 3)** |
+| License reveal (blur/click) | No | No | Yes | **Yes (free)** | **Yes** |
+| Copy-to-clipboard | No | No | Yes | **Yes (free)** | **Yes** |
+| My Account manual activation | No | No | Yes (free) | **Yes (free)** | **Yes** |
+| Migration tool | No | No | No | Yes (from DLM) | **Yes (DLM + WC SN + LMFWC)** |
+| HPOS compatible | Yes | No | Partial | **Yes** | **Yes** |
+| Price | Free + Pro | $199/yr | Free + Pro | Free + Pro | **Included in ADD** |

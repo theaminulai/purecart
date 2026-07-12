@@ -2,73 +2,59 @@
 /**
  * Adds custom tabs to WooCommerce My Account page.
  *
- * Tabs added:
- *   /my-account/wdd-licenses/
- *   /my-account/wdd-downloads/
- *   /my-account/wdd-api-keys/
- *
- * @package WooDigitalDownloads\CustomerDashboard
+ * @package PureCart\CustomerDashboard
  */
 
-namespace WooDigitalDownloads\CustomerDashboard;
+declare( strict_types=1 );
+
+namespace PureCart\CustomerDashboard;
 
 defined( 'ABSPATH' ) || exit;
 
-use WooDigitalDownloads\Licensing\LicenseGenerator;
-use WooDigitalDownloads\Licensing\LicenseActivator;
-use WooDigitalDownloads\Downloads\TokenManager;
-use WooDigitalDownloads\SaaS\AccountProvisioner;
+use PureCart\Licensing\LicenseGenerator;
+use PureCart\Downloads\TokenManager;
+use PureCart\SaaS\AccountProvisioner;
 
 /**
  * Registers and renders My Account dashboard tabs.
  */
 class Dashboard {
 
-    /** @var string[]  Endpoint slugs — labels resolved lazily after 'init' via get_tabs(). */
-    private array $slugs = [ 'wdd-licenses', 'wdd-downloads', 'wdd-api-keys' ];
+    /** @var string[] */
+    private array $slugs = [ 'purecart-licenses', 'purecart-downloads', 'purecart-api-keys' ];
 
     public function __construct() {
-        add_filter( 'woocommerce_account_menu_items',        [ $this, 'add_menu_items' ] );
-        add_filter( 'woocommerce_get_query_vars',            [ $this, 'add_query_vars' ] );
+        add_filter( 'woocommerce_account_menu_items',        [ $this, 'menu_items' ] );
+        add_filter( 'woocommerce_get_query_vars',            [ $this, 'query_vars' ] );
         add_filter( 'woocommerce_account_menu_item_classes', [ $this, 'menu_item_classes' ], 10, 2 );
 
         foreach ( $this->slugs as $slug ) {
             add_action( "woocommerce_account_{$slug}_endpoint", [ $this, 'render_tab' ] );
         }
 
-        add_action( 'init', [ $this, 'add_endpoints' ] );
+        add_action( 'init', [ $this, 'endpoints' ] );
     }
 
-    /**
-     * Returns slug => translated label map.
-     * Always call this instead of $this->tabs directly when labels are needed,
-     * so __() is never executed before the text domain is loaded.
-     *
-     * @return array<string,string>
-     */
+    /** @return array<string,string> */
     private function get_tabs(): array {
         return [
-            'wdd-licenses'  => __( 'My Licenses',  'woo-digital-downloads' ),
-            'wdd-downloads' => __( 'Downloads',     'woo-digital-downloads' ),
-            'wdd-api-keys'  => __( 'API Keys',      'woo-digital-downloads' ),
+            'purecart-licenses'  => __( 'My Licenses', 'purecart' ),
+            'purecart-downloads' => __( 'Downloads',   'purecart' ),
+            'purecart-api-keys'  => __( 'API Keys',    'purecart' ),
         ];
     }
 
-    /** Register WooCommerce endpoints. */
-    public function add_endpoints(): void {
+    public function endpoints(): void {
         foreach ( $this->slugs as $slug ) {
             add_rewrite_endpoint( $slug, EP_ROOT | EP_PAGES );
         }
     }
 
     /**
-     * Inject tabs into the My Account menu.
-     *
      * @param array<string,string> $items
      * @return array<string,string>
      */
-    public function add_menu_items( array $items ): array {
-        // Insert before "Logout".
+    public function menu_items( array $items ): array {
         $logout = $items['customer-logout'] ?? null;
         unset( $items['customer-logout'] );
 
@@ -84,12 +70,10 @@ class Dashboard {
     }
 
     /**
-     * Register query vars so WooCommerce can resolve our endpoints.
-     *
      * @param array<string,string> $vars
      * @return array<string,string>
      */
-    public function add_query_vars( array $vars ): array {
+    public function query_vars( array $vars ): array {
         foreach ( $this->slugs as $slug ) {
             $vars[ $slug ] = $slug;
         }
@@ -97,8 +81,6 @@ class Dashboard {
     }
 
     /**
-     * Add active CSS class to menu items.
-     *
      * @param string[] $classes
      * @param string   $endpoint
      * @return string[]
@@ -113,9 +95,6 @@ class Dashboard {
         return $classes;
     }
 
-    /**
-     * Dispatch rendering to the correct tab method.
-     */
     public function render_tab(): void {
         global $wp;
 
@@ -128,58 +107,51 @@ class Dashboard {
         }
 
         switch ( $active ) {
-            case 'wdd-licenses':
+            case 'purecart-licenses':
                 $this->render_licenses_tab();
                 break;
-            case 'wdd-downloads':
+            case 'purecart-downloads':
                 $this->render_downloads_tab();
                 break;
-            case 'wdd-api-keys':
+            case 'purecart-api-keys':
                 $this->render_api_keys_tab();
                 break;
         }
     }
-
-    // ─── Tab renderers ────────────────────────────────────────────────────────
 
     private function render_licenses_tab(): void {
         $user_id  = get_current_user_id();
         $licenses = ( new LicenseGenerator() )->get_by_user( $user_id );
 
         if ( empty( $licenses ) ) {
-            echo '<p>' . esc_html__( 'You have no licenses yet.', 'woo-digital-downloads' ) . '</p>';
+            echo '<p>' . esc_html__( 'You have no licenses yet.', 'purecart' ) . '</p>';
             return;
         }
 
-        echo '<table class="woocommerce-table shop_table wdd-licenses-table">';
+        echo '<table class="woocommerce-table shop_table purecart-licenses-table">';
         echo '<thead><tr>'
-            . '<th>' . esc_html__( 'Product',    'woo-digital-downloads' ) . '</th>'
-            . '<th>' . esc_html__( 'License Key','woo-digital-downloads' ) . '</th>'
-            . '<th>' . esc_html__( 'Status',     'woo-digital-downloads' ) . '</th>'
-            . '<th>' . esc_html__( 'Sites Used', 'woo-digital-downloads' ) . '</th>'
-            . '<th>' . esc_html__( 'Expires',    'woo-digital-downloads' ) . '</th>'
+            . '<th>' . esc_html__( 'Product',     'purecart' ) . '</th>'
+            . '<th>' . esc_html__( 'License Key', 'purecart' ) . '</th>'
+            . '<th>' . esc_html__( 'Status',      'purecart' ) . '</th>'
+            . '<th>' . esc_html__( 'Sites Used',  'purecart' ) . '</th>'
+            . '<th>' . esc_html__( 'Expires',     'purecart' ) . '</th>'
             . '</tr></thead><tbody>';
 
         foreach ( $licenses as $license ) {
-            $expires = $license->expires_at
-                ? esc_html( date_i18n( get_option( 'date_format' ), strtotime( $license->expires_at ) ) )
-                : esc_html__( 'Lifetime', 'woo-digital-downloads' );
+            // Build expiry label — escape at point of output below.
+            $expires_label = $license->expires_at
+                ? date_i18n( get_option( 'date_format' ), strtotime( $license->expires_at ) )
+                : __( 'Lifetime', 'purecart' );
 
             printf(
-                '<tr>
-                    <td>%s</td>
-                    <td><code>%s</code></td>
-                    <td><span class="wdd-status wdd-status--%s">%s</span></td>
-                    <td>%s / %s</td>
-                    <td>%s</td>
-                </tr>',
+                '<tr><td>%s</td><td><code>%s</code></td><td><span class="purecart-status purecart-status--%s">%s</span></td><td>%s / %s</td><td>%s</td></tr>',
                 esc_html( $license->product_name ?? '' ),
                 esc_html( $license->license_key ),
                 esc_attr( $license->status ),
                 esc_html( ucfirst( $license->status ) ),
-                esc_html( $license->activated_count ),
-                'unlimited' === $license->plan_type ? esc_html__( '∞', 'woo-digital-downloads' ) : esc_html( $license->activation_limit ),
-                $expires
+                esc_html( (string) $license->activated_count ),
+                'unlimited' === $license->plan_type ? esc_html__( '∞', 'purecart' ) : esc_html( (string) $license->activation_limit ),
+                esc_html( $expires_label )
             );
         }
 
@@ -191,38 +163,32 @@ class Dashboard {
         $downloads = ( new TokenManager() )->get_by_user( $user_id );
 
         if ( empty( $downloads ) ) {
-            echo '<p>' . esc_html__( 'No downloads available.', 'woo-digital-downloads' ) . '</p>';
+            echo '<p>' . esc_html__( 'No downloads available.', 'purecart' ) . '</p>';
             return;
         }
 
-        echo '<table class="woocommerce-table shop_table wdd-downloads-table">';
+        echo '<table class="woocommerce-table shop_table purecart-downloads-table">';
         echo '<thead><tr>'
-            . '<th>' . esc_html__( 'Product',     'woo-digital-downloads' ) . '</th>'
-            . '<th>' . esc_html__( 'Downloads',   'woo-digital-downloads' ) . '</th>'
-            . '<th>' . esc_html__( 'Expires',     'woo-digital-downloads' ) . '</th>'
-            . '<th>' . esc_html__( 'Action',      'woo-digital-downloads' ) . '</th>'
+            . '<th>' . esc_html__( 'Product',   'purecart' ) . '</th>'
+            . '<th>' . esc_html__( 'Downloads', 'purecart' ) . '</th>'
+            . '<th>' . esc_html__( 'Expires',   'purecart' ) . '</th>'
+            . '<th>' . esc_html__( 'Action',    'purecart' ) . '</th>'
             . '</tr></thead><tbody>';
 
         foreach ( $downloads as $dl ) {
-            $remaining  = max( 0, (int) $dl->max_downloads - (int) $dl->download_count );
-            $expired    = strtotime( $dl->expires_at ) < time();
-            $exhausted  = $remaining <= 0;
-            $url        = home_url( 'wdd-download/' . $dl->token );
+            $remaining = max( 0, (int) $dl->max_downloads - (int) $dl->download_count );
+            $expired   = strtotime( $dl->expires_at ) < time();
+            $url       = home_url( 'purecart/' . $dl->token );
 
             printf(
-                '<tr>
-                    <td>%s</td>
-                    <td>%d / %d</td>
-                    <td>%s</td>
-                    <td>%s</td>
-                </tr>',
+                '<tr><td>%s</td><td>%d / %d</td><td>%s</td><td>%s</td></tr>',
                 esc_html( $dl->product_name ?? '' ),
-                esc_html( $dl->download_count ),
-                esc_html( $dl->max_downloads ),
+                (int) $dl->download_count,
+                (int) $dl->max_downloads,
                 esc_html( date_i18n( get_option( 'date_format' ), strtotime( $dl->expires_at ) ) ),
-                ( $expired || $exhausted )
-                    ? '<span class="wdd-expired">' . esc_html__( 'Expired', 'woo-digital-downloads' ) . '</span>'
-                    : '<a href="' . esc_url( $url ) . '" class="button">' . esc_html__( 'Download', 'woo-digital-downloads' ) . '</a>'
+                ( $expired || $remaining <= 0 )
+                    ? '<span class="purecart-expired">' . esc_html__( 'Expired', 'purecart' ) . '</span>'
+                    : '<a href="' . esc_url( $url ) . '" class="button">' . esc_html__( 'Download', 'purecart' ) . '</a>'
             );
         }
 
@@ -234,26 +200,21 @@ class Dashboard {
         $accounts = ( new AccountProvisioner() )->get_by_user( $user_id );
 
         if ( empty( $accounts ) ) {
-            echo '<p>' . esc_html__( 'No API keys found.', 'woo-digital-downloads' ) . '</p>';
+            echo '<p>' . esc_html__( 'No API keys found.', 'purecart' ) . '</p>';
             return;
         }
 
-        echo '<table class="woocommerce-table shop_table wdd-api-keys-table">';
+        echo '<table class="woocommerce-table shop_table purecart-api-keys-table">';
         echo '<thead><tr>'
-            . '<th>' . esc_html__( 'Product', 'woo-digital-downloads' ) . '</th>'
-            . '<th>' . esc_html__( 'Plan',    'woo-digital-downloads' ) . '</th>'
-            . '<th>' . esc_html__( 'API Key', 'woo-digital-downloads' ) . '</th>'
-            . '<th>' . esc_html__( 'Status',  'woo-digital-downloads' ) . '</th>'
+            . '<th>' . esc_html__( 'Product', 'purecart' ) . '</th>'
+            . '<th>' . esc_html__( 'Plan',    'purecart' ) . '</th>'
+            . '<th>' . esc_html__( 'API Key', 'purecart' ) . '</th>'
+            . '<th>' . esc_html__( 'Status',  'purecart' ) . '</th>'
             . '</tr></thead><tbody>';
 
         foreach ( $accounts as $account ) {
             printf(
-                '<tr>
-                    <td>%s</td>
-                    <td>%s</td>
-                    <td><code class="wdd-api-key">%s</code></td>
-                    <td><span class="wdd-status wdd-status--%s">%s</span></td>
-                </tr>',
+                '<tr><td>%s</td><td>%s</td><td><code class="purecart-api-key">%s</code></td><td><span class="purecart-status purecart-status--%s">%s</span></td></tr>',
                 esc_html( $account->product_name ?? '' ),
                 esc_html( ucfirst( $account->plan ) ),
                 esc_html( $account->api_key ),
