@@ -1,8 +1,8 @@
-# Dashboard Design Prompt — Woo Digital Downloads Admin
+# Dashboard Design Prompt — PureCart Admin
 
 ## Project Context
 
-You are building the **admin dashboard** for `woo-digital-downloads` — a WooCommerce extension that sells WordPress plugins and SaaS products. The dashboard is a **WordPress plugin admin page** rendered as a full React SPA mounted inside the WordPress admin layout (the WP sidebar and top bar are already rendered by WordPress; this React app fills the `#wdd-admin-root` div inside the content area).
+You are building the **admin dashboard** for `purecart` — a WooCommerce extension that sells WordPress plugins and SaaS products. The dashboard is a **WordPress plugin admin page** rendered as a full React SPA mounted inside the WordPress admin layout (the WP sidebar and top bar are already rendered by WordPress; this React app fills the `#purecart-admin-root` div inside the content area).
 
 The plugin has **10 independent feature modules**, each with its own admin section. Modules that are disabled should still show in the sidebar but render a "Module disabled — enable in Settings" placeholder instead of real data.
 
@@ -16,7 +16,7 @@ The plugin has **10 independent feature modules**, each with its own admin secti
 | Routing | React Router v6 (`createHashRouter` — hash router inside WordPress admin) |
 | Global State | Context API only (no Redux, no Zustand) — one `AppContext` for global, separate context per module |
 | Styling | SCSS with **BEM methodology**. Design language follows **Material Design 3 (Google)** principles — implemented from scratch. **Do NOT install or import MUI, @mui/material, or any Material UI library.** |
-| HTTP | Native `fetch` calling WP REST API endpoints under `/wp-json/wdd/v1/` |
+| HTTP | Native `fetch` calling WP REST API endpoints under `/wp-json/purecart/v1/` |
 | Charts | Recharts |
 | Icons | Lucide React |
 | Build | WordPress Scripts (`@wordpress/scripts`) → `assets/js/admin.js` + `assets/css/admin.css` |
@@ -824,7 +824,7 @@ Apply these rules strictly throughout every component:
 
 ```js
 {
-  // Loaded from /wp-json/wdd/v1/settings
+  // Loaded from /wp-json/purecart/v1/settings
   activeModules: ['downloads', 'licensing', 'updates', 'subscriptions', 'saas', 'security', 'analytics', 'affiliates', 'abandoned-cart'],
   siteUrl: 'https://example.com',
   pluginVersion: '1.0.0',
@@ -1036,7 +1036,7 @@ BEM example:
 - License key (large monospace, copy button)
 - Status badge
 - Customer name + email + avatar initial
-- Product name + type badge (wdd_plugin / wdd_saas / wdd_bundle)
+- Product name + type badge (purecart_plugin / purecart_saas / purecart_bundle)
 - Plan type badge
 - Activation limit / sites used progress bar
 - Expires at (or "Lifetime")
@@ -1091,7 +1091,7 @@ Table:
 - ZIP file upload
 - WP requires / tested / PHP requires fields
 - Changelog textarea (Markdown)
-- Submit → POST `/wdd/v1/plugin/version`
+- Submit → POST `/purecart/v1/plugin/version`
 
 ---
 
@@ -1148,7 +1148,7 @@ Table:
 
 | Account | Customer | Product | Plan | API Key | Status | Provisioned | Actions |
 |---|---|---|---|---|---|---|---|
-| #42 | john@x.com | My SaaS | Pro | wdd_a1b2... (copy) | Active | 24 Jun 2026 | Suspend · Activate |
+| #42 | john@x.com | My SaaS | Pro | purecart_a1b2... (copy) | Active | 24 Jun 2026 | Suspend · Activate |
 
 **Detail modal (click row):**
 - Full API key (reveal/copy)
@@ -1221,7 +1221,7 @@ Table:
 **Geo-Blocking panel:**
 - Toggle: Block mode / Allow mode
 - Country tag input (type ISO code or country name, autocomplete, add to list)
-- Save button → PUT `/wdd/v1/settings/geo-block`
+- Save button → PUT `/purecart/v1/settings/geo-block`
 
 ---
 
@@ -1245,7 +1245,7 @@ MRR | ARR | Churn Rate | LTV
 - Left: `VersionAdoptionChart` — PieChart of % customers on each plugin version
 - Right: `DownloadsByProductTable` — product name, version, download count, trend arrow
 
-**Export buttons:** "Export Revenue CSV", "Export License CSV", "Export Downloads CSV" — call `/wdd/v1/analytics/{report}/export`.
+**Export buttons:** "Export Revenue CSV", "Export License CSV", "Export Downloads CSV" — call `/purecart/v1/analytics/{report}/export`.
 
 ---
 
@@ -1279,7 +1279,7 @@ MRR | ARR | Churn Rate | LTV
 │ ○ SaaS Provisioning   [OFF]  Phase 2  Disabled│
 └──────────────────────────────────────────────┘
 ```
-Each row: module icon, name, toggle switch, phase badge, status badge. Toggling fires `POST /wdd/v1/settings/modules` and updates `AppContext.activeModules`.
+Each row: module icon, name, toggle switch, phase badge, status badge. Toggling fires `POST /purecart/v1/settings/modules` and updates `AppContext.activeModules`.
 
 ---
 
@@ -1320,7 +1320,7 @@ Every data-fetching page/component must handle three states:
 
 ```
 src/
-├── main.jsx                        // mounts React app into #wdd-admin-root
+├── main.jsx                        // mounts React app into #purecart-admin-root
 ├── App.jsx                         // Router + AppContext.Provider
 ├── context/
 │   ├── AppContext.jsx
@@ -1402,8 +1402,8 @@ All REST calls go through `utils/api.js`:
 
 ```js
 // utils/api.js
-const BASE = window.wddAdmin.restUrl;         // localized from PHP: rest_url('wdd/v1/')
-const NONCE = window.wddAdmin.nonce;          // localized from PHP: wp_create_nonce('wp_rest')
+const BASE = window.purecartAdmin.restUrl;         // localized from PHP: rest_url('purecart/v1/')
+const NONCE = window.purecartAdmin.nonce;          // localized from PHP: wp_create_nonce('wp_rest')
 
 export async function apiFetch(endpoint, options = {}) {
   const res = await fetch(`${BASE}${endpoint}`, {
@@ -1427,8 +1427,8 @@ All data fetching uses the `useApi` custom hook which returns `{ data, loading, 
 
 1. **No page has a loading spinner** — use skeleton screens only
 2. **Destructive actions** (Revoke, Cancel, Suspend, Delete) always show a `<ConfirmModal>` before executing
-3. **All monetary values** formatted with `Intl.NumberFormat` — currency from `window.wddAdmin.currency`
-4. **All dates** formatted with `Intl.DateTimeFormat` — locale from `window.wddAdmin.locale`
+3. **All monetary values** formatted with `Intl.NumberFormat` — currency from `window.purecartAdmin.currency`
+4. **All dates** formatted with `Intl.DateTimeFormat` — locale from `window.purecartAdmin.locale`
 5. **License keys** always rendered in monospace font (`.license-key` class)
 6. **Copy to clipboard** always shows a green tick toast: `"Copied to clipboard"`
 7. **Table row selection** → floating bulk action bar appears at bottom of screen (fixed position)

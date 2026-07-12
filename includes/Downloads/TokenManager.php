@@ -2,188 +2,161 @@
 /**
  * Creates and validates signed, expiring download tokens.
  *
- * @package WooDigitalDownloads\Downloads
+ * @package PureCart\Downloads
  */
 
-namespace WooDigitalDownloads\Downloads;
+declare( strict_types=1 );
+
+namespace PureCart\Downloads;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Secure download token system.
- * Each token is a random 64-char hex string stored in wp_wdd_downloads.
+ * Manages the purecart_downloads table.
  */
 class TokenManager {
 
-    /** Default token TTL in seconds (24 hours). */
-    private const DEFAULT_TTL = DAY_IN_SECONDS;
+	/**
+	 * Create a signed, expiring download token for a product in an order.
+	 *
+	 * @since  1.0.0
+	 * @param  int $order_id   WooCommerce order ID.
+	 * @param  int $user_id    WordPress user ID of the customer.
+	 * @param  int $product_id WooCommerce product ID.
+	 * @return object|null     The inserted download row, or null on failure.
+	 */
+	public function create_token( int $order_id, int $user_id, int $product_id ): ?object {
+		global $wpdb;
 
-    /** Default maximum number of download attempts. */
-    private const DEFAULT_MAX = 3;
+		$file_id = (int) get_post_meta( $product_id, '_purecart_primary_file_id', true );
+		if ( ! $file_id ) {
+			return null;
+		}
 
-    /**
-     * Create a download token for an order item and store it in the DB.
-     *
-     * @param \WC_Order              $order
-     * @param \WC_Order_Item_Product $item
-     * @param \WC_Product            $product
-     * @return string|false  The generated token, or false on DB failure.
-     */
-    public function create_for_order_item(
-        \WC_Order $order,
-        \WC_Order_Item_Product $item,
-        \WC_Product $product
-    ): string|false {
-        $ttl         = (int) ( get_option( 'wdd_download_expiry_seconds', self::DEFAULT_TTL ) );
-        $max         = (int) ( get_option( 'wdd_download_max_count', self::DEFAULT_MAX ) );
-        $expires_at  = gmdate( 'Y-m-d H:i:s', time() + $ttl );
+		$expiry_secs = (int) get_option( 'purecart_download_expiry_seconds', DAY_IN_SECONDS );
+		$max_count   = (int) get_option( 'purecart_download_max_count', 3 );
+		$token       = bin2hex( random_bytes( 32 ) );
+		$expires_at  = gmdate( 'Y-m-d H:i:s', time() + $expiry_secs );
 
-        return $this->insert_token( [
-            'order_id'   => $order->get_id(),
-            'user_id'    => $order->get_customer_id(),
-            'product_id' => $product->get_id(),
-            'file_id'    => (int) $product->get_meta( '_wdd_primary_file_id' ),
-            'max_downloads' => $max,
-            'expires_at' => $expires_at,
-        ] );
-    }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table INSERT; no WP API available.
+		$inserted = $wpdb->insert(
+			$wpdb->prefix . 'purecart_downloads',
+			array(
+				'order_id'       => $order_id,
+				'user_id'        => $user_id,
+				'product_id'     => $product_id,
+				'file_id'        => $file_id,
+				'token'          => $token,
+				'download_count' => 0,
+				'max_downloads'  => $max_count,
+				'expires_at'     => $expires_at,
+				'ip_address'     => '',
+				'country_code'   => '',
+				'created_at'     => current_time( 'mysql' ),
+			),
+			array( '%d', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s', '%s', '%s' )
+		);
 
-    /**
-     * Create a token with explicit parameters.
-     *
-     * @param array{
-     *   order_id: int,
-     *   user_id: int,
-     *   product_id: int,
-     *   file_id: int,
-     *   max_downloads?: int,
-     *   expires_at?: string
-     * } $args
-     * @return string|false
-     */
-    public function create( array $args ): string|false {
-        $args['max_downloads'] = $args['max_downloads'] ?? self::DEFAULT_MAX;
-        $args['expires_at']    = $args['expires_at']    ?? gmdate( 'Y-m-d H:i:s', time() + self::DEFAULT_TTL );
+		if ( ! $inserted ) {
+			return null;
+		}
 
-        return $this->insert_token( $args );
-    }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; result just inserted, no stale cache risk.
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}purecart_downloads WHERE id = %d",
+				$wpdb->insert_id
+			)
+		);
+	}
 
-    /**
-     * Validate a token and return its record, or null if invalid/expired/exhausted.
-     *
-     * @param string $token
-     * @return object|null
-     */
-    public function validate( string $token ): ?object {
-        global $wpdb;
+	/**
+	 * Validate a download token — returns the row only if unexpired and within download limit.
+	 *
+	 * @since  1.0.0
+	 * @param  string $token The hex download token.
+	 * @return object|null   The download row, or null if invalid/expired/exhausted.
+	 */
+	public function validate_token( string $token ): ?object {
+		global $wpdb;
 
-        $record = $wpdb->get_row(
-            $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}wdd_downloads WHERE token = %s LIMIT 1",
-                sanitize_text_field( $token )
-            )
-        );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Token validation is time-sensitive; caching could allow replays of expired/exhausted tokens.
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}purecart_downloads WHERE token = %s LIMIT 1",
+				$token
+			)
+		);
 
-        if ( ! $record ) {
-            return null;
-        }
+		if ( ! $row ) {
+			return null;
+		}
 
-        if ( strtotime( $record->expires_at ) < time() ) {
-            return null; // Token expired.
-        }
+		if ( strtotime( $row->expires_at ) < time() ) {
+			return null;
+		}
 
-        if ( (int) $record->download_count >= (int) $record->max_downloads ) {
-            return null; // Download limit reached.
-        }
+		if ( (int) $row->download_count >= (int) $row->max_downloads ) {
+			return null;
+		}
 
-        return $record;
-    }
+		return $row;
+	}
 
-    /**
-     * Increment the download counter for a token.
-     *
-     * @param int    $token_id  Primary key from wdd_downloads.
-     * @param string $ip
-     * @param string $user_agent
-     */
-    public function record_download( int $token_id, string $ip = '', string $user_agent = '' ): void {
-        global $wpdb;
+	/**
+	 * Increment the download counter and append a log entry for the given download.
+	 *
+	 * @since  1.0.0
+	 * @param  int $download_id The purecart_downloads row ID.
+	 * @return void
+	 */
+	public function increment_count( int $download_id ): void {
+		global $wpdb;
 
-        $wpdb->query(
-            $wpdb->prepare(
-                "UPDATE {$wpdb->prefix}wdd_downloads
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic counter increment on custom table.
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->prefix}purecart_downloads
                     SET download_count = download_count + 1
                   WHERE id = %d",
-                $token_id
-            )
-        );
+				$download_id
+			)
+		);
 
-        // Write a log entry.
-        $wpdb->insert(
-            $wpdb->prefix . 'wdd_download_logs',
-            [
-                'download_id'   => $token_id,
-                'ip_address'    => sanitize_text_field( $ip ),
-                'user_agent'    => sanitize_textarea_field( $user_agent ),
-                'country_code'  => '',
-                'downloaded_at' => current_time( 'mysql' ),
-            ],
-            [ '%d', '%s', '%s', '%s', '%s' ]
-        );
-    }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Append-only event log; no WP API available.
+		$wpdb->insert(
+			$wpdb->prefix . 'purecart_download_logs',
+			array(
+				'download_id'   => $download_id,
+				'ip_address'    => sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? '' ) ),
+				'user_agent'    => sanitize_text_field( substr( wp_unslash( (string) ( $_SERVER['HTTP_USER_AGENT'] ?? '' ) ), 0, 500 ) ),
+				'country_code'  => '',
+				'downloaded_at' => current_time( 'mysql' ),
+			),
+			array( '%d', '%s', '%s', '%s', '%s' )
+		);
+	}
 
-    /**
-     * Fetch all download tokens for a user.
-     *
-     * @param int $user_id
-     * @return object[]
-     */
-    public function get_by_user( int $user_id ): array {
-        global $wpdb;
+	/**
+	 * Retrieve all download tokens for a given user, ordered newest first.
+	 *
+	 * @since  1.0.0
+	 * @param  int $user_id WordPress user ID.
+	 * @return array<int, object>
+	 */
+	public function get_by_user( int $user_id ): array {
+		global $wpdb;
 
-        return $wpdb->get_results(
-            $wpdb->prepare(
-                "SELECT d.*, p.post_title AS product_name
-                   FROM {$wpdb->prefix}wdd_downloads d
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; results vary per user and update on every download, making persistent caching unreliable.
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT d.*, p.post_title AS product_name
+                   FROM {$wpdb->prefix}purecart_downloads d
                    LEFT JOIN {$wpdb->posts} p ON p.ID = d.product_id
                   WHERE d.user_id = %d
                   ORDER BY d.created_at DESC",
-                $user_id
-            )
-        ) ?: [];
-    }
-
-    // ─── Private helpers ─────────────────────────────────────────────────────
-
-    /**
-     * Insert a token record and return the token string.
-     *
-     * @param array<string,mixed> $args
-     * @return string|false
-     */
-    private function insert_token( array $args ): string|false {
-        global $wpdb;
-
-        $token = bin2hex( random_bytes( 32 ) ); // 64 hex chars.
-
-        $inserted = $wpdb->insert(
-            $wpdb->prefix . 'wdd_downloads',
-            [
-                'order_id'       => (int) $args['order_id'],
-                'user_id'        => (int) $args['user_id'],
-                'product_id'     => (int) $args['product_id'],
-                'file_id'        => (int) $args['file_id'],
-                'token'          => $token,
-                'download_count' => 0,
-                'max_downloads'  => (int) $args['max_downloads'],
-                'expires_at'     => $args['expires_at'],
-                'ip_address'     => '',
-                'country_code'   => '',
-                'created_at'     => current_time( 'mysql' ),
-            ],
-            [ '%d', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s', '%s', '%s' ]
-        );
-
-        return $inserted ? $token : false;
-    }
+				$user_id
+			)
+		) ?: array();
+	}
 }

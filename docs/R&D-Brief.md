@@ -1,22 +1,22 @@
-#  Woo Digital Downloads for WooCommerce
+# PureCart for WooCommerce
 
 ## Product R&D Brief
 
-**Working product name:**  Woo Digital Downloads for WooCommerce  
+**Working product name:** PureCart for WooCommerce  
 **Tagline:** Secure digital selling, powered by WooCommerce.  
-**Plugin slug:** ` Woo Digital Downloads-for-woocommerce`  
-**Recommended PHP namespace:** ` Woo Digital Downloads\WooCommerce`  
+**Plugin slug:** `purecart`  
+**PHP namespace:** `PureCart`  
 **Product type:** WooCommerce extension for digital products  
 **Document status:** Initial research and product definition  
 **Date:** June 21, 2026
 
-> The name is provisional. An initial exact-phrase web search found no indexed match for " Woo Digital Downloads for WooCommerce," but trademark, WordPress.org slug, domain, social handle, and international name checks are required before launch.
+> **Plugin name confirmed:** PureCart for WooCommerce. Plugin slug: `purecart`. WordPress.org submission approved.
 
 ## 1. Product Summary
 
- Woo Digital Downloads for WooCommerce turns an existing WooCommerce store into a focused platform for selling downloadable products, software, media, documents, and other licensed digital goods.
+PureCart for WooCommerce turns an existing WooCommerce store into a focused platform for selling downloadable products, software, media, documents, and other licensed digital goods.
 
-WooCommerce remains responsible for the catalog, cart, checkout, payment gateways, taxes, coupons, orders, refunds, customers, and base transactional emails.  Woo Digital Downloads adds secure file delivery, a better customer download experience, product releases, access management, download analytics, and optional software licensing.
+WooCommerce remains responsible for the catalog, cart, checkout, payment gateways, taxes, coupons, orders, refunds, customers, and base transactional emails. PureCart adds secure file delivery, a better customer download experience, product releases, access management, download analytics, and optional software licensing.
 
 The product is an alternative to installing a separate digital-commerce system such as Easy Digital Downloads. It is not a replacement for WooCommerce.
 
@@ -34,7 +34,7 @@ WooCommerce supports virtual and downloadable products, but a serious digital-pr
 - Subscription-aware access
 - Digital-product reporting
 
-Merchants currently assemble several extensions or move to a separate commerce platform.  Woo Digital Downloads should provide these capabilities through one coherent WooCommerce-native experience.
+Merchants currently assemble several extensions or move to a separate commerce platform. PureCart should provide these capabilities through one coherent WooCommerce-native experience.
 
 ## 3. Target Customers
 
@@ -62,7 +62,7 @@ Merchants currently assemble several extensions or move to a separate commerce p
 
 ### Positioning statement
 
-For WooCommerce merchants selling digital goods,  Woo Digital Downloads is a WooCommerce extension that provides secure delivery, product releases, customer downloads, licensing, and access analytics without introducing a second commerce system.
+For WooCommerce merchants selling digital goods, PureCart is a WooCommerce extension that provides secure delivery, product releases, customer downloads, licensing, and access analytics without introducing a second commerce system.
 
 ### Differentiators
 
@@ -88,7 +88,7 @@ For WooCommerce merchants selling digital goods,  Woo Digital Downloads is a Woo
 - Base transactional emails
 - Base analytics
 
-### Owned by  Woo Digital Downloads
+### Owned by PureCart
 - Subscription-aware entitlements and access policies
 - Secure file delivery and expiring links
 - Protected file sources and delivery policies
@@ -107,7 +107,7 @@ For WooCommerce merchants selling digital goods,  Woo Digital Downloads is a Woo
 
 ### 6.1 Digital product configuration
 
-- Add a ** Woo Digital Downloads** panel to WooCommerce product data
+- Add a **PureCart** panel to WooCommerce product data
 - Support simple and variable products
 - Attach one or more files to a product or variation
 - Store a display name, file source, version, file size, and checksum
@@ -138,7 +138,7 @@ For WooCommerce merchants selling digital goods,  Woo Digital Downloads is a Woo
 
 ### 6.4 Customer download library
 
-- Add a  Woo Digital Downloads endpoint under **My Account**
+- Add a PureCart endpoint under **My Account**
 - Display products, files, versions, expiration, and remaining downloads
 - Provide release notes and documentation links
 - Group purchases by product rather than exposing a confusing order list
@@ -244,12 +244,12 @@ For WooCommerce merchants selling digital goods,  Woo Digital Downloads is a Woo
 
 Use dedicated tables for high-volume transactional data rather than post meta.
 
-- `{prefix} Woo Digital Downloads_files`
-- `{prefix} Woo Digital Downloads_releases`
-- `{prefix} Woo Digital Downloads_entitlements`
-- `{prefix} Woo Digital Downloads_download_logs`
-- `{prefix} Woo Digital Downloads_licenses` (Pro)
-- `{prefix} Woo Digital Downloads_activations` (Pro)
+- `{prefix}purecart_files`
+- `{prefix}purecart_releases`
+- `{prefix}purecart_entitlements`
+- `{prefix}purecart_download_logs`
+- `{prefix}purecart_licenses` (Pro)
+- `{prefix}purecart_activations` (Pro)
 
 Tables should include appropriate composite indexes, UTC timestamps, schema versions, and explicit retention behavior. WooCommerce order and product IDs remain the canonical commerce references.
 
@@ -285,7 +285,7 @@ Tables should include appropriate composite indexes, UTC timestamps, schema vers
 
 ## 10. Performance Requirements
 
-- Do not load  Woo Digital Downloads services on unrelated front-end requests
+- Do not load PureCart services on unrelated front-end requests
 - Use indexed custom tables for logs and entitlements
 - Process emails, release notifications, and aggregation asynchronously
 - Paginate all administrative logs
@@ -477,7 +477,7 @@ The supplied Easy Digital Downloads pricing screenshot was reviewed on June 21, 
 
 ### Important comparison rule
 
-EDD is a commerce platform, while  Woo Digital Downloads is a WooCommerce add-on. A raw checklist comparison would therefore be misleading. The following screenshot features are already substantially supplied by WooCommerce or its established ecosystem:
+EDD is a commerce platform, while PureCart is a WooCommerce add-on. A raw checklist comparison would therefore be misleading. The following screenshot features are already substantially supplied by WooCommerce or its established ecosystem:
 
 - Products, cart, checkout, orders, and refunds
 - Stripe, PayPal, Apple Pay, and other payment gateways
@@ -489,11 +489,11 @@ EDD is a commerce platform, while  Woo Digital Downloads is a WooCommerce add-on
 - Related and recommended products
 - Subscriptions, bundles, marketplace, loyalty, and wish-list extensions
 
- Woo Digital Downloads should integrate with these WooCommerce capabilities. It should not duplicate them merely to match EDD's pricing table.
+PureCart should integrate with these WooCommerce capabilities. It should not duplicate them merely to match EDD's pricing table.
 
-### Competitive feature focus for  Woo Digital Downloads
+### Competitive feature focus for PureCart
 
-| Capability | WooCommerce role |  Woo Digital Downloads opportunity | Priority |
+| Capability | WooCommerce role | PureCart opportunity | Priority |
 |---|---|---|---|
 | Secure file delivery | Basic downloadable files | Signed links, protected sources, limits, audit trail | MVP |
 | Customer download library | Basic account downloads | Product-centric library, releases, docs, access states | MVP |
@@ -505,11 +505,11 @@ EDD is a commerce platform, while  Woo Digital Downloads is a WooCommerce add-on
 | Download analytics | Limited | Success, denial, abuse, product, customer, retention | Plus/Pro |
 | Marketplace integration | Established extensions exist | Compatibility with vendor ownership and commissions | Later |
 
-### Recommended  Woo Digital Downloads packaging hypothesis
+### Recommended PureCart packaging hypothesis
 
 These are starting hypotheses for customer interviews and pricing tests, not final prices.
 
-|  Woo Digital Downloads plan | Target annual price | Sites | Proposed scope |
+| PureCart plan | Target annual price | Sites | Proposed scope |
 |---|---:|---:|---|
 | Free | $0 | 1 | Protected local delivery, limits, customer library, basic logs |
 | Plus | $79 | 1 | Releases, update emails, advanced logs and reports |
@@ -518,7 +518,7 @@ These are starting hypotheses for customer interviews and pricing tests, not fin
 
 ### Pricing rationale
 
--  Woo Digital Downloads can enter below EDD because the merchant already has WooCommerce handling commerce fundamentals.
+- PureCart can enter below EDD because the merchant already has WooCommerce handling commerce fundamentals.
 - The free edition must demonstrate secure delivery and produce a complete customer journey.
 - Software licensing is the clearest high-value upgrade trigger.
 - Site limits should be simpler and more generous than the screenshot's one-to-three-site structure.
@@ -534,6 +534,6 @@ The comparison page should measure fewer, more relevant outcomes: secure deliver
 
 ## 20. Recommended Product Decision
 
-Build  Woo Digital Downloads as a focused WooCommerce extension that owns **delivery and entitlement**, not commerce. Release a useful free core with secure local delivery and a customer library. Monetize licensing, cloud storage, subscriptions, and operational tooling through Pro modules.
+Build PureCart as a focused WooCommerce extension that owns **delivery and entitlement**, not commerce. Release a useful free core with secure local delivery and a customer library. Monetize licensing, cloud storage, subscriptions, and operational tooling through Pro modules.
 
 This boundary gives the product a clear reason to exist while retaining the strongest part of WooCommerce: its checkout, payments, orders, and integration ecosystem.

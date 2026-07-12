@@ -2,267 +2,190 @@
 /**
  * Handles domain activation and deactivation for licenses.
  *
- * @package WooDigitalDownloads\Licensing
+ * @package PureCart\Licensing
  */
 
-namespace WooDigitalDownloads\Licensing;
+declare( strict_types=1 );
+
+namespace PureCart\Licensing;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Activates and deactivates site licenses.
+ * Manages the purecart_license_activations table.
  */
 class LicenseActivator {
 
-    /** Domains that are always exempt from site-limit counting. */
-    private const EXEMPT_PATTERNS = [
-        'localhost',
-        '127.0.0.1',
-        '::1',
-        '.local',
-        '.test',
-        '.staging.',
-        'staging.',
-    ];
+	/**
+	 * Activate a license on a domain.
+	 *
+	 * @since  1.0.0
+	 * @param  string $license_key The license key to activate.
+	 * @param  string $domain      The domain being activated (e.g. example.com).
+	 * @param  string $environment Deployment environment: production, staging, or local.
+	 * @return array{success: bool, message: string}
+	 */
+	public function activate( string $license_key, string $domain, string $environment = 'production' ): array {
+		global $wpdb;
 
-    /**
-     * Activate a license on a domain.
-     *
-     * @param string $license_key
-     * @param string $domain        The site URL being activated.
-     * @param string $environment   'production' | 'staging' | 'local'
-     * @return array{success: bool, message: string, data?: array<string,mixed>}
-     */
-    public function activate( string $license_key, string $domain, string $environment = 'production' ): array {
-        global $wpdb;
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- License validation is security-critical; cached results could allow revoked/expired licenses through.
+		$license = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}purecart_licenses WHERE license_key = %s LIMIT 1",
+				$license_key
+			)
+		);
 
-        $license = $this->get_valid_license( $license_key );
+		if ( ! $license ) {
+			return array(
+				'success' => false,
+				'message' => __( 'Invalid license key.', 'purecart' ),
+			);
+		}
 
-        if ( is_string( $license ) ) {
-            return [ 'success' => false, 'message' => $license ];
-        }
+		if ( 'active' !== $license->status ) {
+			return array(
+				'success' => false,
+				'message' => __( 'License is not active.', 'purecart' ),
+			);
+		}
 
-        $domain = $this->normalize_domain( $domain );
+		if ( $license->expires_at && strtotime( $license->expires_at ) < time() ) {
+			return array(
+				'success' => false,
+				'message' => __( 'License has expired.', 'purecart' ),
+			);
+		}
 
-        // Check if this domain is already activated.
-        $existing = $wpdb->get_row(
-            $wpdb->prepare(
-                "SELECT id FROM {$wpdb->prefix}wdd_license_activations
+		// Already activated on this domain — refresh last_check.
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Activation state is security-critical; cannot use stale cache.
+		$existing = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT id FROM {$wpdb->prefix}purecart_license_activations
                   WHERE license_id = %d AND domain = %s LIMIT 1",
-                $license->id,
-                $domain
-            )
-        );
+				$license->id,
+				$domain
+			)
+		);
 
-        if ( $existing ) {
-            // Update last_check timestamp.
-            $wpdb->update(
-                $wpdb->prefix . 'wdd_license_activations',
-                [ 'last_check' => current_time( 'mysql' ) ],
-                [ 'id' => $existing->id ],
-                [ '%s' ],
-                [ '%d' ]
-            );
+		if ( $existing ) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Updating last_check on existing activation record.
+			$wpdb->update(
+				$wpdb->prefix . 'purecart_license_activations',
+				array( 'last_check' => current_time( 'mysql' ) ),
+				array( 'id' => $existing ),
+				array( '%s' ),
+				array( '%d' )
+			);
+			return array(
+				'success' => true,
+				'message' => __( 'License already activated on this domain.', 'purecart' ),
+			);
+		}
 
-            return [
-                'success' => true,
-                'message' => __( 'License already active on this domain.', 'woo-digital-downloads' ),
-                'data'    => $this->license_data( $license ),
-            ];
-        }
+		if ( 'unlimited' !== $license->plan_type
+			&& (int) $license->activated_count >= (int) $license->activation_limit
+		) {
+			return array(
+				'success' => false,
+				'message' => __( 'Activation limit reached.', 'purecart' ),
+			);
+		}
 
-        // For production environments, check the activation limit.
-        if ( 'production' === $environment && ! $this->is_exempt( $domain ) ) {
-            if ( (int) $license->activated_count >= (int) $license->activation_limit
-                && 'unlimited' !== $license->plan_type ) {
-                return [
-                    'success' => false,
-                    'message' => sprintf(
-                        /* translators: %1$d = current limit, %2$d = max allowed */
-                        __( 'Activation limit reached (%1$d / %2$d sites).', 'woo-digital-downloads' ),
-                        $license->activated_count,
-                        $license->activation_limit
-                    ),
-                ];
-            }
-        }
+		$env_allowed = array( 'production', 'staging', 'local' );
+		if ( ! in_array( $environment, $env_allowed, true ) ) {
+			$environment = 'production';
+		}
 
-        // Insert activation.
-        $wpdb->insert(
-            $wpdb->prefix . 'wdd_license_activations',
-            [
-                'license_id'   => (int) $license->id,
-                'domain'       => $domain,
-                'ip_address'   => $this->get_ip(),
-                'environment'  => sanitize_text_field( $environment ),
-                'activated_at' => current_time( 'mysql' ),
-                'last_check'   => current_time( 'mysql' ),
-            ],
-            [ '%d', '%s', '%s', '%s', '%s', '%s' ]
-        );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table INSERT; no WP API available.
+		$wpdb->insert(
+			$wpdb->prefix . 'purecart_license_activations',
+			array(
+				'license_id'   => $license->id,
+				'domain'       => $domain,
+				'ip_address'   => sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? '' ) ),
+				'environment'  => $environment,
+				'activated_at' => current_time( 'mysql' ),
+				'last_check'   => current_time( 'mysql' ),
+			),
+			array( '%d', '%s', '%s', '%s', '%s', '%s' )
+		);
 
-        // Increment counter only for production, non-exempt domains.
-        if ( 'production' === $environment && ! $this->is_exempt( $domain ) ) {
-            $wpdb->query(
-                $wpdb->prepare(
-                    "UPDATE {$wpdb->prefix}wdd_licenses
-                        SET activated_count = activated_count + 1,
-                            updated_at = %s
-                      WHERE id = %d",
-                    current_time( 'mysql' ),
-                    $license->id
-                )
-            );
-        }
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic counter increment; must be real-time.
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->prefix}purecart_licenses
+                    SET activated_count = activated_count + 1,
+                        updated_at = %s
+                  WHERE id = %d",
+				current_time( 'mysql' ),
+				$license->id
+			)
+		);
 
-        do_action( 'wdd_license_activated', $license->id, $domain );
+		do_action( 'purecart_license_activated', $license->id, $domain, $environment );
 
-        return [
-            'success' => true,
-            'message' => __( 'License activated successfully.', 'woo-digital-downloads' ),
-            'data'    => $this->license_data( $license ),
-        ];
-    }
+		return array(
+			'success' => true,
+			'message' => __( 'License activated successfully.', 'purecart' ),
+		);
+	}
 
-    /**
-     * Deactivate a license on a specific domain.
-     *
-     * @param string $license_key
-     * @param string $domain
-     * @return array{success: bool, message: string}
-     */
-    public function deactivate( string $license_key, string $domain ): array {
-        global $wpdb;
+	/**
+	 * Deactivate a license from a domain.
+	 *
+	 * @since  1.0.0
+	 * @param  string $license_key The license key to deactivate.
+	 * @param  string $domain      The domain to remove the activation from.
+	 * @return array{success: bool, message: string}
+	 */
+	public function deactivate( string $license_key, string $domain ): array {
+		global $wpdb;
 
-        $license = $this->get_valid_license( $license_key );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- License validation is security-critical; cannot use stale cache.
+		$license = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}purecart_licenses WHERE license_key = %s LIMIT 1",
+				$license_key
+			)
+		);
 
-        if ( is_string( $license ) ) {
-            return [ 'success' => false, 'message' => $license ];
-        }
+		if ( ! $license ) {
+			return array(
+				'success' => false,
+				'message' => __( 'Invalid license key.', 'purecart' ),
+			);
+		}
 
-        $domain = $this->normalize_domain( $domain );
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- DELETE from custom table; no WP API available.
+		$deleted = $wpdb->delete(
+			$wpdb->prefix . 'purecart_license_activations',
+			array(
+				'license_id' => $license->id,
+				'domain'     => $domain,
+			),
+			array( '%d', '%s' )
+		);
 
-        $activation = $wpdb->get_row(
-            $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}wdd_license_activations
-                  WHERE license_id = %d AND domain = %s LIMIT 1",
-                $license->id,
-                $domain
-            )
-        );
-
-        if ( ! $activation ) {
-            return [
-                'success' => false,
-                'message' => __( 'Domain not found for this license.', 'woo-digital-downloads' ),
-            ];
-        }
-
-        $wpdb->delete(
-            $wpdb->prefix . 'wdd_license_activations',
-            [ 'id' => $activation->id ],
-            [ '%d' ]
-        );
-
-        // Decrement counter for production, non-exempt domains.
-        if ( 'production' === $activation->environment && ! $this->is_exempt( $domain ) ) {
-            $wpdb->query(
-                $wpdb->prepare(
-                    "UPDATE {$wpdb->prefix}wdd_licenses
+		if ( $deleted ) {
+            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic counter decrement; must be real-time.
+			$wpdb->query(
+				$wpdb->prepare(
+					"UPDATE {$wpdb->prefix}purecart_licenses
                         SET activated_count = GREATEST(0, activated_count - 1),
                             updated_at = %s
                       WHERE id = %d",
-                    current_time( 'mysql' ),
-                    $license->id
-                )
-            );
-        }
+					current_time( 'mysql' ),
+					$license->id
+				)
+			);
 
-        do_action( 'wdd_license_deactivated', $license->id, $domain );
+			do_action( 'purecart_license_deactivated', $license->id, $domain );
+		}
 
-        return [
-            'success' => true,
-            'message' => __( 'License deactivated successfully.', 'woo-digital-downloads' ),
-        ];
-    }
-
-    // ─── Helpers ─────────────────────────────────────────────────────────────
-
-    /**
-     * Fetch and validate a license record.
-     *
-     * @param string $key
-     * @return object|string  DB row on success, error message string on failure.
-     */
-    private function get_valid_license( string $key ): object|string {
-        global $wpdb;
-
-        $license = $wpdb->get_row(
-            $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}wdd_licenses WHERE license_key = %s LIMIT 1",
-                sanitize_text_field( $key )
-            )
-        );
-
-        if ( ! $license ) {
-            return __( 'Invalid license key.', 'woo-digital-downloads' );
-        }
-
-        if ( 'active' !== $license->status ) {
-            return sprintf(
-                /* translators: %s = status */
-                __( 'License is %s.', 'woo-digital-downloads' ),
-                $license->status
-            );
-        }
-
-        if ( $license->expires_at && strtotime( $license->expires_at ) < time() ) {
-            return __( 'License has expired.', 'woo-digital-downloads' );
-        }
-
-        return $license;
-    }
-
-    /** Strip protocol and trailing slashes from a domain. */
-    private function normalize_domain( string $domain ): string {
-        $domain = preg_replace( '#^https?://#i', '', $domain );
-        return rtrim( $domain, '/' );
-    }
-
-    /** Check whether a domain matches an exempt pattern. */
-    private function is_exempt( string $domain ): bool {
-        foreach ( self::EXEMPT_PATTERNS as $pattern ) {
-            if ( str_contains( $domain, $pattern ) ) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /** Get the current visitor IP address. */
-    private function get_ip(): string {
-        foreach ( [ 'HTTP_CF_CONNECTING_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR' ] as $key ) {
-            if ( ! empty( $_SERVER[ $key ] ) ) {
-                return sanitize_text_field( wp_unslash( $_SERVER[ $key ] ) );
-            }
-        }
-        return '';
-    }
-
-    /**
-     * Build the public license data array returned to the client plugin.
-     *
-     * @param object $license
-     * @return array<string,mixed>
-     */
-    private function license_data( object $license ): array {
-        return [
-            'license_key'     => $license->license_key,
-            'status'          => $license->status,
-            'plan_type'       => $license->plan_type,
-            'activation_limit' => $license->activation_limit,
-            'activated_count'  => $license->activated_count,
-            'expires_at'      => $license->expires_at,
-        ];
-    }
+		return array(
+			'success' => true,
+			'message' => __( 'License deactivated.', 'purecart' ),
+		);
+	}
 }

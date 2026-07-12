@@ -1,1 +1,1 @@
-# woo-digital-downloads
+# PureCart for WooCommerce
