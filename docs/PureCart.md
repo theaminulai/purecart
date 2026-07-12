@@ -1,4 +1,4 @@
-# woo-digital-downloads — Project Overview
+# PureCart for WooCommerce — Project Overview
 
 **Version:** 1.0.0-dev
 **Requires:** WordPress 6.0+, WooCommerce 8.0+, PHP 8.1+
@@ -9,7 +9,7 @@
 
 ## What Is This Plugin?
 
-`woo-digital-downloads` is a WooCommerce extension for selling WordPress plugins, themes, and SaaS products. It adds everything a software seller needs on top of WooCommerce — without replacing it.
+`purecart` is a WooCommerce extension for selling WordPress plugins, themes, and SaaS products. It adds everything a software seller needs on top of WooCommerce — without replacing it.
 
 WooCommerce handles what it does best: cart, checkout, payment gateways, coupons, customer accounts, and orders. This plugin handles everything that comes after a successful payment: license delivery, secure file download, plugin auto-updates, SaaS account provisioning, subscription tracking, and anti-piracy protection.
 
@@ -17,7 +17,7 @@ WooCommerce handles what it does best: cart, checkout, payment gateways, coupons
 
 ## Core Design Principle: Modular — Enable Only What You Need
 
-Every feature is independently operable. You do not need to enable all features. The plugin ships with all modules but each can be toggled in Settings → Digital Downloads → Modules.
+Every feature is independently operable. You do not need to enable all features. The plugin ships with all modules but each can be toggled in Settings → PureCart → Modules.
 
 | Your Use Case | Modules to Enable |
 |---|---|
@@ -36,12 +36,12 @@ Modules that are disabled create no DB tables, register no REST routes, and add 
 ```
 WooCommerce Order Completed
          │
-         ├── wdd_plugin product type?
+         ├── purecart_plugin product type?
          │       ├── Licensing Module → generate license key
          │       ├── Downloads Module → create signed download token
          │       └── Updates Module   → customer can receive updates
          │
-         ├── wdd_saas product type?
+         ├── purecart_saas product type?
          │       └── SaaS Module → provision account, generate API key, send credentials
          │
          └── Either type with subscription?
@@ -54,11 +54,11 @@ WooCommerce Order Completed
 
 | Type | Use For |
 |---|---|
-| `wdd_plugin` | WordPress plugins, themes, templates — delivers license key + download |
-| `wdd_saas` | SaaS products — provisions account + API key via webhook |
-| `wdd_bundle` | Bundle of plugins — one purchase, multiple licenses |
+| `purecart_plugin` | WordPress plugins, themes, templates — delivers license key + download |
+| `purecart_saas` | SaaS products — provisions account + API key via webhook |
+| `purecart_bundle` | Bundle of plugins — one purchase, multiple licenses |
 
-All WDD product types are automatically set to virtual (no shipping). They integrate with WooCommerce's standard product management UI with additional meta boxes.
+All PureCart product types are automatically set to virtual (no shipping). They integrate with WooCommerce's standard product management UI with additional meta boxes.
 
 ---
 
@@ -89,15 +89,15 @@ Serves as a self-hosted WordPress plugin update server. Your customers' WordPres
 ---
 
 ### 4. SaaS Provisioning
-On order completion for a `wdd_saas` product, the plugin fires an outbound webhook to your SaaS platform's provisioning endpoint and records the new account. Generates a `wdd_` prefixed API key. Issues JWT tokens for SaaS login. On refund or subscription cancellation, fires a suspend webhook automatically.
+On order completion for a `purecart_saas` product, the plugin fires an outbound webhook to your SaaS platform's provisioning endpoint and records the new account. Generates a `purecart_` prefixed API key. Issues JWT tokens for SaaS login. On refund or subscription cancellation, fires a suspend webhook automatically.
 
-**Standalone:** Yes — works without any other WDD module.
+**Standalone:** Yes — works without any other PureCart module.
 **RND:** See `docs/RND-saas-provisioning.md`
 
 ---
 
 ### 5. Subscription Tracking
-Does not replace your payment gateway's recurring billing. Instead, WDD tracks subscription state as metadata and links it to license expiry and SaaS account status. When a renewal payment succeeds, the license is extended. When it fails, the dunning sequence begins. Works with WooCommerce Subscriptions, SUMO Subscriptions, or any subscription plugin that fires standard WooCommerce hooks.
+Does not replace your payment gateway's recurring billing. Instead, PureCart tracks subscription state as metadata and links it to license expiry and SaaS account status. When a renewal payment succeeds, the license is extended. When it fails, the dunning sequence begins. Works with WooCommerce Subscriptions, SUMO Subscriptions, or any subscription plugin that fires standard WooCommerce hooks.
 
 **Standalone:** Yes — can track subscriptions without the Licensing module.
 **RND:** See `docs/RND-subscriptions.md`
@@ -121,7 +121,7 @@ Receives GitHub or Bitbucket webhook on tag push, automatically imports the ZIP 
 ---
 
 ### 8. Abandoned Cart Recovery (Phase 5)
-Fires `wdd_cart_abandoned` and `wdd_cart_recovered` action hooks. Any cart abandonment plugin (Cart Abandonment Recovery by Brainstorm Force is recommended — 300,000+ installs, free) can hook in. WDD does not re-implement abandoned cart emailing.
+Fires `purecart_cart_abandoned` and `purecart_cart_recovered` action hooks. Any cart abandonment plugin (Cart Abandonment Recovery by Brainstorm Force is recommended — 300,000+ installs, free) can hook in. PureCart does not re-implement abandoned cart emailing.
 
 **Standalone:** Yes — webhook bridge only.
 **RND:** See `docs/RND-abandoned-cart.md`
@@ -129,7 +129,7 @@ Fires `wdd_cart_abandoned` and `wdd_cart_recovered` action hooks. Any cart aband
 ---
 
 ### 9. Affiliate Connector (Phase 5)
-Fires webhook events on `license_activated`, `order_completed`, and `subscription_renewed` so affiliate plugins (SUMO Affiliates Pro, AffiliateWP) can record commissions without WDD managing the affiliate system.
+Fires webhook events on `license_activated`, `order_completed`, and `subscription_renewed` so affiliate plugins (SUMO Affiliates Pro, AffiliateWP) can record commissions without PureCart managing the affiliate system.
 
 **Standalone:** Yes — webhook bridge only.
 **RND:** See `docs/RND-affiliates.md`
@@ -148,13 +148,13 @@ Admin dashboard with MRR, ARR, churn rate, LTV, and active license count. Per-pr
 
 | Table | Module | Purpose |
 |---|---|---|
-| `wp_wdd_licenses` | Licensing | License keys and plan metadata |
-| `wp_wdd_license_activations` | Licensing | Domain activation records |
-| `wp_wdd_downloads` | Secure Downloads | Download tokens per order item |
-| `wp_wdd_download_logs` | Secure Downloads | Per-download event log |
-| `wp_wdd_product_versions` | Plugin Updates | ZIP versions, checksums, changelogs |
-| `wp_wdd_subscriptions` | Subscriptions | Subscription state and renewal dates |
-| `wp_wdd_saas_accounts` | SaaS Provisioning | Provisioned accounts and API keys |
+| `wp_purecart_licenses` | Licensing | License keys and plan metadata |
+| `wp_purecart_license_activations` | Licensing | Domain activation records |
+| `wp_purecart_downloads` | Secure Downloads | Download tokens per order item |
+| `wp_purecart_download_logs` | Secure Downloads | Per-download event log |
+| `wp_purecart_product_versions` | Plugin Updates | ZIP versions, checksums, changelogs |
+| `wp_purecart_subscriptions` | Subscriptions | Subscription state and renewal dates |
+| `wp_purecart_saas_accounts` | SaaS Provisioning | Provisioned accounts and API keys |
 
 Tables are created only if the corresponding module is enabled. Deactivation clears scheduled crons but does not drop tables (data preserved on deactivation, removed only on uninstall with the "Delete data on uninstall" option checked).
 
@@ -162,7 +162,7 @@ Tables are created only if the corresponding module is enabled. Deactivation cle
 
 ## REST API Namespace
 
-All endpoints: `/wp-json/wdd/v1/`
+All endpoints: `/wp-json/purecart/v1/`
 
 Authentication: License endpoints use license key + domain. SaaS usage endpoint uses API key. Admin endpoints (revoke, provision) require `manage_woocommerce` capability.
 
@@ -181,35 +181,35 @@ Three tabs added to WooCommerce My Account:
 
 ```php
 // Fired after license is generated
-do_action( 'wdd_license_created', $license_id, $order_id, $product_id );
+do_action( 'purecart_license_created', $license_id, $order_id, $product_id );
 
 // Fired after license is activated on a domain
-do_action( 'wdd_license_activated', $license_id, $domain, $environment );
+do_action( 'purecart_license_activated', $license_id, $domain, $environment );
 
 // Fired after license is deactivated
-do_action( 'wdd_license_deactivated', $license_id, $domain );
+do_action( 'purecart_license_deactivated', $license_id, $domain );
 
 // Fired after license is revoked
-do_action( 'wdd_license_revoked', $license_id );
+do_action( 'purecart_license_revoked', $license_id );
 
 // Fired after download token is generated
-do_action( 'wdd_download_token_created', $token_id, $order_id );
+do_action( 'purecart_download_token_created', $token_id, $order_id );
 
 // Fired when a file is downloaded
-do_action( 'wdd_file_downloaded', $token_id, $ip, $country_code );
+do_action( 'purecart_file_downloaded', $token_id, $ip, $country_code );
 
 // Fired when a SaaS account is provisioned
-do_action( 'wdd_saas_account_provisioned', $account_id, $user_id, $product_id );
+do_action( 'purecart_saas_account_provisioned', $account_id, $user_id, $product_id );
 
 // Fired when subscription renewal extends a license
-do_action( 'wdd_license_renewed', $license_id, $new_expiry );
+do_action( 'purecart_license_renewed', $license_id, $new_expiry );
 
 // Abandoned cart hooks (Phase 5)
-do_action( 'wdd_cart_abandoned', $user_id, $cart_contents );
-do_action( 'wdd_cart_recovered', $user_id, $order_id );
+do_action( 'purecart_cart_abandoned', $user_id, $cart_contents );
+do_action( 'purecart_cart_recovered', $user_id, $order_id );
 
 // Affiliate bridge hooks (Phase 5)
-do_action( 'wdd_affiliate_event', $event_type, $data );
+do_action( 'purecart_affiliate_event', $event_type, $data );
 ```
 
 ---
@@ -217,12 +217,12 @@ do_action( 'wdd_affiliate_event', $event_type, $data );
 ## Constants
 
 ```php
-WDD_VERSION        // Plugin version string
-WDD_FILE           // Absolute path to main plugin file
-WDD_PATH           // Plugin directory path (trailing slash)
-WDD_URL            // Plugin directory URL (trailing slash)
-WDD_BASENAME       // Plugin basename (woo-digital-downloads/woo-digital-downloads.php)
-WDD_API_NAMESPACE  // REST namespace: 'wdd/v1'
+PURECART_VERSION        // Plugin version string
+PURECART_FILE           // Absolute path to main plugin file
+PURECART_PATH           // Plugin directory path (trailing slash)
+PURECART_URL            // Plugin directory URL (trailing slash)
+PURECART_BASENAME       // Plugin basename (woo-digital-downloads/purecart.php)
+PURECART_API_NAMESPACE  // REST namespace: 'purecart/v1'
 ```
 
 ---
@@ -241,21 +241,21 @@ WDD_API_NAMESPACE  // REST namespace: 'wdd/v1'
 
 **Use Case A — Sell a WordPress plugin:**
 1. Enable: Licensing + Plugin Updates + Secure Downloads
-2. Create a product, set type to `wdd_plugin`
+2. Create a product, set type to `purecart_plugin`
 3. Upload your plugin ZIP in the "Plugin Versions" admin panel
 4. Set license type (single/multi/unlimited/lifetime), activation limit, duration
 5. Customer buys → license key generated → download link sent → update API active
 
 **Use Case B — Sell a SaaS product:**
 1. Enable: SaaS Provisioning
-2. Create a product, set type to `wdd_saas`
-3. Configure webhook URL and secret in Settings → Digital Downloads → SaaS
+2. Create a product, set type to `purecart_saas`
+3. Configure webhook URL and secret in Settings → PureCart → SaaS
 4. Customer buys → webhook fired → API key sent to customer
 
 **Use Case C — Sell downloadable files only:**
 1. Enable: Secure Downloads only
 2. Create standard WooCommerce downloadable products
-3. WDD intercepts download URLs and replaces with signed tokens
+3. PureCart intercepts download URLs and replaces with signed tokens
 4. Customer buys → expiring download link sent
 
 ---
@@ -265,7 +265,7 @@ WDD_API_NAMESPACE  // REST namespace: 'wdd/v1'
 ```
 docs/
 ├── RND.md                       ← Master R&D document
-├── woo-digital-downloads.md     ← This file (project overview)
+├── purecart.md                  ← This file (project overview)
 ├── RND-secure-downloads.md      ← Downloads module R&D
 ├── RND-licensing.md             ← Licensing module R&D
 ├── RND-plugin-updates.md        ← Plugin Updates module R&D

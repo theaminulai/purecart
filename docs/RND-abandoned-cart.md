@@ -1,15 +1,15 @@
 # RND — Abandoned Cart Recovery Module
-**Plugin:** woo-digital-downloads
+**Plugin:** purecart
 **Module:** Abandoned Cart Recovery
 **Phase:** 5
-**Standalone:** Yes — works without any other WDD module
+**Standalone:** Yes — works without any other PureCart module
 **Third-party dependency:** None — fully built-in
 
 ---
 
 ## Overview
 
-The Abandoned Cart Recovery module is a complete, self-contained cart recovery system built directly into WDD. It detects when a cart containing WDD products is abandoned, saves the cart state to a dedicated DB table, and sends a configurable sequence of recovery emails using WooCommerce's own email engine. No external plugin, service, or API is required.
+The Abandoned Cart Recovery module is a complete, self-contained cart recovery system built directly into PureCart. It detects when a cart containing WDD products is abandoned, saves the cart state to a dedicated DB table, and sends a configurable sequence of recovery emails using WooCommerce's own email engine. No external plugin, service, or API is required.
 
 When the customer returns via the recovery link, their cart is restored automatically and a coupon (optionally auto-generated) can be applied.
 
@@ -20,15 +20,15 @@ When the customer returns via the recovery link, their cart is restored automati
 Enable this module in **Settings → Digital Downloads → Modules → Abandoned Cart**.
 
 This module independently:
-- Monitors WooCommerce cart sessions for any product (not just WDD types)
+- Monitors WooCommerce cart sessions for any product (not just PureCart types)
 - Detects abandonment after a configurable inactivity window (default: 60 min)
-- Persists cart data in `wp_wdd_abandoned_carts`
+- Persists cart data in `wp_purecart_abandoned_carts`
 - Sends up to 3 recovery emails via `wp_mail()` using WooCommerce HTML email templates
 - Generates one-click cart-restore links (cryptographically signed)
 - Tracks recovery rate per campaign
 - Optionally auto-generates and applies WooCommerce discount coupons in recovery emails
 
-No other WDD module, no third-party plugin, and no external email service are required.
+No other PureCart module, no third-party plugin, and no external email service are required.
 
 ---
 
@@ -54,10 +54,10 @@ WooCommerce session updated (customer adds to cart)
     └── CartWatcher::on_cart_updated()
             ├── If cart is empty → skip
             ├── If order was just placed → mark recovered, stop sequence
-            └── Upsert wp_wdd_abandoned_carts
+            └── Upsert wp_purecart_abandoned_carts
                     {session_id, user_id, email, cart_contents, cart_total, status: 'active'}
 
-Action Scheduler: wdd_scan_abandoned_carts (every 15 min)
+Action Scheduler: purecart_scan_abandoned_carts (every 15 min)
     │
     └── CartWatcher::scan()
             SELECT carts where:
@@ -96,9 +96,9 @@ Templates follow WooCommerce's override convention:
 your-theme/
 └── woocommerce/
     └── emails/
-        ├── wdd-abandoned-cart-1.php
-        ├── wdd-abandoned-cart-2.php
-        └── wdd-abandoned-cart-3.php
+        ├── purecart-abandoned-cart-1.php
+        ├── purecart-abandoned-cart-2.php
+        └── purecart-abandoned-cart-3.php
 ```
 
 ---
@@ -106,14 +106,14 @@ your-theme/
 ## Cart Restore Link
 
 ```
-https://store.com/?wdd_restore={signed_token}
+https://store.com/?purecart_restore={signed_token}
 ```
 
 `CartRestorer::generate_restore_token()` creates a 64-char hex token stored in DB:
 
 ```php
 $token = bin2hex( random_bytes( 32 ) ); // 64 hex chars
-// Stored in wp_wdd_abandoned_carts.restore_token
+// Stored in wp_purecart_abandoned_carts.restore_token
 // Expires: 7 days after abandonment (configurable)
 ```
 
@@ -134,7 +134,7 @@ $token = bin2hex( random_bytes( 32 ) ); // 64 hex chars
 
 ```php
 $coupon = new WC_Coupon();
-$coupon->set_code( 'WDD-RECOVER-' . strtoupper( wp_generate_password( 8, false ) ) );
+$coupon->set_code( 'PURECART-RECOVER-' . strtoupper( wp_generate_password( 8, false ) ) );
 $coupon->set_discount_type( 'percent' );           // or 'fixed_cart'
 $coupon->set_amount( $discount_percent );
 $coupon->set_usage_limit( 1 );                    // single use
@@ -150,10 +150,10 @@ Coupon is embedded in the recovery email and auto-applied on restore link click.
 
 ## Database Table
 
-### `wp_wdd_abandoned_carts`
+### `wp_purecart_abandoned_carts`
 
 ```sql
-CREATE TABLE {prefix}wdd_abandoned_carts (
+CREATE TABLE {prefix}purecart_abandoned_carts (
     id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     session_id      VARCHAR(255) NOT NULL,
     user_id         BIGINT UNSIGNED DEFAULT 0,
@@ -193,10 +193,10 @@ CREATE TABLE {prefix}wdd_abandoned_carts (
 
 | Method | Endpoint | Auth | Description |
 |---|---|---|---|
-| `GET` | `/wdd/v1/abandoned-carts` | manage_woocommerce | List abandoned carts with filters |
-| `GET` | `/wdd/v1/abandoned-carts/{id}` | manage_woocommerce | Get single cart detail |
-| `POST` | `/wdd/v1/abandoned-carts/{id}/send-email` | manage_woocommerce | Manually trigger recovery email |
-| `DELETE` | `/wdd/v1/abandoned-carts/{id}` | manage_woocommerce | Delete cart record |
+| `GET` | `/purecart/v1/abandoned-carts` | manage_woocommerce | List abandoned carts with filters |
+| `GET` | `/purecart/v1/abandoned-carts/{id}` | manage_woocommerce | Get single cart detail |
+| `POST` | `/purecart/v1/abandoned-carts/{id}/send-email` | manage_woocommerce | Manually trigger recovery email |
+| `DELETE` | `/purecart/v1/abandoned-carts/{id}` | manage_woocommerce | Delete cart record |
 
 ---
 
@@ -249,7 +249,7 @@ CREATE TABLE {prefix}wdd_abandoned_carts (
 - Unsubscribe link in every email → sets `status = 'unsubscribed'`, clears email
 - WooCommerce privacy eraser hooked: erases all cart records for a user on erasure request
 - IP address is never stored in cart records
-- Cart data is purged after `wdd_abandoned_cart_retention_days` (default: 90 days) via scheduled cleanup
+- Cart data is purged after `purecart_abandoned_cart_retention_days` (default: 90 days) via scheduled cleanup
 
 ---
 
@@ -257,32 +257,32 @@ CREATE TABLE {prefix}wdd_abandoned_carts (
 
 ```php
 // Fired when a cart is first detected as abandoned
-do_action( 'wdd_cart_abandoned', $cart_id, $user_id, $customer_email, $cart_total );
+do_action( 'purecart_cart_abandoned', $cart_id, $user_id, $customer_email, $cart_total );
 
 // Fired after each recovery email is sent
-do_action( 'wdd_cart_recovery_email_sent', $cart_id, $email_step, $customer_email );
+do_action( 'purecart_cart_recovery_email_sent', $cart_id, $email_step, $customer_email );
 
 // Fired when cart is restored from recovery link
-do_action( 'wdd_cart_restored', $cart_id, $user_id );
+do_action( 'purecart_cart_restored', $cart_id, $user_id );
 
 // Fired when cart is recovered (order placed)
-do_action( 'wdd_cart_recovered', $cart_id, $order_id );
+do_action( 'purecart_cart_recovered', $cart_id, $order_id );
 
 // Filter: modify cart restore token expiry (seconds)
-apply_filters( 'wdd_cart_restore_token_expiry', 7 * DAY_IN_SECONDS, $cart_id );
+apply_filters( 'purecart_cart_restore_token_expiry', 7 * DAY_IN_SECONDS, $cart_id );
 
 // Filter: modify coupon amount per email step
-apply_filters( 'wdd_cart_recovery_coupon_amount', $amount, $step, $cart_id );
+apply_filters( 'purecart_cart_recovery_coupon_amount', $amount, $step, $cart_id );
 
 // Filter: skip email for a specific cart
-apply_filters( 'wdd_cart_recovery_skip_email', false, $cart_id, $step );
+apply_filters( 'purecart_cart_recovery_skip_email', false, $cart_id, $step );
 ```
 
 ---
 
 ## Competitor Comparison
 
-| Feature | Cart Abandonment Recovery (Brainstorm Force) | WooCommerce Abandoned Cart (Tychesoftwares) | CartBounty | woo-digital-downloads |
+| Feature | Cart Abandonment Recovery (Brainstorm Force) | WooCommerce Abandoned Cart (Tychesoftwares) | CartBounty | purecart |
 |---|---|---|---|---|
 | Built into plugin (no install) | ❌ Separate plugin | ❌ Separate plugin | ❌ Separate plugin | **✅ Built-in** |
 | Third-party dependency | ❌ Required | ❌ Required | ❌ Required | **✅ None** |
@@ -294,4 +294,4 @@ apply_filters( 'wdd_cart_recovery_skip_email', false, $cart_id, $step );
 | Action Scheduler | ✅ | ✅ | ❌ | **✅** |
 | Guest cart capture | ✅ | ✅ | ✅ | **✅ Optional** |
 | Configurable email sequence | 3 emails | 3 emails (Pro) | 3 emails (Pro) | **✅ 3 emails** |
-| Price | Free | Free / Pro | Free / Pro | **✅ Included in WDD** |
+| Price | Free | Free / Pro | Free / Pro | **✅ Included in PureCart** |

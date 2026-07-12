@@ -1,8 +1,8 @@
-# WDD Admin Dashboard — Design Guideline
+# PureCart Admin Dashboard — Design Guideline
 
 **Version 1.0 | Status: Authoritative**
 
-This document is the single source of truth for all visual and interaction design decisions in the Woo Digital Downloads admin dashboard. Every developer, every component, every pull request must follow these rules. When a rule conflicts with personal preference, this document wins.
+This document is the single source of truth for all visual and interaction design decisions in the PureCart admin dashboard. Every developer, every component, every pull request must follow these rules. When a rule conflicts with personal preference, this document wins.
 
 ---
 
@@ -10,7 +10,7 @@ This document is the single source of truth for all visual and interaction desig
 
 ### 1.1 Design Language
 
-The WDD dashboard follows **Material Design 3 (MD3)** principles, implemented from scratch in custom SCSS. No MUI library. No Material Web Components. Every token, every mixin, every component rule in this document is derived directly from the [MD3 specification](https://m3.material.io).
+The PureCart admin dashboard follows **Material Design 3 (MD3)** principles, implemented from scratch in custom SCSS. No MUI library. No Material Web Components. Every token, every mixin, every component rule in this document is derived directly from the [MD3 specification](https://m3.material.io).
 
 ### 1.2 Core Principles
 
@@ -1183,7 +1183,7 @@ Utility classes exist only for spacing and are not used inside component markup 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  #wdd-admin-root                                            │
+│  #purecart-admin-root                                            │
 │  ├── .nav-drawer          [256px fixed left]                │
 │  └── .app-main            [flex: 1]                         │
 │       ├── .top-app-bar    [64px fixed top of app-main]      │
@@ -1285,8 +1285,8 @@ $breakpoint-xl: 1440px;
 
 ### 12.1 Numbers & Currency
 
-- All monetary values: `Intl.NumberFormat` with `window.wddAdmin.currency` (localized from PHP)
-- All dates: `Intl.DateTimeFormat` with `window.wddAdmin.locale`
+- All monetary values: `Intl.NumberFormat` with `window.purecartAdmin.currency` (localized from PHP)
+- All dates: `Intl.DateTimeFormat` with `window.purecartAdmin.locale`
 - Large numbers: format with thousands separator (`1,847` not `1847`)
 - Percentages: one decimal place (`94.3%`, not `94.31487%`)
 - Never hard-code currency symbols — always derive from WooCommerce locale
