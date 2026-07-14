@@ -1,2 +1,2 @@
-export { SaasDetailPage } from "./SaasDetailPage";
-export { SaasPage } from "./SaasPage";
+export { SaasDetailPage } from './SaasDetailPage';
+export { SaasPage } from './SaasPage';

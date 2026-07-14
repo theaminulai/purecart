@@ -1,1 +1,1 @@
-export { SecurityPage } from "./SecurityPage";
+export { SecurityPage } from './SecurityPage';

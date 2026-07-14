@@ -1,2 +1,2 @@
-export { AffiliateDetailPage } from "./AffiliateDetailPage";
-export { AffiliatesPage } from "./AffiliatesPage";
+export { AffiliateDetailPage } from './AffiliateDetailPage';
+export { AffiliatesPage } from './AffiliatesPage';

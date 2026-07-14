@@ -1,1 +1,1 @@
-export { AbandonedCartPage } from "./AbandonedCartPage";
+export { AbandonedCartPage } from './AbandonedCartPage';
