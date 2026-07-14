@@ -1,8 +1,8 @@
-## Figma Design Prompt — Woo Digital Downloads Admin Dashboard
+## Figma Design Prompt — PureCart Admin Dashboard
 
 ### Project Overview
 
-Design a **WordPress plugin admin dashboard** for *Woo Digital Downloads* — a WooCommerce extension that manages plugin licenses, digital downloads, subscriptions, SaaS provisioning, and affiliate programs. The React SPA renders inside the WordPress admin area (the WP sidebar and top bar are already provided by WordPress; only design the content area and the plugin's own sidebar/topbar).
+Design a **WordPress plugin admin dashboard** for *PureCart* — a WooCommerce extension that manages plugin licenses, digital downloads, subscriptions, SaaS provisioning, and affiliate programs. The React SPA renders inside the WordPress admin area (the WP sidebar and top bar are already provided by WordPress; only design the content area and the plugin's own sidebar/topbar).
 
 ---
 

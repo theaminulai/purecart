@@ -7,7 +7,7 @@ export function SettingsEmails({ onSave }: { onSave: () => void }) {
       <div className="mb-5"><h2 className="font-medium text-lg" style={{ color: M3.onSurface, fontFamily: "Roboto, sans-serif" }}>Emails</h2><p className="text-sm mt-1" style={{ color: M3.onSurfaceVariant, fontFamily: "Roboto, sans-serif" }}>Configure transactional email delivery and notification templates.</p></div>
       <SettingsSectionHeader title="SMTP / Delivery" />
       <SettingsSelectField label="Mail Driver" desc="Email delivery provider." options={["SMTP", "Postmark", "SendGrid", "Mailgun", "SES"]} defaultValue="Postmark" />
-      <SettingsField label="From Name" defaultValue="Woo Digital Downloads" />
+      <SettingsField label="From Name" defaultValue="PureCart - Digital Downloads" />
       <SettingsField label="From Email" type="email" defaultValue="noreply@example.com" />
       <SettingsField label="Reply-To Email" type="email" defaultValue="support@example.com" />
       <SettingsSectionHeader title="Notification Triggers" />

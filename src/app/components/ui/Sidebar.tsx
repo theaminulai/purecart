@@ -17,8 +17,8 @@ export function Sidebar({ activePage, onNav, collapsed, onToggle, enabledModules
         </div>
         {!collapsed && (
           <div>
-            <div className="font-semibold text-sm leading-tight" style={{ color: M3.onSurface, fontFamily: "Roboto, sans-serif" }}>Woo Digital</div>
-            <div className="text-xs" style={{ color: M3.onSurfaceVariant, fontFamily: "Roboto, sans-serif" }}>Downloads</div>
+            <div className="font-semibold text-sm leading-tight" style={{ color: M3.onSurface, fontFamily: "Roboto, sans-serif" }}>PureCart</div>
+            <div className="text-xs" style={{ color: M3.onSurfaceVariant, fontFamily: "Roboto, sans-serif" }}>Digital Downloads</div>
           </div>
         )}
         <button onClick={onToggle} className="ml-auto flex items-center justify-center w-8 h-8 rounded-full transition-all flex-shrink-0"

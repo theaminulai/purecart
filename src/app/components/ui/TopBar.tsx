@@ -4,7 +4,7 @@ import type { Page } from "../../utils/static-data";
 import { IconButton } from "./IconButton";
 
 export function TopBar({ page, onNav }: { page: Page; onNav: (p: Page) => void }) {
-  const crumbs: Array<{ label: string; page?: Page }> = [{ label: "Woo Digital Downloads" }];
+  const crumbs: Array<{ label: string; page?: Page }> = [{ label: "PureCart -  Digital Downloads" }];
   if (page.startsWith("analytics-")) {
     crumbs.push({ label: "Analytics", page: "analytics" });
     crumbs.push({ label: PAGE_TITLES[page] });
