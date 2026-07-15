@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import App from './app/App.tsx';
+import App from './App.tsx';
 // @ts-ignore: side-effect import of CSS without type declarations
 import './styles/index.css';
 

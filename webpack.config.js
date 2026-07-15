@@ -41,7 +41,7 @@ module.exports = {
 	devtool: false,
 
 	entry: {
-		'build/admin/admin':  path.resolve( rootDir, 'src/main.tsx' ),
+		'build/admin/admin':  path.resolve( rootDir, 'src/app/main.tsx' ),
 	},
 
 	output: {
