@@ -3,7 +3,7 @@ Contributors: mostakimmim123, nym02, theaminuldev,
 Tags: woocommerce, digital downloads, software licensing, license keys, saas
 Requires at least: 6.0
 Tested up to: 7.0
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 Requires PHP: 8.1
 WC requires at least: 9.8
 WC tested up to: 10.8.1 
