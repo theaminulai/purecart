@@ -3,7 +3,7 @@ Contributors: mostakimmim123, nym02, theaminuldev,
 Tags: woocommerce, digital downloads, software licensing, license keys, saas
 Requires at least: 6.0
 Tested up to: 7.0
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 Requires PHP: 8.1
 WC requires at least: 9.8
 WC tested up to: 10.8.1 
@@ -86,6 +86,21 @@ Ensure that whatever endpoint receives this webhook has its own Privacy Policy c
 3. Go to **PureCart → Settings** to configure.
 
 == Changelog ==
+
+= 1.0.1 =
+* Merge pull request #18 from theaminulai/development
+* Merge pull request #17 from theaminulai/org-for-plugin-rename-
+* Add update-version npm script
+* Merge pull request #16 from theaminulai/development
+* Merge pull request #15 from theaminulai/org-for-plugin-rename-
+* Comment out webpack entry points
+* Merge pull request #14 from theaminulai/development
+* Merge pull request #12 from theaminulai/org-for-plugin-rename-
+* Update readme for 1.0.1 release
+* Use main branch in GitHub workflows
+* Update version script to use purecart.php
+* Add release automation and autoloader
+* Remove bundled update server from core plugin
 
 = PureCart/v1.0.1 - 2026-07-16 =
 * Compliance: Removed the self-hosted update server from the WordPress.org version.
