@@ -3,7 +3,7 @@ Contributors: mostakimmim123, nym02, theaminuldev,
 Tags: woocommerce, digital downloads, software licensing, license keys, saas
 Requires at least: 6.0
 Tested up to: 7.0
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 Requires PHP: 8.1
 WC requires at least: 9.8
 WC tested up to: 10.8.1 
@@ -86,6 +86,11 @@ Ensure that whatever endpoint receives this webhook has its own Privacy Policy c
 3. Go to **PureCart → Settings** to configure.
 
 == Changelog ==
+
+= 1.0.2 =
+* Merge pull request #21 from theaminulai/development
+* Merge pull request #20 from theaminulai/org-for-plugin-rename-
+* Add WordPress.org banner and v1.0.2 changelog
 
 = PureCart/v1.0.2 - 2026-07-16 =
 * Added: Add WordPress.org banner.
