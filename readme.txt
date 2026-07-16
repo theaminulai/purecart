@@ -87,11 +87,6 @@ Ensure that whatever endpoint receives this webhook has its own Privacy Policy c
 
 == Changelog ==
 
-= 1.0.2 =
-* Merge pull request #21 from theaminulai/development
-* Merge pull request #20 from theaminulai/org-for-plugin-rename-
-* Add WordPress.org banner and v1.0.2 changelog
-
 = PureCart/v1.0.2 - 2026-07-16 =
 * Added: Add WordPress.org banner.
 * Fixed: Fixed a bug in the license activation API that caused false negatives for valid license keys.
