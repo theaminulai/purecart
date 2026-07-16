@@ -87,9 +87,13 @@ Ensure that whatever endpoint receives this webhook has its own Privacy Policy c
 
 == Changelog ==
 
+= PureCart/v1.0.2 - 2026-07-16 =
+* Added: Add WordPress.org banner.
+* Fixed: Fixed a bug in the license activation API that caused false negatives for valid license keys.
+* Refactor: Moved the PSR-4 autoloader into a dedicated `Autoloader` class.
+
 = PureCart/v1.0.1 - 2026-07-16 =
 * Compliance: Removed the self-hosted update server from the WordPress.org version.
-* Refactor: Moved the PSR-4 autoloader into a dedicated `Autoloader` class.
 * Fix: Corrected `$_SERVER['HTTP_USER_AGENT']` sanitization and added missing PHPDoc comments.
 * Docs: Added `External Services` documentation and a `CONTRIBUTING.md` guide.
 * Build: Updated Tailwind CSS v4, TypeScript, PostCSS, and distribution configuration.
