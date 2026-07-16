@@ -65,8 +65,8 @@ async function updateVersion() {
 		process.exit( 1 );
 	}
 
-	if ( ! fs.existsSync( './pointwise-summary.php' ) ) {
-		console.error( '❌ Error: pointwise-summary.php file not found.' );
+	if ( ! fs.existsSync( './purecart.php' ) ) {
+		console.error( '❌ Error: purecart.php file not found.' );
 		process.exit( 1 );
 	}
 
@@ -133,15 +133,15 @@ async function updateVersion() {
 	fs.writeFileSync( './readme.txt', newReadme );
 	console.info( '✅  Readme version updated', currentTag, '=>', newTag );
 
-	// update pointwise-summary.php version
-	const pluginPhpFile = fs.readFileSync( './pointwise-summary.php', 'utf8' );
+	// update purecart.php version
+	const pluginPhpFile = fs.readFileSync( './purecart.php', 'utf8' );
 	const newPluginPhpFile = pluginPhpFile.replace(
 		/Version: (.*)/,
 		`Version: ${ newVersion }`
 	);
-	fs.writeFileSync( './pointwise-summary.php', newPluginPhpFile );
+	fs.writeFileSync( './purecart.php', newPluginPhpFile );
 	console.info(
-		'✅  pointwise-summary.php file version updated',
+		'✅  purecart.php file version updated',
 		currentTag,
 		'=>',
 		newTag
