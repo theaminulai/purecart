@@ -1,0 +1,146 @@
+/**
+ * Customer My Account - Software Updates Tab Styles
+ */
+
+.purecart-updates-container {
+	margin-top: 10px;
+}
+
+.purecart-updates-title {
+	font-size: 20px;
+	font-weight: 700;
+	margin-bottom: 6px;
+	color: #1c1b1f;
+}
+
+.purecart-updates-desc {
+	font-size: 14px;
+	color: #49454f;
+	margin-bottom: 24px;
+}
+
+.purecart-product-cards-list {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.purecart-product-update-card {
+	border: 1px solid #cac4d0;
+	border-radius: 12px;
+	padding: 20px;
+	background: #fff;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.purecart-product-update-card__header {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-bottom: 12px;
+}
+
+.purecart-product-update-card__name {
+	font-size: 17px;
+	font-weight: 600;
+	margin: 0 0 6px 0;
+	color: #1c1b1f;
+}
+
+.purecart-product-update-card__meta {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	font-size: 13px;
+	color: #49454f;
+}
+
+.purecart-version-code {
+	font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+	background: #f3edf7;
+	padding: 2px 6px;
+	border-radius: 4px;
+	color: #1c1b1f;
+	font-weight: 600;
+}
+
+.purecart-badge {
+	font-size: 11px;
+	font-weight: 600;
+	padding: 2px 8px;
+	border-radius: 10px;
+	text-transform: uppercase;
+}
+
+.purecart-badge--stable {
+	background: #c2e7a0;
+	color: #386a20;
+}
+
+.purecart-badge--beta {
+	background: #ffdea5;
+	color: #7a5900;
+}
+
+.purecart-badge--nightly {
+	background: #ece6f0;
+	color: #49454f;
+}
+
+.purecart-btn--primary {
+	background-color: #6750a4 !important;
+	color: #fff !important;
+	border-radius: 8px !important;
+	font-weight: 600 !important;
+	padding: 8px 16px !important;
+}
+
+.purecart-changelog-details,
+.purecart-update-history {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid #ece6f0;
+}
+
+.purecart-changelog-summary,
+.purecart-history-summary {
+	font-size: 13px;
+	font-weight: 600;
+	color: #6750a4;
+	cursor: pointer;
+}
+
+.purecart-changelog-content {
+	margin-top: 8px;
+	padding: 12px 16px;
+	background: #f7f2fa;
+	border-radius: 8px;
+	font-size: 13px;
+	line-height: 1.5;
+	color: #1c1b1f;
+}
+
+.purecart-update-history__list {
+	list-style: none;
+	margin: 8px 0 0 0;
+	padding: 0;
+}
+
+.purecart-update-history__item {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 6px 0;
+	font-size: 13px;
+	border-bottom: 1px solid #f3edf7;
+}
+
+.purecart-history-download {
+	margin-left: auto;
+	color: #6750a4;
+	font-weight: 600;
+	text-decoration: underline;
+}

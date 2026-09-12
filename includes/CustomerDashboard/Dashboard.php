@@ -31,7 +31,7 @@ class Dashboard {
 	 *
 	 * @var string[]
 	 */
-	private array $slugs = array( 'purecart-licenses', 'purecart-api-keys' );
+	private array $slugs = array( 'purecart-licenses', 'purecart-updates', 'purecart-api-keys' );
 
 	/**
 	 * Register My Account menu, query var, and endpoint hooks.
@@ -52,29 +52,31 @@ class Dashboard {
 	}
 
 	/**
-	 * Enqueue the reveal/copy/manual-activation script on the My Licenses tab.
-	 *
-	 * Reuses the same admin.css/admin.js already shipped for the product
-	 * meta box (click-to-copy, blur toggle) rather than shipping a second
-	 * near-identical asset pair for the front end.
+	 * Enqueue styles and scripts for PureCart My Account tabs.
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	public function enqueue_assets(): void {
-		if ( ! function_exists( 'is_wc_endpoint_url' ) || ! is_wc_endpoint_url( 'purecart-licenses' ) ) {
+		if ( ! function_exists( 'is_wc_endpoint_url' ) ) {
 			return;
 		}
 
-		wp_enqueue_style( 'purecart-admin', PURECART_URL . 'assets/css/admin.css', array(), PURECART_VERSION );
-		wp_enqueue_script( 'purecart-admin', PURECART_URL . 'assets/js/admin.js', array( 'jquery' ), PURECART_VERSION, true );
-		wp_localize_script(
-			'purecart-admin',
-			'purecartAdmin',
-			array(
-				'apiUrl' => esc_url_raw( rest_url( PURECART_API_NAMESPACE . '/' ) ),
-			)
-		);
+		if ( is_wc_endpoint_url( 'purecart-licenses' ) ) {
+			wp_enqueue_style( 'purecart-admin', PURECART_URL . 'assets/css/admin.css', array(), PURECART_VERSION );
+			wp_enqueue_script( 'purecart-admin', PURECART_URL . 'assets/js/admin.js', array( 'jquery' ), PURECART_VERSION, true );
+			wp_localize_script(
+				'purecart-admin',
+				'purecartAdmin',
+				array(
+					'apiUrl' => esc_url_raw( rest_url( PURECART_API_NAMESPACE . '/' ) ),
+				)
+			);
+		}
+
+		if ( is_wc_endpoint_url( 'purecart-updates' ) ) {
+			wp_enqueue_style( 'purecart-myaccount-updates', PURECART_URL . 'assets/css/purecart-myaccount-updates.css', array(), PURECART_VERSION );
+		}
 	}
 
 	/**
@@ -85,9 +87,11 @@ class Dashboard {
 	private function get_tabs(): array {
 		return array(
 			'purecart-licenses' => __( 'My Licenses', 'purecart' ),
+			'purecart-updates'  => __( 'Software Updates', 'purecart' ),
 			'purecart-api-keys' => __( 'API Keys', 'purecart' ),
 		);
 	}
+
 
 	/**
 	 * Register PureCart endpoints on the WooCommerce My Account page.
@@ -176,11 +180,32 @@ class Dashboard {
 			case 'purecart-licenses':
 				$this->render_licenses_tab();
 				break;
+			case 'purecart-updates':
+				$this->render_updates_tab();
+				break;
 			case 'purecart-api-keys':
 				$this->render_api_keys_tab();
 				break;
 		}
 	}
+
+	/**
+	 * Render the Software Updates tab content.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private function render_updates_tab(): void {
+		$template = PURECART_PATH . 'templates/myaccount/purecart-updates.php';
+		$override = locate_template( 'purecart/myaccount/purecart-updates.php' );
+
+		if ( '' !== $override ) {
+			load_template( $override );
+		} elseif ( file_exists( $template ) ) {
+			load_template( $template );
+		}
+	}
+
 
 	/**
 	 * Render the My Licenses tab content.

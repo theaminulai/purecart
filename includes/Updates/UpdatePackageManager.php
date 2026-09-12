@@ -291,12 +291,41 @@ class UpdatePackageManager {
 	 * @return object|\WP_Error
 	 */
 	public function add_from_upload( int $product_id, array $file, array $args = array() ) {
-		if ( ! isset( $file['tmp_name'], $file['name'] ) || UPLOAD_ERR_OK !== (int) ( $file['error'] ?? UPLOAD_ERR_NO_FILE ) ) {
-			return new \WP_Error( 'purecart_upload_failed', __( 'The file was not uploaded successfully.', 'purecart' ) );
+		$error_code = (int) ( $file['error'] ?? UPLOAD_ERR_NO_FILE );
+		if ( ! isset( $file['tmp_name'], $file['name'] ) || UPLOAD_ERR_OK !== $error_code ) {
+			$message = __( 'The file was not uploaded successfully.', 'purecart' );
+			switch ( $error_code ) {
+				case UPLOAD_ERR_INI_SIZE:
+					$message = sprintf(
+						/* translators: %s: upload max filesize */
+						__( 'The uploaded package exceeds your server maximum upload size limit (%s). Increase upload_max_filesize / post_max_size in php.ini.', 'purecart' ),
+						ini_get( 'upload_max_filesize' ) ?: 'unknown'
+					);
+					break;
+				case UPLOAD_ERR_FORM_SIZE:
+					$message = __( 'The uploaded package exceeds the form maximum size limit.', 'purecart' );
+					break;
+				case UPLOAD_ERR_PARTIAL:
+					$message = __( 'The file was only partially uploaded. Please check your network and try again.', 'purecart' );
+					break;
+				case UPLOAD_ERR_NO_FILE:
+					$message = __( 'No file was received by the server. Please select a package archive to upload.', 'purecart' );
+					break;
+				case UPLOAD_ERR_NO_TMP_DIR:
+					$message = __( 'Server error: Missing PHP temporary folder.', 'purecart' );
+					break;
+				case UPLOAD_ERR_CANT_WRITE:
+					$message = __( 'Server error: Failed to write uploaded file to disk. Check directory permissions.', 'purecart' );
+					break;
+				case UPLOAD_ERR_EXTENSION:
+					$message = __( 'A server PHP extension stopped the file upload.', 'purecart' );
+					break;
+			}
+			return new \WP_Error( 'purecart_upload_failed', $message, array( 'status' => 400 ) );
 		}
 
 		if ( ! is_uploaded_file( (string) $file['tmp_name'] ) ) {
-			return new \WP_Error( 'purecart_not_uploaded', __( 'The file is not a valid upload.', 'purecart' ) );
+			return new \WP_Error( 'purecart_not_uploaded', __( 'The file is not a valid upload.', 'purecart' ), array( 'status' => 400 ) );
 		}
 
 		// The temp file has no extension, so validation has to see the
@@ -306,12 +335,13 @@ class UpdatePackageManager {
 		$staged    = (string) $file['tmp_name'] . '.' . $extension;
 
 		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rename -- Renaming PHP's own upload temp file in place.
-		if ( ! @rename( (string) $file['tmp_name'], $staged ) ) {
+		if ( ! @rename( (string) $file['tmp_name'], $staged ) && ! @copy( (string) $file['tmp_name'], $staged ) ) {
 			$staged = (string) $file['tmp_name'];
 		}
 
 		return $this->add( $product_id, $staged, $args, true );
 	}
+
 
 	// -----------------------------------------------------------------------
 	// Lifecycle
