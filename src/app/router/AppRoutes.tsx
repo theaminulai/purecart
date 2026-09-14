@@ -11,6 +11,7 @@ import { OverviewPage } from '../components/Overview/OverviewPage';
 import { LicensesPage }     from '../components/Licenses/LicensesPage';
 import { DownloadsPage }    from '../components/Downloads/DownloadsPage';
 import { UpdatesPage }      from '../components/Updates/UpdatesPage';
+import { UpdateAnalyticsPage } from '../components/Updates/UpdateAnalyticsPage';
 import { SaasAccountsPage } from '../components/SaasAccounts/SaasAccountsPage';
 import { AffiliatesPage }   from '../components/Affiliates/AffiliatesPage';
 import { AbandonedCartPage} from '../components/AbandonedCart/AbandonedCartPage';
@@ -55,6 +56,7 @@ export function AppRoutes() {
 
 			{ /* Updates */ }
 			<Route path={ PAGE_PATHS.updates }                element={ <UpdatesPage /> } />
+			<Route path="/updates/analytics"                  element={ <UpdateAnalyticsPage /> } />
 
 			{ /* Subscriptions */ }
 			<Route path={ PAGE_PATHS.subscriptions }          element={ <SubscriptionsPage /> } />
