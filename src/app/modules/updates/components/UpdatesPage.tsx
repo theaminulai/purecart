@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, BarChart2, RefreshCw } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../../../app/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
 import {
 	loadVersions,
 	uploadRelease,

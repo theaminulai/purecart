@@ -1,8 +1,8 @@
 import { createRoot } from 'react-dom/client';
-import { AppProviders } from './app/providers';
-import App from './app/App';
+import { AppProviders } from './providers';
+import App from './App';
 // @ts-ignore: side-effect import of CSS without type declarations
-import './app/styles/index.css';
+import './styles/index.css';
 
 const rootEl = document.getElementById('purecart-root');
 

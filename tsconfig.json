@@ -12,10 +12,10 @@
 		"resolveJsonModule": true,
 		"paths": {
 			"@/app/*": ["./src/app/*"],
-			"@/modules/*": ["./src/modules/*"],
-			"@/shared/*": ["./src/shared/*"],
-			"@/theme": ["./src/theme/index.ts"],
-			"@/theme/*": ["./src/theme/*"]
+			"@/modules/*": ["./src/app/modules/*"],
+			"@/shared/*": ["./src/app/shared/*"],
+			"@/theme": ["./src/app/theme/index.ts"],
+			"@/theme/*": ["./src/app/theme/*"]
 		},
 
 		/*  JSX (React 17+ automatic runtime)*/

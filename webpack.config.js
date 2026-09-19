@@ -13,19 +13,20 @@ const path = require('path');
  *
  * Extends the default @wordpress/scripts webpack config with two entry points:
  *
- *  1. React admin SPA — src/main.tsx           → build/admin/app/app.js
+ *  1. React admin SPA — src/app/main.tsx        → build/admin/app/app.js
  *  2. Menu router      — src/menu-router/...js → build/admin/menu-router/menu-router.js
  *
  * Source structure (src/):
- *   main.tsx              ← React app entry — mounts into #purecart-root
- *   app/                  ← composition root: App.tsx, ErrorBoundary, router/, store/, providers/
- *   modules/               ← one folder per business capability (subscriptions, updates, ...)
- *   shared/                  ← cross-cutting infrastructure (api client, ui primitives, layout)
- *   theme/                     ← design tokens
- *   styles/                      ← plain CSS
- *   menu-router/                  ← non-React wp-admin sidebar hash-navigation helper
+ *   app/                  ← the whole admin SPA — application root
+ *     main.tsx              ← React app entry — mounts into #purecart-root
+ *     App.tsx, ErrorBoundary.tsx, router/, store/, providers/  ← composition root
+ *     modules/               ← one folder per business capability (subscriptions, updates, ...)
+ *     shared/                  ← cross-cutting infrastructure (api client, ui primitives, layout)
+ *     theme/                     ← design tokens
+ *     styles/                      ← plain CSS + Tailwind
+ *   menu-router/                    ← non-React wp-admin sidebar hash-navigation helper
  *
- * See DEVELOPMENT_GUIDELINES.md for the architecture this maps to.
+ * See src/DEVELOPMENT_GUIDELINES.md for the architecture this maps to.
  *
  * PHP enqueue (includes/Admin/Admin.php):
  *   wp_enqueue_script( 'purecart-app', PURECART_URL . 'build/admin/app/app.js', $asset['dependencies'], $asset['version'], true );
@@ -40,7 +41,7 @@ module.exports = {
 	devtool: false,
 
 	entry: {
-		'build/admin/app/app': path.resolve(rootDir, 'src/main.tsx'),
+		'build/admin/app/app': path.resolve(rootDir, 'src/app/main.tsx'),
 		'build/admin/menu-router/menu-router': path.resolve(rootDir, 'src/menu-router/menu-router.js'),
 	},
 
@@ -49,9 +50,9 @@ module.exports = {
 		alias: {
 			...defaultConfig.resolve?.alias,
 			'@/app': path.resolve(rootDir, 'src/app'),
-			'@/modules': path.resolve(rootDir, 'src/modules'),
-			'@/shared': path.resolve(rootDir, 'src/shared'),
-			'@/theme': path.resolve(rootDir, 'src/theme'),
+			'@/modules': path.resolve(rootDir, 'src/app/modules'),
+			'@/shared': path.resolve(rootDir, 'src/app/shared'),
+			'@/theme': path.resolve(rootDir, 'src/app/theme'),
 		},
 	},
 
