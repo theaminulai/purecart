@@ -59,22 +59,22 @@ export function AppRoutes() {
 			{ /* Updates */ }
 			<Route
 				path={ PAGE_PATHS.updates }
-				element={ <Suspense fallback={ <UpdatesPageSkeleton /> }><UpdatesPage /></Suspense> }
+				element={ <Suspense key="updates" fallback={ <UpdatesPageSkeleton /> }><UpdatesPage /></Suspense> }
 			/>
 			<Route path="/updates/analytics"                  element={ <UpdateAnalyticsPage /> } />
 
 			{ /* Subscriptions */ }
 			<Route
 				path={ PAGE_PATHS.subscriptions }
-				element={ <Suspense fallback={ <SubscriptionsPageSkeleton /> }><SubscriptionsPage /></Suspense> }
+				element={ <Suspense key="subscriptions" fallback={ <SubscriptionsPageSkeleton /> }><SubscriptionsPage /></Suspense> }
 			/>
 			<Route
 				path={ SUBSCRIPTION_DETAIL_PATH }
-				element={ <Suspense fallback={ <SubscriptionDetailPageSkeleton /> }><SubscriptionDetailPage /></Suspense> }
+				element={ <Suspense key="subscription-detail" fallback={ <SubscriptionDetailPageSkeleton /> }><SubscriptionDetailPage /></Suspense> }
 			/>
 			<Route
 				path={ PAGE_PATHS[ 'subscription-analytics' ] }
-				element={ <Suspense fallback={ <SubscriptionAnalyticsPageSkeleton /> }><SubscriptionAnalyticsPage /></Suspense> }
+				element={ <Suspense key="subscription-analytics" fallback={ <SubscriptionAnalyticsPageSkeleton /> }><SubscriptionAnalyticsPage /></Suspense> }
 			/>
 
 			{ /* SaaS Accounts */ }
