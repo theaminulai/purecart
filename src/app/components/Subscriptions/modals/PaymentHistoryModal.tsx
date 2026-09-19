@@ -10,7 +10,7 @@
  * @since 1.0.0
  */
 import { XCircle } from 'lucide-react';
-import { M3 } from '../../../utils/static-data';
+import { M3 } from '@/theme';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 import { IconButton } from '@/shared/ui/IconButton';
 import type { SubscriptionRecord, PaymentRecord } from '../types';

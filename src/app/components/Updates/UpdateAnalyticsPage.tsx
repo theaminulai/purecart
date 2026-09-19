@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, TrendingUp, Users, RotateCcw, AlertTriangle } from 'lucide-react';
 import { fetchUpdateAnalytics } from '../../api/modules/updates.api';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import type { UpdateAnalyticsData } from '../../types/updates';
 
 export function UpdateAnalyticsPage() {

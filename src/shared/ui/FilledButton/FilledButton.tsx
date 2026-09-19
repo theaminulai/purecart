@@ -7,7 +7,7 @@
  * @file
  * @since 1.0.0
  */
-import { M3 } from '../../../app/utils/static-data';
+import { M3 } from '@/theme';
 
 /**
  * Renders a full-background pill-shaped button following M3 filled button specs.

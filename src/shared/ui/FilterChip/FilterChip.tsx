@@ -12,7 +12,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Filter, ChevronDown, Check } from 'lucide-react';
 import { __, sprintf } from '@wordpress/i18n';
-import { M3 } from '../../../app/utils/static-data';
+import { M3 } from '@/theme';
 
 export interface FilterChipProps {
 	label: string;

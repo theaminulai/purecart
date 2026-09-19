@@ -9,7 +9,7 @@
  * @since 1.0.0
  */
 import { CheckCircle, AlertCircle, XCircle } from 'lucide-react';
-import { M3 } from '../../../app/utils/static-data';
+import { M3 } from '@/theme';
 
 /**
  * Props for the Toast component.

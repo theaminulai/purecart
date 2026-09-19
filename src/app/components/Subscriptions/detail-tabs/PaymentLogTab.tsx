@@ -7,7 +7,7 @@
  * @file
  * @since 1.0.0
  */
-import { M3 } from '../../../utils/static-data';
+import { M3 } from '@/theme';
 import { Card } from '@/shared/ui/Card';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 import type { SubscriptionRecord, PaymentRecord } from '../types';

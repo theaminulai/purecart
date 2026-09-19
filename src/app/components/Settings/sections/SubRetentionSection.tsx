@@ -4,7 +4,7 @@
  * @file
  * @since 1.0.0
  */
-import { M3 } from '../../../utils/static-data';
+import { M3 } from '@/theme';
 import { SettingsToggleField } from '../../Subscriptions/shared';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 

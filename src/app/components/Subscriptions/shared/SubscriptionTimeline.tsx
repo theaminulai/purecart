@@ -9,7 +9,7 @@
  * @file
  * @since 1.0.0
  */
-import { M3 } from '../../../utils/static-data';
+import { M3 } from '@/theme';
 import type { SubscriptionLogEntry } from '../types';
 
 const ACTOR_COLOR: Record< SubscriptionLogEntry[ 'actorType' ], string > = {

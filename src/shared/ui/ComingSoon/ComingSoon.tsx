@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { __ } from '@wordpress/i18n';
-import { M3 } from '../../../app/utils/static-data';
+import { M3 } from '@/theme';
 
 /**
  * Renders a centred "module coming soon" placeholder card.

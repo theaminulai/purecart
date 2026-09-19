@@ -21,8 +21,8 @@ import {
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw, Users, UserPlus, TrendingDown, DollarSign, TrendingUp, Repeat, HeartPulse, AlertTriangle } from 'lucide-react';
+import { M3 } from '@/theme';
 import {
-	M3,
 	subMrrArrData,
 	subTypeMix,
 	subRevenueByType,

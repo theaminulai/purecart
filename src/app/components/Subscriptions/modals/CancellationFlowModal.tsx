@@ -12,7 +12,8 @@
  */
 import { useState } from 'react';
 import { XCircle } from 'lucide-react';
-import { M3, CANCELLATION_REASONS } from '../../../utils/static-data';
+import { M3 } from '@/theme';
+import { CANCELLATION_REASONS } from '../../../utils/static-data';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
 import { StepIndicator, CancellationReasonList, RetentionOfferCard } from '../shared';

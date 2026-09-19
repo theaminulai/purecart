@@ -8,7 +8,7 @@
  * @since 1.0.0
  */
 import { Check } from 'lucide-react';
-import { M3 } from '../../../utils/static-data';
+import { M3 } from '@/theme';
 
 /**
  * Renders `steps` circles: filled + check for done steps, a solid dot for

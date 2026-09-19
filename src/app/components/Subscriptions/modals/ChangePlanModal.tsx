@@ -13,7 +13,8 @@
  */
 import { useState } from 'react';
 import { Repeat } from 'lucide-react';
-import { M3, PLAN_OPTIONS } from '../../../utils/static-data';
+import { M3 } from '@/theme';
+import { PLAN_OPTIONS } from '../../../utils/static-data';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
 import { addBillingInterval } from '../utils';

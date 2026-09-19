@@ -9,7 +9,7 @@
  * @since 1.0.0
  */
 import { __ } from '@wordpress/i18n';
-import { M3 } from '../../../app/utils/static-data';
+import { M3 } from '@/theme';
 
 /**
  * Renders a small rounded pill badge for a given status string.

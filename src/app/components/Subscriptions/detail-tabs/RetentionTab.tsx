@@ -8,7 +8,8 @@
  * @file
  * @since 1.0.0
  */
-import { M3, CANCELLATION_REASONS } from '../../../utils/static-data';
+import { M3 } from '@/theme';
+import { CANCELLATION_REASONS } from '../../../utils/static-data';
 import { Card } from '@/shared/ui/Card';
 import { SubscriptionTimeline } from '../shared';
 import type { SubscriptionRecord, SubscriptionLogEntry } from '../types';

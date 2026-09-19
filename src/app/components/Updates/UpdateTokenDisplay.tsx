@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Key, Copy, Check, Download, ExternalLink } from 'lucide-react';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 
 interface UpdateTokenDisplayProps {
 	checksum: string;

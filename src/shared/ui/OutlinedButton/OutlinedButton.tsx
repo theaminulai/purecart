@@ -8,7 +8,7 @@
  * @file
  * @since 1.0.0
  */
-import { M3 } from '../../../app/utils/static-data';
+import { M3 } from '@/theme';
 
 /**
  * Renders a pill-shaped outlined button following M3 outlined button specs.

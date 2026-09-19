@@ -10,7 +10,7 @@
  */
 import { useState } from 'react';
 import { Target } from 'lucide-react';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
 import { SettingsField, SettingsSelectField } from '../Subscriptions/shared';

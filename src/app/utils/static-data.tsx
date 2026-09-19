@@ -1,16 +1,4 @@
-import {
-	LayoutDashboard,
-	Key,
-	Download,
-	RefreshCcw,
-	Repeat,
-	Cloud,
-	Users,
-	ShoppingCart,
-	Shield,
-	BarChart2,
-	Settings as SettingsIcon,
-} from 'lucide-react';
+import { M3 } from '@/theme';
 import type {
 	SubscriptionRecord,
 	PaymentRecord,
@@ -21,94 +9,6 @@ import type {
 	SubscriptionEmailLogEntry,
 	SubscriptionSettings,
 } from '../components/Subscriptions/types';
-
-// ─── M3 Color Tokens ──────────────────────────────────────────────────────────
-export const M3 = {
-	primary: '#6750A4',
-	onPrimary: '#FFFFFF',
-	primaryContainer: '#EADDFF',
-	onPrimaryContainer: '#21005D',
-	secondary: '#625B71',
-	onSecondary: '#FFFFFF',
-	secondaryContainer: '#E8DEF8',
-	onSecondaryContainer: '#1D192B',
-	surface: '#FFFBFE',
-	surfaceContainerLow: '#F7F2FA',
-	surfaceContainer: '#F3EDF7',
-	surfaceContainerHigh: '#ECE6F0',
-	onSurface: '#1C1B1F',
-	onSurfaceVariant: '#49454F',
-	outline: '#79747E',
-	outlineVariant: '#CAC4D0',
-	error: '#B3261E',
-	errorContainer: '#F9DEDC',
-	success: '#386A20',
-	successContainer: '#C2E7A0',
-	warning: '#7A5900',
-	warningContainer: '#FFDEA5',
-	info: '#00629D',
-	infoContainer: '#C8E6FF',
-};
-
-// ─── Types ─────────────────────────────────────────────────────────────────────
-export type Page =
-	| 'overview'
-	| 'licenses'
-	| 'downloads'
-	| 'updates'
-	| 'subscriptions'
-	| 'subscription-analytics'
-	| 'subscription-detail'
-	| 'saas-accounts'
-	| 'affiliates'
-	| 'abandoned-cart'
-	| 'security'
-	| 'analytics'
-	| 'settings';
-
-// ─── Nav items definition ──────────────────────────────────────────────────────
-export const NAV_SCHEMA: Array< {
-	id: Page;
-	icon: React.ElementType;
-	label: string;
-	/** Render a horizontal rule after this item. */
-	dividerAfter?: boolean;
-} > = [
-	{ id: 'overview',       icon: LayoutDashboard, label: 'Overview' },
-	{ id: 'licenses',       icon: Key,             label: 'Licenses' },
-	{ id: 'downloads',      icon: Download,        label: 'Downloads' },
-	{ id: 'updates',        icon: RefreshCcw,      label: 'Updates' },
-	{ id: 'subscriptions',  icon: Repeat,          label: 'Subscriptions' },
-	{ id: 'saas-accounts',  icon: Cloud,           label: 'SaaS Accounts' },
-	{ id: 'affiliates',     icon: Users,           label: 'Affiliates' },
-	{ id: 'abandoned-cart', icon: ShoppingCart,    label: 'Abandoned Cart' },
-	{ id: 'security',       icon: Shield,          label: 'Security' },
-	{ id: 'analytics',      icon: BarChart2,       label: 'Analytics', dividerAfter: true },
-	{ id: 'settings',       icon: SettingsIcon,    label: 'Settings' },
-];
-
-// ─── Page titles ───────────────────────────────────────────────────────────────
-export const PAGE_TITLES: Record< Page, string > = {
-	'overview':               'Overview',
-	'licenses':               'Licenses',
-	'downloads':              'Downloads',
-	'updates':                'Updates',
-	'subscriptions':          'Subscriptions',
-	'subscription-analytics': 'Subscription Analytics',
-	'subscription-detail':    'Subscription Detail',
-	'saas-accounts':          'SaaS Accounts',
-	'affiliates':             'Affiliates',
-	'abandoned-cart':         'Abandoned Cart',
-	'security':               'Security',
-	'analytics':              'Analytics',
-	'settings':               'Settings',
-};
-
-// ─── Parent page map (for breadcrumbs) ────────────────────────────────────────
-/** Pages that are children of another page in the breadcrumb trail. */
-export const PAGE_PARENT: Partial< Record< Page, Page > > = {
-	'subscription-analytics': 'subscriptions',
-};
 
 // ─── Subscription sample data ───────────────────────────────────────────────────
 // Covers all 6 delivery types and 9 of the 10 SubscriptionStatus values.

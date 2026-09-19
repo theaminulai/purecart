@@ -10,7 +10,7 @@
  * @since 1.0.0
  */
 import { CreditCard, ChevronLeft, ChevronRight } from 'lucide-react';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import { Card } from '@/shared/ui/Card';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 import { ActionDropdown, type ActionItem } from '@/shared/ui/ActionDropdown';

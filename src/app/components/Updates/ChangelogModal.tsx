@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Copy, Check, FileText } from 'lucide-react';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 
 interface ChangelogModalProps {
 	isOpen: boolean;

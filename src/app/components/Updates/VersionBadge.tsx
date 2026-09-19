@@ -1,6 +1,6 @@
 import React from 'react';
 import type { UpdateChannel } from '../../types/updates';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 
 interface VersionBadgeProps {
 	version: string;

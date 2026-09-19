@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 
 interface RollbackConfirmDialogProps {
 	isOpen: boolean;

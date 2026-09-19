@@ -8,7 +8,7 @@
  * @file
  * @since 1.0.0
  */
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import { StatCard } from '@/shared/ui/StatCard';
 import { computeMRR, isCancelledThisMonth, formatCurrency } from './utils';
 import type { SubscriptionRecord } from './types';

@@ -9,7 +9,7 @@
  */
 import { useState } from 'react';
 import { PauseCircle } from 'lucide-react';
-import { M3 } from '../../../utils/static-data';
+import { M3 } from '@/theme';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
 import { addBillingInterval } from '../utils';

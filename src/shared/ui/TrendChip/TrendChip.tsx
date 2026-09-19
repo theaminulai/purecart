@@ -9,7 +9,7 @@
  * @since 1.0.0
  */
 import { TrendingUp, TrendingDown } from 'lucide-react';
-import { M3 } from '../../../app/utils/static-data';
+import { M3 } from '@/theme';
 
 /**
  * Renders a trend indicator chip with a directional icon and value string.

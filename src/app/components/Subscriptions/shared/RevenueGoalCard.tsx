@@ -10,7 +10,7 @@
  * @since 1.0.0
  */
 import { Trash2 } from 'lucide-react';
-import { M3 } from '../../../utils/static-data';
+import { M3 } from '@/theme';
 import { Card } from '@/shared/ui/Card';
 import { IconButton } from '@/shared/ui/IconButton';
 import type { RevenueGoal } from '../types';

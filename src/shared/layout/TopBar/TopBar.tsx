@@ -11,8 +11,9 @@
  */
 import { ChevronRight, HelpCircle, Bell } from 'lucide-react';
 import { __ } from '@wordpress/i18n';
-import { M3, PAGE_TITLES, PAGE_PARENT } from '../../../app/utils/static-data';
-import type { Page } from '../../../app/utils/static-data';
+import { M3 } from '@/theme';
+import { PAGE_TITLES, PAGE_PARENT } from '../nav-schema';
+import type { Page } from '@/shared/types/page';
 import { IconButton } from '@/shared/ui/IconButton';
 
 /**

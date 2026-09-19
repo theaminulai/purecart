@@ -18,7 +18,7 @@ import {
 	Briefcase,
 	type LucideIcon,
 } from 'lucide-react';
-import { M3 } from '../../../utils/static-data';
+import { M3 } from '@/theme';
 import type { SubscriptionDeliveryType } from '../types';
 
 export const TYPE_CONFIG: Record<

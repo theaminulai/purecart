@@ -9,7 +9,7 @@
  * @file
  * @since 1.0.0
  */
-import { M3 } from '../../../utils/static-data';
+import { M3 } from '@/theme';
 
 /**
  * Renders a bold section title with an optional muted description.

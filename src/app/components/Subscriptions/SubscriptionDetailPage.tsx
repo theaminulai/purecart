@@ -14,7 +14,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { loadSubscriptions } from '../../store/slices/subscriptionsSlice';
 import { fetchSubscriptionLogs, fetchSubscriptionEmails, fetchPaymentHistory } from '../../api';

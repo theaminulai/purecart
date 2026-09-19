@@ -9,7 +9,7 @@
  * @since 1.0.0
  */
 import { useState } from 'react';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import { SettingsSubscriptions } from './SettingsSubscriptions';
 import { SettingsUpdates } from './SettingsUpdates';
 

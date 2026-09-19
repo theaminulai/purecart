@@ -8,7 +8,7 @@
  * @file
  * @since 1.0.0
  */
-import { M3 } from '../../../utils/static-data';
+import { M3 } from '@/theme';
 
 /**
  * Renders completed/remaining dots plus an installment progress summary.

@@ -1,7 +1,8 @@
 import { Package, ChevronLeft, ChevronRight } from 'lucide-react';
 import { __ } from '@wordpress/i18n';
-import { M3, NAV_SCHEMA } from '../../../app/utils/static-data';
-import type { Page } from '../../../app/utils/static-data';
+import { M3 } from '@/theme';
+import { NAV_SCHEMA } from '../nav-schema';
+import type { Page } from '@/shared/types/page';
 
 /**
  * Collapsible admin navigation sidebar.

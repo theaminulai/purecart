@@ -10,7 +10,7 @@
  */
 import { useState } from 'react';
 import { Search, Download as DownloadIcon } from 'lucide-react';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import { FilterChip } from '@/shared/ui/FilterChip';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 

@@ -9,7 +9,7 @@
  * @since 1.0.0
  */
 import { Mail, PauseCircle, XCircle, CreditCard, Tag } from 'lucide-react';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import { TextButton } from '@/shared/ui/TextButton';
 import { TonalButton } from '@/shared/ui/TonalButton';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';

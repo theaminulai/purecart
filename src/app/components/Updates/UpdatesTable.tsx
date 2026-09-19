@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronRight, ChevronDown, MoreVertical, FileText, ArrowUpCircle, RotateCcw, Archive, Trash2 } from 'lucide-react';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import { VersionBadge } from './VersionBadge';
 import { PlatformChip } from './PlatformChip';
 import { UpdateTokenDisplay } from './UpdateTokenDisplay';

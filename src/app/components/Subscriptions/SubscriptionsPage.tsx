@@ -37,7 +37,7 @@ import { SubscriptionsTable } from './SubscriptionsTable';
 import { SubscriptionsBulkBar } from './SubscriptionsBulkBar';
 import { useSubscriptionActions } from './useSubscriptionActions';
 import { subscriptionDetailPath } from '../../router';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import { exportSubscriptionsCsv } from '../../api';
 
 /**

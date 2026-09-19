@@ -25,7 +25,7 @@ import { UpdatesTable } from './UpdatesTable';
 import { NewReleaseDrawer } from './NewReleaseDrawer';
 import { ChangelogModal } from './ChangelogModal';
 import { RollbackConfirmDialog } from './RollbackConfirmDialog';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import { fetchProducts } from '../../api/modules/updates.api';
 import type { ProductVersion, UpdateChannel, NewReleasePayload } from '../../types/updates';
 

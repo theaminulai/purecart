@@ -1,4 +1,4 @@
-import type { Page } from '../utils/static-data';
+import type { Page } from '@/shared/types/page';
 
 // ─── Route paths (hash-routed) ─────────────────────────────────────────────────
 export const PAGE_PATHS: Record< Page, string > = {

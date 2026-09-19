@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Key, Eye, RefreshCw, Mail } from 'lucide-react';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 import { fetchEmailPreview } from '../../api/modules/updates.api';
 
 export function SettingsUpdates() {

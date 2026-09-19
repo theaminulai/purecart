@@ -1,7 +1,7 @@
 import React from 'react';
 import { Globe, Monitor, Terminal } from 'lucide-react';
 import type { Platform } from '../../types/updates';
-import { M3 } from '../../utils/static-data';
+import { M3 } from '@/theme';
 
 interface PlatformChipProps {
 	platform: Platform | string;
