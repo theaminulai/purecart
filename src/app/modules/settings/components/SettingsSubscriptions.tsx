@@ -11,9 +11,9 @@
  * @since 1.0.0
  */
 import { useEffect, useState } from 'react';
-import { defaultSubscriptionSettings, subscriptionsData } from '../../utils/static-data';
+import { defaultSubscriptionSettings, subscriptionsData } from '@/app/utils/static-data';
 import { fetchRevenueGoals } from '@/modules/analytics';
-import { useAppSelector } from '../../store/hooks';
+import { useAppSelector } from '@/app/store/hooks';
 import { FilledButton } from '@/shared/ui/FilledButton';
 import { Toast } from '@/shared/ui/Toast';
 import type { ToastProps } from '@/shared/ui';

@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { SubscriptionsPage, SubscriptionDetailPage } from '@/modules/subscriptions';
 import { SubscriptionAnalyticsPage, AnalyticsPage } from '@/modules/analytics';
-import { SettingsPage } from '../components/Settings';
+import { SettingsPage } from '@/modules/settings';
 import { PAGE_PATHS, SUBSCRIPTION_DETAIL_PATH } from './paths';
 
 // Overview
