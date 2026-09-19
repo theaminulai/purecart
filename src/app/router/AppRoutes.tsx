@@ -10,8 +10,7 @@ import { OverviewPage } from '../components/Overview/OverviewPage';
 // Module stubs
 import { LicensesPage }     from '../components/Licenses/LicensesPage';
 import { DownloadsPage }    from '../components/Downloads/DownloadsPage';
-import { UpdatesPage }      from '../components/Updates/UpdatesPage';
-import { UpdateAnalyticsPage } from '../components/Updates/UpdateAnalyticsPage';
+import { UpdatesPage, UpdateAnalyticsPage } from '@/modules/updates';
 import { SaasAccountsPage } from '../components/SaasAccounts/SaasAccountsPage';
 import { AffiliatesPage }   from '../components/Affiliates/AffiliatesPage';
 import { AbandonedCartPage} from '../components/AbandonedCart/AbandonedCartPage';

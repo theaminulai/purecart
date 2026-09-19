@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, BarChart2, RefreshCw } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../../app/store/hooks';
 import {
 	loadVersions,
 	uploadRelease,
@@ -18,7 +18,15 @@ import {
 	clearFilters,
 	openNewReleaseDrawer,
 	closeDrawer,
-} from '../../store/slices/updatesSlice';
+} from '../store/updates.slice';
+import {
+	selectUpdateItems,
+	selectUpdateStats,
+	selectUpdateFilters,
+	selectUpdateStatus,
+	selectUpdateUploading,
+	selectUpdateDrawerOpen,
+} from '../store/updates.selectors';
 import { UpdatesKpiStrip } from './UpdatesKpiStrip';
 import { UpdatesFilterBar } from './UpdatesFilterBar';
 import { UpdatesTable } from './UpdatesTable';
@@ -26,19 +34,19 @@ import { NewReleaseDrawer } from './NewReleaseDrawer';
 import { ChangelogModal } from './ChangelogModal';
 import { RollbackConfirmDialog } from './RollbackConfirmDialog';
 import { M3 } from '@/theme';
-import { fetchProducts } from '../../api/modules/updates.api';
-import type { ProductVersion, UpdateChannel, NewReleasePayload } from '../../types/updates';
+import { fetchProducts } from '../api';
+import type { ProductVersion, UpdateChannel, NewReleasePayload } from '../types';
 
 export function UpdatesPage() {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
-	const items = useAppSelector( ( s ) => s.updates.items );
-	const stats = useAppSelector( ( s ) => s.updates.stats );
-	const filters = useAppSelector( ( s ) => s.updates.filters );
-	const status = useAppSelector( ( s ) => s.updates.status );
-	const uploading = useAppSelector( ( s ) => s.updates.uploading );
-	const isDrawerOpen = useAppSelector( ( s ) => s.updates.isDrawerOpen );
+	const items = useAppSelector( selectUpdateItems );
+	const stats = useAppSelector( selectUpdateStats );
+	const filters = useAppSelector( selectUpdateFilters );
+	const status = useAppSelector( selectUpdateStatus );
+	const uploading = useAppSelector( selectUpdateUploading );
+	const isDrawerOpen = useAppSelector( selectUpdateDrawerOpen );
 
 	const [ selectedChangelog, setSelectedChangelog ] = useState<ProductVersion | null>( null );
 	const [ rollbackTarget, setRollbackTarget ] = useState<ProductVersion | null>( null );

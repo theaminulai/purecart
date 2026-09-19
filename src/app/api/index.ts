@@ -15,4 +15,4 @@ export * from './client';
 // Domain API modules
 export * from './modules/subscriptions.api';
 export * from './modules/analytics.api';
-export * from './modules/updates.api';
+// Updates module has moved to @/modules/updates — import from there.

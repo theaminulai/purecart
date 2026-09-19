@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { M3 } from '@/theme';
 import { FilterChip } from '@/shared/ui/FilterChip';
-import type { UpdateChannel, Platform, ProductType, PackageStatus } from '../../types/updates';
+import type { UpdateChannel, Platform, ProductType, PackageStatus } from '../types';
 
 export interface UpdatesFilterBarProps {
 	search: string;

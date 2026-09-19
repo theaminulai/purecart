@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, TrendingUp, Users, RotateCcw, AlertTriangle } from 'lucide-react';
-import { fetchUpdateAnalytics } from '../../api/modules/updates.api';
+import { fetchUpdateAnalytics } from '../api';
 import { M3 } from '@/theme';
-import type { UpdateAnalyticsData } from '../../types/updates';
+import type { UpdateAnalyticsData } from '../types';
 
 export function UpdateAnalyticsPage() {
 	const navigate = useNavigate();

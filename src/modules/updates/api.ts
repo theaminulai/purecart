@@ -7,7 +7,7 @@
  * @since 1.0.0
  */
 
-import { apiFetch, getApiBase, getRestNonce } from '../client';
+import { purecartFetch } from '@/shared/api';
 import type {
 	ProductVersion,
 	UpdateStats,
@@ -15,7 +15,7 @@ import type {
 	UpdateAnalyticsData,
 	RollbackRecord,
 	NewReleasePayload,
-} from '../../types/updates';
+} from './types';
 
 export interface PaginatedVersionsResponse {
 	data: ProductVersion[];
@@ -28,7 +28,7 @@ export interface PaginatedVersionsResponse {
  * Fetches all WooCommerce products available for updates.
  */
 export async function fetchProducts(): Promise<Array<{ id: number; name: string; slug: string }>> {
-	const res = await apiFetch<Array<{ product_id: number; product_name: string; slug: string }>>('/updates/products');
+	const res = await purecartFetch<Array<{ product_id: number; product_name: string; slug: string }>>('/updates/products');
 	return ( res || [] ).map( ( p ) => ( {
 		id: p.product_id,
 		name: p.product_name,
@@ -53,7 +53,7 @@ export async function fetchVersions(
 	if (params.status && params.status !== 'All') qs.append('status', params.status);
 
 	const query = qs.toString() ? `?${qs.toString()}` : '';
-	return apiFetch<PaginatedVersionsResponse>(`/updates/versions${query}`);
+	return purecartFetch<PaginatedVersionsResponse>(`/updates/versions${query}`);
 }
 
 /**
@@ -75,25 +75,13 @@ export async function uploadPackage(
 		formData.append('file', payload.file);
 	}
 
-	const apiBase = getApiBase();
-	const res = await fetch(`${apiBase}/updates/upload`, {
+	// Passed as `body` (not `data`) so apiFetch doesn't JSON-stringify it —
+	// the browser sets the multipart Content-Type + boundary automatically,
+	// same as it would for a raw fetch() call with a FormData body.
+	return purecartFetch<{ success: boolean; version: ProductVersion }>('/updates/upload', {
 		method: 'POST',
-		headers: {
-			'X-WP-Nonce': getRestNonce(),
-		},
 		body: formData,
 	});
-
-	if (!res.ok) {
-		let errorMsg = `Upload failed (${res.status})`;
-		try {
-			const json = await res.json();
-			if (json?.message) errorMsg = json.message;
-		} catch {}
-		throw new Error(errorMsg);
-	}
-
-	return res.json();
 }
 
 /**
@@ -103,9 +91,9 @@ export async function publishVersion(
 	versionId: number,
 	channel: string = 'stable'
 ): Promise<{ success: boolean }> {
-	return apiFetch<{ success: boolean }>(`/updates/versions/${versionId}/publish`, {
+	return purecartFetch<{ success: boolean }>(`/updates/versions/${versionId}/publish`, {
 		method: 'POST',
-		body: JSON.stringify({ channel }),
+		data: { channel },
 	});
 }
 
@@ -116,9 +104,9 @@ export async function setVersionStatus(
 	versionId: number,
 	status: 'active' | 'archived'
 ): Promise<{ success: boolean }> {
-	return apiFetch<{ success: boolean }>(`/updates/versions/${versionId}/status`, {
+	return purecartFetch<{ success: boolean }>(`/updates/versions/${versionId}/status`, {
 		method: 'POST',
-		body: JSON.stringify({ status }),
+		data: { status },
 	});
 }
 
@@ -126,7 +114,7 @@ export async function setVersionStatus(
  * Deletes a package version and its stored physical file.
  */
 export async function deleteVersion(versionId: number): Promise<{ success: boolean }> {
-	return apiFetch<{ success: boolean }>(`/updates/versions/${versionId}`, {
+	return purecartFetch<{ success: boolean }>(`/updates/versions/${versionId}`, {
 		method: 'DELETE',
 	});
 }
@@ -135,7 +123,7 @@ export async function deleteVersion(versionId: number): Promise<{ success: boole
  * Generates a temporary 15-minute test download URL.
  */
 export async function generateTestUrl(versionId: number): Promise<{ url: string }> {
-	return apiFetch<{ url: string }>(`/updates/versions/${versionId}/test-url`, {
+	return purecartFetch<{ url: string }>(`/updates/versions/${versionId}/test-url`, {
 		method: 'POST',
 	});
 }
@@ -148,13 +136,13 @@ export async function rollbackVersion(payload: {
 	version: string;
 	reason: string;
 }): Promise<{ success: boolean; record: RollbackRecord }> {
-	return apiFetch<{ success: boolean; record: RollbackRecord }>('/updates/rollback', {
+	return purecartFetch<{ success: boolean; record: RollbackRecord }>('/updates/rollback', {
 		method: 'POST',
-		body: JSON.stringify({
+		data: {
 			product_id: payload.productId,
 			version: payload.version,
 			reason: payload.reason,
-		}),
+		},
 	});
 }
 
@@ -162,12 +150,12 @@ export async function rollbackVersion(payload: {
  * Fetches update adoption analytics and download trends.
  */
 export async function fetchUpdateAnalytics(): Promise<UpdateAnalyticsData> {
-	return apiFetch<UpdateAnalyticsData>('/updates/analytics');
+	return purecartFetch<UpdateAnalyticsData>('/updates/analytics');
 }
 
 /**
  * Fetches customer notification email preview HTML.
  */
 export async function fetchEmailPreview(): Promise<{ html: string }> {
-	return apiFetch<{ html: string }>('/updates/email-preview');
+	return purecartFetch<{ html: string }>('/updates/email-preview');
 }

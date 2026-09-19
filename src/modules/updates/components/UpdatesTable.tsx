@@ -4,7 +4,7 @@ import { M3 } from '@/theme';
 import { VersionBadge } from './VersionBadge';
 import { PlatformChip } from './PlatformChip';
 import { UpdateTokenDisplay } from './UpdateTokenDisplay';
-import type { ProductVersion, UpdateChannel } from '../../types/updates';
+import type { ProductVersion, UpdateChannel } from '../types';
 
 interface UpdatesTableProps {
 	items: ProductVersion[];

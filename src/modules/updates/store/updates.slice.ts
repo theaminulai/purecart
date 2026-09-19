@@ -17,7 +17,7 @@ import {
 	deleteVersion as apiDeleteVersion,
 	rollbackVersion as apiRollbackVersion,
 	generateTestUrl as apiGenerateTestUrl,
-} from '../../api/modules/updates.api';
+} from '../api';
 import type {
 	ProductVersion,
 	UpdateStats,
@@ -28,7 +28,7 @@ import type {
 	PackageStatus,
 	NewReleasePayload,
 	RollbackRecord,
-} from '../../types/updates';
+} from '../types';
 
 export interface UpdateFilters {
 	search: string;

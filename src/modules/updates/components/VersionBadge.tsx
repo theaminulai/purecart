@@ -1,5 +1,5 @@
 import React from 'react';
-import type { UpdateChannel } from '../../types/updates';
+import type { UpdateChannel } from '../types';
 import { M3 } from '@/theme';
 
 interface VersionBadgeProps {

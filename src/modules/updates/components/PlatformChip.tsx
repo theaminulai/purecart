@@ -1,6 +1,6 @@
 import React from 'react';
 import { Globe, Monitor, Terminal } from 'lucide-react';
-import type { Platform } from '../../types/updates';
+import type { Platform } from '../types';
 import { M3 } from '@/theme';
 
 interface PlatformChipProps {

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, type ChangeEvent, type DragEvent, type FormEvent } from 'react';
 import { X, UploadCloud, FileArchive, CheckCircle2, AlertCircle } from 'lucide-react';
 import { M3 } from '@/theme';
-import type { UpdateChannel, Platform, NewReleasePayload } from '../../types/updates';
+import type { UpdateChannel, Platform, NewReleasePayload } from '../types';
 
 interface NewReleaseDrawerProps {
 	isOpen: boolean;

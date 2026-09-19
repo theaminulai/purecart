@@ -1,7 +1,7 @@
 import React from 'react';
 import { Package, CheckCircle2, FileClock, Download } from 'lucide-react';
 import { M3 } from '@/theme';
-import type { UpdateStats } from '../../types/updates';
+import type { UpdateStats } from '../types';
 
 interface UpdatesKpiStripProps {
 	stats: UpdateStats;
