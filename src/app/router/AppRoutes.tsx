@@ -5,16 +5,16 @@ import { SettingsPage } from '@/modules/settings';
 import { PAGE_PATHS, SUBSCRIPTION_DETAIL_PATH } from './paths';
 
 // Overview
-import { OverviewPage } from '../components/Overview/OverviewPage';
+import { OverviewPage } from '@/modules/overview';
 
 // Module stubs
-import { LicensesPage }     from '../components/Licenses/LicensesPage';
-import { DownloadsPage }    from '../components/Downloads/DownloadsPage';
+import { LicensesPage }     from '@/modules/licenses';
+import { DownloadsPage }    from '@/modules/downloads';
 import { UpdatesPage, UpdateAnalyticsPage } from '@/modules/updates';
-import { SaasAccountsPage } from '../components/SaasAccounts/SaasAccountsPage';
-import { AffiliatesPage }   from '../components/Affiliates/AffiliatesPage';
-import { AbandonedCartPage} from '../components/AbandonedCart/AbandonedCartPage';
-import { SecurityPage }     from '../components/Security/SecurityPage';
+import { SaasAccountsPage } from '@/modules/saas-accounts';
+import { AffiliatesPage }   from '@/modules/affiliates';
+import { AbandonedCartPage} from '@/modules/abandoned-cart';
+import { SecurityPage }     from '@/modules/security';
 
 /**
  * All routes for the app.

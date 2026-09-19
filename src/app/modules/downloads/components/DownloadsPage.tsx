@@ -1,4 +1,5 @@
 import { Download } from 'lucide-react';
+import { __ } from '@wordpress/i18n';
 import { ComingSoon } from '@/shared/ui/ComingSoon';
 
 /**
@@ -12,8 +13,11 @@ export function DownloadsPage() {
 	return (
 		<ComingSoon
 			icon={ <Download size={ 32 } /> }
-			title="Secure Downloads"
-			description="Time-limited signed tokens, download logs, per-order access control, and delivery analytics. Full file streaming through PHP coming soon."
+			title={ __( 'Secure Downloads', 'purecart' ) }
+			description={ __(
+				'Time-limited signed tokens, download logs, per-order access control, and delivery analytics. Full file streaming through PHP coming soon.',
+				'purecart'
+			) }
 		/>
 	);
 }
