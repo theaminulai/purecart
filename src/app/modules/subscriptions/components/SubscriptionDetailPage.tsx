@@ -17,6 +17,7 @@ import { ArrowLeft } from 'lucide-react';
 import { M3 } from '@/theme';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
 import { loadSubscriptions } from '../store/subscriptions.slice';
+import { selectSubscriptionItems, selectSubscriptionStatus } from '../store/subscriptions.selectors';
 import { fetchSubscriptionLogs, fetchSubscriptionEmails, fetchPaymentHistory } from '../api';
 import { PAGE_PATHS } from '@/app/router';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
@@ -54,8 +55,8 @@ export function SubscriptionDetailPage() {
 	const { id } = useParams<{ id: string }>();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const tableData = useAppSelector((s) => s.subscriptions.items);
-	const loadStatus = useAppSelector((s) => s.subscriptions.status);
+	const tableData = useAppSelector(selectSubscriptionItems);
+	const loadStatus = useAppSelector(selectSubscriptionStatus);
 	const loading = loadStatus === 'idle' || loadStatus === 'loading';
 
 	const [activeTab, setActiveTab] = useState<DetailTabId>('overview');

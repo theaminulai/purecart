@@ -34,6 +34,7 @@ import {
 	SubCoursesSection,
 	SubServiceSection,
 } from './sections';
+import { selectSubscriptionItems } from '@/modules/subscriptions';
 import type { SubscriptionSettings, SubscriptionDeliveryType, RevenueGoal } from '@/modules/subscriptions';
 
 /**
@@ -54,7 +55,7 @@ export function SettingsSubscriptions() {
 	// would instead ask "does a published product with this delivery type
 	// exist," a manage_woocommerce-gated product query the frontend can't
 	// determine on its own; this is a placeholder rule, not final logic.
-	const storeItems = useAppSelector( ( s ) => s.subscriptions.items );
+	const storeItems = useAppSelector( selectSubscriptionItems );
 	const sampleSource = storeItems.length > 0 ? storeItems : subscriptionsData;
 	const hasType = ( type: SubscriptionDeliveryType ) => sampleSource.some( ( r ) => r.deliveryType === type );
 

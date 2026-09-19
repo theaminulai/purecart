@@ -31,6 +31,13 @@ import {
 	setPage,
 	setPerPage,
 } from '../store/subscriptions.slice';
+import {
+	selectSubscriptionItems,
+	selectSubscriptionStatus,
+	selectSubscriptionFilters,
+	selectSubscriptionPage,
+	selectSubscriptionPerPage,
+} from '../store/subscriptions.selectors';
 import { SubscriptionsKpiStrip } from './SubscriptionsKpiStrip';
 import { SubscriptionsFilterBar } from './SubscriptionsFilterBar';
 import { SubscriptionsTable } from './SubscriptionsTable';
@@ -50,11 +57,11 @@ import { exportSubscriptionsCsv } from '../api';
 export function SubscriptionsPage() {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const tableData = useAppSelector((s) => s.subscriptions.items);
-	const loadStatus = useAppSelector((s) => s.subscriptions.status);
-	const filters = useAppSelector((s) => s.subscriptions.filters);
-	const page = useAppSelector((s) => s.subscriptions.page);
-	const perPage = useAppSelector((s) => s.subscriptions.perPage);
+	const tableData = useAppSelector(selectSubscriptionItems);
+	const loadStatus = useAppSelector(selectSubscriptionStatus);
+	const filters = useAppSelector(selectSubscriptionFilters);
+	const page = useAppSelector(selectSubscriptionPage);
+	const perPage = useAppSelector(selectSubscriptionPerPage);
 	const loading = loadStatus === 'idle' || loadStatus === 'loading';
 
 	const [selected, setSelected] = useState<string[]>([]);

@@ -30,7 +30,7 @@ import {
 	churnByReasonData,
 } from '../../utils/static-data';
 import { fetchRevenueGoals, fetchChurnRisk } from '../../api';
-import { computeMRR, countNewThisMonth, computeChurnRatePct, computeAvgLtv, addBillingInterval } from '@/modules/subscriptions';
+import { computeMRR, countNewThisMonth, computeChurnRatePct, computeAvgLtv, addBillingInterval, selectSubscriptionItems } from '@/modules/subscriptions';
 import { useAppSelector } from '../../store/hooks';
 import { KpiCard } from '@/shared/ui/KpiCard';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';
@@ -59,7 +59,7 @@ function sliceTrend( range: Range ) {
  */
 export function SubscriptionAnalyticsPage() {
 	const navigate = useNavigate();
-	const subscriptions = useAppSelector( ( s ) => s.subscriptions.items );
+	const subscriptions = useAppSelector( selectSubscriptionItems );
 	const [ range, setRange ] = useState< Range >( '6m' );
 	const [ goals, setGoals ] = useState< RevenueGoal[] >( [] );
 	const [ churnRisk, setChurnRisk ] = useState< ChurnRiskEntry[] >( [] );
