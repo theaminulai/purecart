@@ -161,22 +161,25 @@ Type every response. Don't use `any` to silence an API typing problem — see §
 
 **Namespace:** `purecart/dashboard/<hook-name>` (matches this plugin's actual identity — REST namespace `/wp-json/purecart/v1/`, PHP `PureCart\` namespace, `X-PureCart-Sig` webhook header. Do not use a different namespace.)
 
-Use `applyFilters` for values that can be modified, `doAction` for events:
+Use `applyFilters` for values that can be modified, `doAction` for events. Every hook name is a named constant exported from `shared/hooks/extension-hooks.ts` — the firing site imports the constant, never retypes the string literal, so there's exactly one place that lists every hook this app fires.
+
+**The two hooks actually fired today**, both real, both in `modules/subscriptions/`:
 
 ```ts
-const actions = applyFilters(
-	'purecart/dashboard/subscriptionActions',
-	defaultActions,
-	subscription
-);
+// modules/subscriptions/hooks/useSubscriptionActions.tsx — rowActions(row)
+return applyFilters( SUBSCRIPTION_ACTIONS_FILTER, [ ...universal, ...typeSpecific ], row ) as ActionItem[];
 ```
+Lets another module, or a future Pro add-on, add/remove/modify the ⋮ row-action menu for a subscription without forking this hook.
+
 ```ts
-doAction( 'purecart/dashboard/subscriptionUpdated', subscription );
+// modules/subscriptions/store/subscriptions.slice.ts — patchSubscription thunk
+const updated = await apiUpdateSubscription( id, patch );
+doAction( SUBSCRIPTION_UPDATED_ACTION, updated );
+return updated;
 ```
+Fired from inside the **thunk body**, not the reducer — `createSlice` reducers must stay pure (Redux Toolkit's Immer wrapping assumes it), so a side effect like this belongs where the thunk already isn't pure, right after the API call resolves and before the value goes into the reducer.
 
-Every hook fired must document, at its call site, its name, its arguments, and (for a filter) what it returns. In addition, every hook name is listed once in `shared/hooks/extension-hooks.ts` as a single source of truth — don't scatter undocumented hook string literals through the codebase.
-
-*(This section's worked examples get filled in with the actual hooks fired, once the extension points are implemented — see the refactor plan's Phase 10.)*
+Every hook fired must document, at its call site, its name (via the imported constant, not a literal), its arguments, and (for a filter) what it returns — see `extension-hooks.ts` for the actual JSDoc on both of these. Only two hooks exist right now, deliberately — add more only at genuinely plausible extension points as they come up, not preemptively on every mutation.
 
 ---
 

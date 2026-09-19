@@ -14,6 +14,8 @@
  * @since 1.0.0
  */
 import { useState } from 'react';
+import { applyFilters } from '@wordpress/hooks';
+import { SUBSCRIPTION_ACTIONS_FILTER } from '@/shared/hooks';
 import {
 	Users,
 	FileText,
@@ -533,7 +535,10 @@ export function useSubscriptionActions() {
 			}
 		})();
 
-		return [...universal, ...typeSpecific];
+		/**
+		 * @see SUBSCRIPTION_ACTIONS_FILTER for the documented contract.
+		 */
+		return applyFilters(SUBSCRIPTION_ACTIONS_FILTER, [...universal, ...typeSpecific], row) as ActionItem[];
 	};
 
 	const modals = (

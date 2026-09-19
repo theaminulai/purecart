@@ -15,6 +15,8 @@
  * @since 1.0.0
  */
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { doAction } from '@wordpress/hooks';
+import { SUBSCRIPTION_UPDATED_ACTION } from '@/shared/hooks';
 import {
 	fetchSubscriptions,
 	updateSubscription as apiUpdateSubscription,
@@ -87,12 +89,18 @@ export const loadSubscriptions = createAsyncThunk( 'subscriptions/load', async (
  * Applies a partial update to one subscription via the API layer, then
  * merges the (API-confirmed) result back into the store on success.
  *
+ * Fires SUBSCRIPTION_UPDATED_ACTION once the API call resolves — this thunk
+ * body, not the reducer below, is the correct place for that side effect
+ * (createSlice reducers must stay pure; the thunk already isn't).
+ *
  * @since 1.0.0
  */
 export const patchSubscription = createAsyncThunk(
 	'subscriptions/patch',
 	async ( { id, patch }: { id: string; patch: Partial< SubscriptionRecord > } ) => {
-		return await apiUpdateSubscription( id, patch );
+		const updated = await apiUpdateSubscription( id, patch );
+		doAction( SUBSCRIPTION_UPDATED_ACTION, updated );
+		return updated;
 	}
 );
 
