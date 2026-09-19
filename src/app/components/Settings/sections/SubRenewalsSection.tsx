@@ -4,7 +4,7 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsField, SettingsToggleField } from '../../Subscriptions/shared';
+import { SettingsField, SettingsToggleField } from '@/modules/subscriptions';
 import { numbersToCsv, csvToNumbers, type SettingsSectionProps } from '../settingsSectionTypes';
 
 /**

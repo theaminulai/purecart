@@ -13,8 +13,8 @@ import { Target } from 'lucide-react';
 import { M3 } from '@/theme';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
-import { SettingsField, SettingsSelectField } from '../Subscriptions/shared';
-import type { RevenueGoal } from '../Subscriptions/types';
+import { SettingsField, SettingsSelectField } from '@/modules/subscriptions';
+import type { RevenueGoal } from '@/modules/subscriptions';
 
 interface AddRevenueGoalModalProps {
 	onClose: () => void;

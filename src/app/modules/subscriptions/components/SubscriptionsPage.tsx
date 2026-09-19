@@ -16,7 +16,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, PauseCircle, XCircle } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
 import {
 	loadSubscriptions,
 	setSearch,
@@ -30,15 +30,15 @@ import {
 	setSelectedSubscriptionId,
 	setPage,
 	setPerPage,
-} from '../../store/slices/subscriptionsSlice';
+} from '../store/subscriptions.slice';
 import { SubscriptionsKpiStrip } from './SubscriptionsKpiStrip';
 import { SubscriptionsFilterBar } from './SubscriptionsFilterBar';
 import { SubscriptionsTable } from './SubscriptionsTable';
 import { SubscriptionsBulkBar } from './SubscriptionsBulkBar';
-import { useSubscriptionActions } from './useSubscriptionActions';
-import { subscriptionDetailPath } from '../../router';
+import { useSubscriptionActions } from '../hooks/useSubscriptionActions';
+import { subscriptionDetailPath } from '@/app/router';
 import { M3 } from '@/theme';
-import { exportSubscriptionsCsv } from '../../api';
+import { exportSubscriptionsCsv } from '../api';
 
 /**
  * Renders the subscriptions list page.

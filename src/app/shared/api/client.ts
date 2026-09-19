@@ -71,6 +71,24 @@ export async function purecartFetch<T>(path: string, options?: RequestOptions): 
 }
 
 /**
+ * Authenticated request that returns the raw `Response` instead of parsed
+ * JSON — for endpoints whose body isn't JSON (CSV/file downloads via
+ * `response.blob()`, etc.). Prefer {@link purecartFetch} unless you
+ * specifically need the raw Response.
+ */
+export async function purecartFetchRaw(path: string, options?: RequestOptions): Promise<Response> {
+	try {
+		return await apiFetch<Response, false>({
+			...options,
+			path: normalizePath(path),
+			parse: false,
+		});
+	} catch (error) {
+		throw normalizeError(error);
+	}
+}
+
+/**
  * Same as {@link purecartFetch}, but also extracts the `X-WP-Total`/
  * `X-WP-TotalPages` pagination headers WordPress list endpoints return.
  */

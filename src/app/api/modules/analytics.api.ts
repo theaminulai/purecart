@@ -7,7 +7,7 @@
 
 import { apiFetch, delay, USE_DUMMY_DATA } from '../client';
 import { revenueGoalsData, churnRiskData } from '../../utils/static-data';
-import type { RevenueGoal, ChurnRiskEntry } from '../../components/Subscriptions/types';
+import type { RevenueGoal, ChurnRiskEntry } from '@/modules/subscriptions';
 
 /**
  * GET /purecart/v1/subscriptions/revenue-goals - admin-configured revenue goals.

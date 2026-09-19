@@ -30,14 +30,14 @@ import {
 	churnByReasonData,
 } from '../../utils/static-data';
 import { fetchRevenueGoals, fetchChurnRisk } from '../../api';
-import { computeMRR, countNewThisMonth, computeChurnRatePct, computeAvgLtv, addBillingInterval } from '../Subscriptions/utils';
+import { computeMRR, countNewThisMonth, computeChurnRatePct, computeAvgLtv, addBillingInterval } from '@/modules/subscriptions';
 import { useAppSelector } from '../../store/hooks';
 import { KpiCard } from '@/shared/ui/KpiCard';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';
-import { useSubscriptionActions } from '../Subscriptions/useSubscriptionActions';
+import { useSubscriptionActions } from '@/modules/subscriptions';
 import { ChurnRiskTable } from './ChurnRiskTable';
 import { RevenueGoalsWidget } from './RevenueGoalsWidget';
-import type { RevenueGoal, ChurnRiskEntry } from '../Subscriptions/types';
+import type { RevenueGoal, ChurnRiskEntry } from '@/modules/subscriptions';
 
 const RANGE_OPTIONS = [ '30d', '3m', '6m', '12m' ] as const;
 type Range = ( typeof RANGE_OPTIONS )[ number ];

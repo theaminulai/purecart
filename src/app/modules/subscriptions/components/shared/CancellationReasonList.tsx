@@ -9,7 +9,7 @@
  * @since 1.0.0
  */
 import { M3 } from '@/theme';
-import type { CancellationReason } from '../types';
+import type { CancellationReason } from '../../types';
 
 /**
  * Renders a selectable list of cancellation reasons with an inline optional

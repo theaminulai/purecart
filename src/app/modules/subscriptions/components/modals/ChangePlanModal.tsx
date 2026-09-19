@@ -14,11 +14,11 @@
 import { useState } from 'react';
 import { Repeat } from 'lucide-react';
 import { M3 } from '@/theme';
-import { PLAN_OPTIONS } from '../../../utils/static-data';
+import { PLAN_OPTIONS } from '@/app/utils/static-data';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
-import { addBillingInterval } from '../utils';
-import type { SubscriptionRecord } from '../types';
+import { addBillingInterval } from '../../utils';
+import type { SubscriptionRecord } from '../../types';
 
 /** Parses a formatted price string like '$99/yr' or '$249' down to a raw number. */
 function parseAmount( formatted: string ): number {

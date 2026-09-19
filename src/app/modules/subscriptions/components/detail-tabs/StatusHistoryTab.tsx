@@ -11,7 +11,7 @@
 import { Card } from '@/shared/ui/Card';
 import { M3 } from '@/theme';
 import { SubscriptionTimeline } from '../shared';
-import type { SubscriptionLogEntry } from '../types';
+import type { SubscriptionLogEntry } from '../../types';
 
 interface StatusHistoryTabProps {
 	events: SubscriptionLogEntry[];

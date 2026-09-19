@@ -8,7 +8,7 @@ import type {
 	SubscriptionLogEntry,
 	SubscriptionEmailLogEntry,
 	SubscriptionSettings,
-} from '../components/Subscriptions/types';
+} from '@/modules/subscriptions';
 
 // ─── Subscription sample data ───────────────────────────────────────────────────
 // Covers all 6 delivery types and 9 of the 10 SubscriptionStatus values.

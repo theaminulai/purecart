@@ -15,22 +15,22 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { M3 } from '@/theme';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { loadSubscriptions } from '../../store/slices/subscriptionsSlice';
-import { fetchSubscriptionLogs, fetchSubscriptionEmails, fetchPaymentHistory } from '../../api';
-import { PAGE_PATHS } from '../../router';
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import { loadSubscriptions } from '../store/subscriptions.slice';
+import { fetchSubscriptionLogs, fetchSubscriptionEmails, fetchPaymentHistory } from '../api';
+import { PAGE_PATHS } from '@/app/router';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 import { ActionDropdown } from '@/shared/ui/ActionDropdown';
 import { SubscriptionTypeBadge } from './shared';
-import { useSubscriptionActions } from './useSubscriptionActions';
+import { useSubscriptionActions } from '../hooks/useSubscriptionActions';
 import { OverviewTab, DeliveryTypeTab, PaymentLogTab, StatusHistoryTab, EmailsSentTab, RetentionTab } from './detail-tabs';
 import type {
 	SubscriptionDeliveryType,
 	SubscriptionLogEntry,
 	SubscriptionEmailLogEntry,
 	PaymentRecord,
-} from './types';
+} from '../types';
 
 type DetailTabId = 'overview' | 'type' | 'payments' | 'history' | 'emails' | 'retention';
 

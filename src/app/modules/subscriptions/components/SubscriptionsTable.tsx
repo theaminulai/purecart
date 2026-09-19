@@ -15,7 +15,7 @@ import { Card } from '@/shared/ui/Card';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 import { ActionDropdown, type ActionItem } from '@/shared/ui/ActionDropdown';
 import { SubscriptionTypeBadge, TYPE_CONFIG, ChurnScoreBadge, InstallmentProgress } from './shared';
-import type { SubscriptionRecord, SubscriptionLinkedEntity } from './types';
+import type { SubscriptionRecord, SubscriptionLinkedEntity } from '../types';
 
 /**
  * Renders the type-specific "Linked" column content for one row.

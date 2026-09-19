@@ -13,7 +13,7 @@ import { XCircle } from 'lucide-react';
 import { M3 } from '@/theme';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 import { IconButton } from '@/shared/ui/IconButton';
-import type { SubscriptionRecord, PaymentRecord } from '../types';
+import type { SubscriptionRecord, PaymentRecord } from '../../types';
 
 interface PaymentHistoryModalProps {
 	row: SubscriptionRecord;

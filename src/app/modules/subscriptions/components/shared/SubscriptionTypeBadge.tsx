@@ -19,7 +19,7 @@ import {
 	type LucideIcon,
 } from 'lucide-react';
 import { M3 } from '@/theme';
-import type { SubscriptionDeliveryType } from '../types';
+import type { SubscriptionDeliveryType } from '../../types';
 
 export const TYPE_CONFIG: Record<
 	SubscriptionDeliveryType,

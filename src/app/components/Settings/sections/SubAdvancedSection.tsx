@@ -4,7 +4,7 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsTextareaField, SettingsToggleField } from '../../Subscriptions/shared';
+import { SettingsTextareaField, SettingsToggleField } from '@/modules/subscriptions';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 /**

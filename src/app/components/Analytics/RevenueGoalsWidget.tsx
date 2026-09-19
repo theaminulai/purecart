@@ -10,8 +10,8 @@
  * @since 1.0.0
  */
 import { M3 } from '@/theme';
-import { RevenueGoalCard } from '../Subscriptions/shared';
-import type { RevenueGoal } from '../Subscriptions/types';
+import { RevenueGoalCard } from '@/modules/subscriptions';
+import type { RevenueGoal } from '@/modules/subscriptions';
 
 interface RevenueGoalsWidgetProps {
 	goals: RevenueGoal[];

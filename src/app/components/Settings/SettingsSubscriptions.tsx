@@ -34,7 +34,7 @@ import {
 	SubCoursesSection,
 	SubServiceSection,
 } from './sections';
-import type { SubscriptionSettings, SubscriptionDeliveryType, RevenueGoal } from '../Subscriptions/types';
+import type { SubscriptionSettings, SubscriptionDeliveryType, RevenueGoal } from '@/modules/subscriptions';
 
 /**
  * Renders the Subscriptions settings tab.

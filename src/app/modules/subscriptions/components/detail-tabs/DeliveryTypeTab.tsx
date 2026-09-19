@@ -15,8 +15,8 @@ import { RotateCcw, Calendar, PauseCircle, XCircle } from 'lucide-react';
 import { M3 } from '@/theme';
 import { Card } from '@/shared/ui/Card';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';
-import { addBillingInterval } from '../utils';
-import type { SubscriptionRecord } from '../types';
+import { addBillingInterval } from '../../utils';
+import type { SubscriptionRecord } from '../../types';
 import type { ConfirmDialogProps, ToastProps } from '@/shared/ui';
 
 interface DeliveryTypeTabProps {

@@ -10,7 +10,7 @@
 import { Check, X, Minus } from 'lucide-react';
 import { M3 } from '@/theme';
 import { Card } from '@/shared/ui/Card';
-import type { SubscriptionEmailLogEntry } from '../types';
+import type { SubscriptionEmailLogEntry } from '../../types';
 
 interface EmailsSentTabProps {
 	emails: SubscriptionEmailLogEntry[];

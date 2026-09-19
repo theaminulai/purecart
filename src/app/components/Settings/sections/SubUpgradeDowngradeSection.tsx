@@ -4,7 +4,7 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsSelectField, SettingsToggleField } from '../../Subscriptions/shared';
+import { SettingsSelectField, SettingsToggleField } from '@/modules/subscriptions';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 const PRORATION_OPTIONS = [

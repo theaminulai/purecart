@@ -5,7 +5,7 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsSelectField, SettingsField, SettingsToggleField } from '../../Subscriptions/shared';
+import { SettingsSelectField, SettingsField, SettingsToggleField } from '@/modules/subscriptions';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 const LMS_OPTIONS = [

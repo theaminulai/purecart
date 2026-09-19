@@ -12,8 +12,8 @@ import { PauseCircle } from 'lucide-react';
 import { M3 } from '@/theme';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
-import { addBillingInterval } from '../utils';
-import type { SubscriptionRecord } from '../types';
+import { addBillingInterval } from '../../utils';
+import type { SubscriptionRecord } from '../../types';
 
 const DURATION_OPTIONS = [
 	{ label: '1 month', months: 1 },

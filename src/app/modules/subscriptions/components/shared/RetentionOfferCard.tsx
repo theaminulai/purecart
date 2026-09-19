@@ -14,7 +14,7 @@ import { M3 } from '@/theme';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';
-import type { RetentionOffer } from '../types';
+import type { RetentionOffer } from '../../types';
 
 const OFFER_ICON: Record< RetentionOffer[ 'type' ], React.ElementType > = {
 	discount: Tag,

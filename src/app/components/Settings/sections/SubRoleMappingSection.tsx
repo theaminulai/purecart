@@ -9,7 +9,7 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsSelectField } from '../../Subscriptions/shared';
+import { SettingsSelectField } from '@/modules/subscriptions';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 const ROLE_OPTIONS = [

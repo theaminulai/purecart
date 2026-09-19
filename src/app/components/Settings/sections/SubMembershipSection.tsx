@@ -5,7 +5,7 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsField, SettingsSelectField, SettingsTextareaField, SettingsToggleField } from '../../Subscriptions/shared';
+import { SettingsField, SettingsSelectField, SettingsTextareaField, SettingsToggleField } from '@/modules/subscriptions';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 const RESTRICTION_PLUGIN_OPTIONS = [

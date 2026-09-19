@@ -13,10 +13,10 @@
 import { useState } from 'react';
 import { Tag } from 'lucide-react';
 import { M3 } from '@/theme';
-import { DISCOUNT_DURATIONS } from '../../../utils/static-data';
+import { DISCOUNT_DURATIONS } from '@/app/utils/static-data';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
-import type { SubscriptionRecord } from '../types';
+import type { SubscriptionRecord } from '../../types';
 
 type DiscountDuration = ( typeof DISCOUNT_DURATIONS )[ number ];
 

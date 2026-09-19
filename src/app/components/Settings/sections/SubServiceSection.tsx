@@ -6,7 +6,7 @@
  * @since 1.0.0
  */
 import { M3 } from '@/theme';
-import { SettingsField, SettingsToggleField, SettingsTextareaField } from '../../Subscriptions/shared';
+import { SettingsField, SettingsToggleField, SettingsTextareaField } from '@/modules/subscriptions';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 /**

@@ -4,7 +4,7 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsToggleField, SettingsSelectField, SettingsField } from '../../Subscriptions/shared';
+import { SettingsToggleField, SettingsSelectField, SettingsField } from '@/modules/subscriptions';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 const DISCOUNT_TYPE_OPTIONS = [

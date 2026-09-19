@@ -39,10 +39,10 @@ import {
 	CheckSquare,
 	Edit,
 } from 'lucide-react';
-import { fetchPaymentHistory } from '../../api';
-import { addBillingInterval } from './utils';
-import type { SubscriptionRecord, PaymentRecord, RetentionOffer } from './types';
-import { useAppDispatch } from '../../store/hooks';
+import { fetchPaymentHistory } from '../api';
+import { addBillingInterval } from '../utils';
+import type { SubscriptionRecord, PaymentRecord, RetentionOffer } from '../types';
+import { useAppDispatch } from '@/app/store/hooks';
 import {
 	patchSubscription,
 	removeSubscription,
@@ -58,7 +58,7 @@ import {
 	sendCardUpdateThunk,
 	resubscribeSubscriptionThunk,
 	deleteSubscriptionThunk,
-} from '../../store/slices/subscriptionsSlice';
+} from '../store/subscriptions.slice';
 import { ConfirmDialog, Toast } from '@/shared/ui';
 import type { ActionItem, ConfirmDialogProps, ToastProps } from '@/shared/ui';
 import {
@@ -71,7 +71,7 @@ import {
 	buildSkipCycleDialog,
 	buildScaReauthDialog,
 	buildSendCardUpdateDialog,
-} from './modals';
+} from '../components/modals';
 
 type DialogState = Omit<ConfirmDialogProps, 'onCancel'> & { open: boolean };
 

@@ -11,9 +11,9 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';
-import { RevenueGoalCard } from '../../Subscriptions/shared';
+import { RevenueGoalCard } from '@/modules/subscriptions';
 import { AddRevenueGoalModal } from '../AddRevenueGoalModal';
-import type { RevenueGoal } from '../../Subscriptions/types';
+import type { RevenueGoal } from '@/modules/subscriptions';
 
 interface SubRevenueGoalsSectionProps {
 	goals: RevenueGoal[];

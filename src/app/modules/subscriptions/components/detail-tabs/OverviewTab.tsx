@@ -12,7 +12,7 @@
 import { M3 } from '@/theme';
 import { Card } from '@/shared/ui/Card';
 import { ChurnGauge, CardExpiryWarning, InstallmentProgress } from '../shared';
-import type { SubscriptionRecord } from '../types';
+import type { SubscriptionRecord } from '../../types';
 
 interface OverviewTabProps {
 	row: SubscriptionRecord;

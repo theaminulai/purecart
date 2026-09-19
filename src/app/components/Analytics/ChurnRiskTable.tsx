@@ -14,8 +14,8 @@ import { M3 } from '@/theme';
 import { Card } from '@/shared/ui/Card';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 import { TextButton } from '@/shared/ui/TextButton';
-import { ChurnScoreBadge } from '../Subscriptions/shared';
-import type { ChurnRiskEntry } from '../Subscriptions/types';
+import { ChurnScoreBadge } from '@/modules/subscriptions';
+import type { ChurnRiskEntry } from '@/modules/subscriptions';
 
 interface ChurnRiskTableProps {
 	entries: ChurnRiskEntry[];

@@ -31,8 +31,8 @@ import {
 	sendCardUpdate as apiSendCardUpdate,
 	resubscribeSubscription as apiResubscribeSubscription,
 	deleteSubscription as apiDeleteSubscription,
-} from '../../api';
-import type { SubscriptionRecord } from '../../components/Subscriptions/types';
+} from '../api';
+import type { SubscriptionRecord } from '../types';
 
 export interface SubscriptionFilters {
 	search: string;

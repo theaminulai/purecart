@@ -9,10 +9,10 @@
  * @since 1.0.0
  */
 import { M3 } from '@/theme';
-import { CANCELLATION_REASONS } from '../../../utils/static-data';
+import { CANCELLATION_REASONS } from '@/app/utils/static-data';
 import { Card } from '@/shared/ui/Card';
 import { SubscriptionTimeline } from '../shared';
-import type { SubscriptionRecord, SubscriptionLogEntry } from '../types';
+import type { SubscriptionRecord, SubscriptionLogEntry } from '../../types';
 
 interface RetentionTabProps {
 	row: SubscriptionRecord;
