@@ -13,24 +13,23 @@ const path = require('path');
  *
  * Extends the default @wordpress/scripts webpack config with two entry points:
  *
- *  1. JS bundle  — src/main.jsx         → assets/js/admin.js
- *  2. CSS bundle — src/styles/main.scss → assets/css/admin.css
+ *  1. React admin SPA — src/main.tsx           → build/admin/app/app.js
+ *  2. Menu router      — src/menu-router/...js → build/admin/menu-router/menu-router.js
  *
- * Source structure:
- *   src/
- *   ├── main.jsx                ← React app entry — mounts into #purecart-admin-root
- *   ├── App.jsx
- *   ├── context/
- *   ├── hooks/
- *   ├── pages/
- *   ├── components/
- *   ├── styles/
- *   │   └── main.scss
- *   └── utils/
+ * Source structure (src/):
+ *   main.tsx              ← React app entry — mounts into #purecart-root
+ *   app/                  ← composition root: App.tsx, ErrorBoundary, router/, store/, providers/
+ *   modules/               ← one folder per business capability (subscriptions, updates, ...)
+ *   shared/                  ← cross-cutting infrastructure (api client, ui primitives, layout)
+ *   theme/                     ← design tokens
+ *   styles/                      ← plain CSS
+ *   menu-router/                  ← non-React wp-admin sidebar hash-navigation helper
+ *
+ * See DEVELOPMENT_GUIDELINES.md for the architecture this maps to.
  *
  * PHP enqueue (includes/Admin/Admin.php):
- *   wp_enqueue_script( 'purecart-admin', PURECART_URL . 'assets/js/admin.js',  $deps, PURECART_VERSION, true );
- *   wp_enqueue_style(  'purecart-admin', PURECART_URL . 'assets/css/admin.css', [],   PURECART_VERSION );
+ *   wp_enqueue_script( 'purecart-app', PURECART_URL . 'build/admin/app/app.js', $asset['dependencies'], $asset['version'], true );
+ *   wp_enqueue_style(  'purecart-app', PURECART_URL . 'build/admin/app/app.css', [], $asset['version'] );
  */
 
 const rootDir = process.cwd();
@@ -41,8 +40,19 @@ module.exports = {
 	devtool: false,
 
 	entry: {
-		'build/admin/app/app': path.resolve(rootDir, 'src/app/main.tsx'),
+		'build/admin/app/app': path.resolve(rootDir, 'src/main.tsx'),
 		'build/admin/menu-router/menu-router': path.resolve(rootDir, 'src/menu-router/menu-router.js'),
+	},
+
+	resolve: {
+		...defaultConfig.resolve,
+		alias: {
+			...defaultConfig.resolve?.alias,
+			'@/app': path.resolve(rootDir, 'src/app'),
+			'@/modules': path.resolve(rootDir, 'src/modules'),
+			'@/shared': path.resolve(rootDir, 'src/shared'),
+			'@/theme': path.resolve(rootDir, 'src/theme'),
+		},
 	},
 
 	output: {
