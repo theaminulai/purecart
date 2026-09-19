@@ -131,8 +131,8 @@ shared/
 |---|---|---|
 | `@wordpress/i18n` | 6.23.0 | All user-facing strings (§9) |
 | `@wordpress/hooks` | 4.50.0 | Extension points only (§8) |
-| `@wordpress/api-fetch` | added in this refactor | REST communication (§7) |
-| `@wordpress/route` | added in this refactor, `0.21.0` (`wp-7.0` dist-tag: `0.6.1`) | Admin routing (§10) — **see the documented exception in §10 before assuming this is a plain drop-in.** |
+| `@wordpress/api-fetch` | 7.55.0, added in this refactor | REST communication (§7) |
+| `@wordpress/route` | **evaluated, rejected — see §10** | not used |
 
 Don't reimplement functionality these packages already provide — the pre-refactor codebase had hand-rolled `getApiBase()`/`getRestNonce()`/`apiFetch()` duplicating what `@wordpress/api-fetch` does; that's exactly what this rule prevents recurring.
 
@@ -196,13 +196,13 @@ Use `_x()` when the same English string needs different translations by context,
 
 ## 10. Routing rules
 
-Use `@wordpress/route`'s public API — `Link`, `useNavigate`, `useParams`, `useRouter`, `useSearch` — from module code. Keep route composition (path definitions, the route tree) under `app/router/`; module components consume routing, they don't define global routes.
+**`@wordpress/route` was evaluated and rejected — use `react-router-dom` for everything routing-related.** This is not a stopgap pending a future retry; it's a settled decision based on reading the package's actual compiled source, not just its README.
 
-**Documented exception — read before touching `app/router/AppRouter.tsx`.** `@wordpress/route`'s own README states its router *boot*/setup uses `@wordpress/private-apis`, which WordPress core gates to a fixed list of internal consumer names — third-party plugins are not a supported consumer. The five hooks above don't require unlocking private APIs and are safe to use anywhere. The root `<Router>` bootstrap in `AppRouter.tsx` might not be constructible without that unlock. This plugin's actual resolution:
+`@wordpress/route@0.21.0`'s public entry point (`node_modules/@wordpress/route/build-types/index.d.ts`) exports only `Link`, `notFound`, `redirect`, `useLinkProps`, `useNavigate`, `useParams`, `useSearch`, `useInvalidate` — all re-exported from `@tanstack/react-router`. Every primitive actually needed to *construct* a router — `createRouter`, `createRootRoute`, `createRoute`, `RouterProvider`, and even `Outlet` (needed just to render whichever route matched) — is locked inside `privateApis`, gated by `@wordpress/private-apis`'s consumer allowlist (see `node_modules/@wordpress/route/build/private-apis.cjs`). There is no supported way for a third-party plugin to stand up a working `@wordpress/route` router at all, not just a harder-than-expected boot step. And its public hooks aren't usable against a substitute router either: `useNavigate`/`useParams`/`useSearch` are TanStack Router hooks — they require a TanStack `RouterProvider` context, which cannot be constructed without the same locked primitives, so they can't be pointed at `react-router-dom`'s `HashRouter` as a fallback. The two routers' contexts are unrelated; "use the public hooks against a different provider" was never actually an option once you read past the README.
 
-> *(Filled in once Phase 2 of the refactor plan resolves it: either "the public `@wordpress/route` boot worked without needing `@wordpress/private-apis`" — in which case say so and show the real setup — or "the boot required a private-API unlock unavailable to third-party plugins, so `AppRouter.tsx` uses `react-router-dom`'s `HashRouter` instead, while every other file still uses `@wordpress/route`'s public hooks (`Link`/`useNavigate`/etc.) against that router." Do not leave this placeholder in place — update it with the actual outcome before considering the refactor done.)*
+So: `app/router/AppRouter.tsx` uses `react-router-dom`'s `HashRouter` (unchanged from before this refactor — the app already had this right), and module code uses `react-router-dom`'s own `Link`/`useNavigate`/`useParams`, not `@wordpress/route`'s. `@wordpress/route` is not installed in this project. Keep route composition (path definitions, the route tree) under `app/router/`; module components consume routing, they don't define global routes.
 
-Do not use `@wordpress/private-apis` directly anywhere in this codebase to work around the above — if the public API can't do it, use the documented fallback, don't unlock private APIs to force it.
+**Do not use `@wordpress/private-apis` directly anywhere in this codebase** to try to make `@wordpress/route` (or any other private-API-gated package) work. If a package's functionality you need is behind `@wordpress/private-apis`, treat it the same way this section treats `@wordpress/route`: not usable here, full stop — bring it back to a human for a decision, don't work around the gate.
 
 ---
 
