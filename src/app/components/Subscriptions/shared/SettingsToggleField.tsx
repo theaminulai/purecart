@@ -12,7 +12,7 @@
  * @since 1.0.0
  */
 import { M3 } from '../../../utils/static-data';
-import { Toggle } from '../../ui/Toggle';
+import { Toggle } from '@/shared/ui/Toggle';
 
 /**
  * Renders a label-left, toggle-right settings row.

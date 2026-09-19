@@ -11,8 +11,8 @@
  */
 import { Trash2 } from 'lucide-react';
 import { M3 } from '../../../utils/static-data';
-import { Card } from '../../ui/Card';
-import { IconButton } from '../../ui/IconButton';
+import { Card } from '@/shared/ui/Card';
+import { IconButton } from '@/shared/ui/IconButton';
 import type { RevenueGoal } from '../types';
 
 const TYPE_LABEL: Record< RevenueGoal[ 'type' ], string > = {

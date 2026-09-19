@@ -59,8 +59,8 @@ import {
 	resubscribeSubscriptionThunk,
 	deleteSubscriptionThunk,
 } from '../../store/slices/subscriptionsSlice';
-import { ConfirmDialog, Toast } from '../ui';
-import type { ActionItem, ConfirmDialogProps, ToastProps } from '../ui';
+import { ConfirmDialog, Toast } from '@/shared/ui';
+import type { ActionItem, ConfirmDialogProps, ToastProps } from '@/shared/ui';
 import {
 	CancellationFlowModal,
 	PauseDurationModal,

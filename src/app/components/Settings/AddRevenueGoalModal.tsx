@@ -11,8 +11,8 @@
 import { useState } from 'react';
 import { Target } from 'lucide-react';
 import { M3 } from '../../utils/static-data';
-import { TextButton } from '../ui/TextButton';
-import { FilledButton } from '../ui/FilledButton';
+import { TextButton } from '@/shared/ui/TextButton';
+import { FilledButton } from '@/shared/ui/FilledButton';
 import { SettingsField, SettingsSelectField } from '../Subscriptions/shared';
 import type { RevenueGoal } from '../Subscriptions/types';
 

@@ -11,9 +11,9 @@
  */
 import { Tag, PauseCircle, SkipForward, ArrowDownRight, Headphones } from 'lucide-react';
 import { M3 } from '../../../utils/static-data';
-import { TextButton } from '../../ui/TextButton';
-import { FilledButton } from '../../ui/FilledButton';
-import { OutlinedButton } from '../../ui/OutlinedButton';
+import { TextButton } from '@/shared/ui/TextButton';
+import { FilledButton } from '@/shared/ui/FilledButton';
+import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 import type { RetentionOffer } from '../types';
 
 const OFFER_ICON: Record< RetentionOffer[ 'type' ], React.ElementType > = {

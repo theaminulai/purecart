@@ -8,7 +8,7 @@
  * @file
  * @since 1.0.0
  */
-import { Card } from '../../ui/Card';
+import { Card } from '@/shared/ui/Card';
 import { M3 } from '../../../utils/static-data';
 import { SubscriptionTimeline } from '../shared';
 import type { SubscriptionLogEntry } from '../types';

@@ -9,7 +9,7 @@
  * @since 1.0.0
  */
 import { M3 } from '../../utils/static-data';
-import { StatCard } from '../ui/StatCard';
+import { StatCard } from '@/shared/ui/StatCard';
 import { computeMRR, isCancelledThisMonth, formatCurrency } from './utils';
 import type { SubscriptionRecord } from './types';
 

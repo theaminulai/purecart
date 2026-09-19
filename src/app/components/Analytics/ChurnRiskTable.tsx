@@ -11,9 +11,9 @@
  */
 import { CreditCard } from 'lucide-react';
 import { M3 } from '../../utils/static-data';
-import { Card } from '../ui/Card';
-import { StatusBadge } from '../ui/StatusBadge';
-import { TextButton } from '../ui/TextButton';
+import { Card } from '@/shared/ui/Card';
+import { StatusBadge } from '@/shared/ui/StatusBadge';
+import { TextButton } from '@/shared/ui/TextButton';
 import { ChurnScoreBadge } from '../Subscriptions/shared';
 import type { ChurnRiskEntry } from '../Subscriptions/types';
 

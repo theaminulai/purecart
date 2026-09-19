@@ -11,8 +11,8 @@
  */
 import { XCircle } from 'lucide-react';
 import { M3 } from '../../../utils/static-data';
-import { OutlinedButton } from '../../ui/OutlinedButton';
-import { IconButton } from '../../ui/IconButton';
+import { OutlinedButton } from '@/shared/ui/OutlinedButton';
+import { IconButton } from '@/shared/ui/IconButton';
 import type { SubscriptionRecord, PaymentRecord } from '../types';
 
 interface PaymentHistoryModalProps {

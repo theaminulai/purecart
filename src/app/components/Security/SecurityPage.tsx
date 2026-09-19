@@ -1,5 +1,5 @@
 import { Shield } from 'lucide-react';
-import { ComingSoon } from '../ui/ComingSoon';
+import { ComingSoon } from '@/shared/ui/ComingSoon';
 
 /** @since 1.0.0 */
 export function SecurityPage() {

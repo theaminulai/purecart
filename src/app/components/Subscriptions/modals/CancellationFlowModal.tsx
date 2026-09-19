@@ -13,8 +13,8 @@
 import { useState } from 'react';
 import { XCircle } from 'lucide-react';
 import { M3, CANCELLATION_REASONS } from '../../../utils/static-data';
-import { TextButton } from '../../ui/TextButton';
-import { FilledButton } from '../../ui/FilledButton';
+import { TextButton } from '@/shared/ui/TextButton';
+import { FilledButton } from '@/shared/ui/FilledButton';
 import { StepIndicator, CancellationReasonList, RetentionOfferCard } from '../shared';
 import type { SubscriptionRecord, RetentionOffer } from '../types';
 

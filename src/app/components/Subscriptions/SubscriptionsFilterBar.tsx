@@ -11,8 +11,8 @@
 import { useState } from 'react';
 import { Search, Download as DownloadIcon } from 'lucide-react';
 import { M3 } from '../../utils/static-data';
-import { FilterChip } from '../ui/FilterChip';
-import { OutlinedButton } from '../ui/OutlinedButton';
+import { FilterChip } from '@/shared/ui/FilterChip';
+import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 
 export interface SubscriptionsFilterBarProps {
 	search: string;

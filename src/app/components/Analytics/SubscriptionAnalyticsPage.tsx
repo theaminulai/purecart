@@ -32,8 +32,8 @@ import {
 import { fetchRevenueGoals, fetchChurnRisk } from '../../api';
 import { computeMRR, countNewThisMonth, computeChurnRatePct, computeAvgLtv, addBillingInterval } from '../Subscriptions/utils';
 import { useAppSelector } from '../../store/hooks';
-import { KpiCard } from '../ui/KpiCard';
-import { OutlinedButton } from '../ui/OutlinedButton';
+import { KpiCard } from '@/shared/ui/KpiCard';
+import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 import { useSubscriptionActions } from '../Subscriptions/useSubscriptionActions';
 import { ChurnRiskTable } from './ChurnRiskTable';
 import { RevenueGoalsWidget } from './RevenueGoalsWidget';

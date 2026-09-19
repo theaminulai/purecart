@@ -14,7 +14,7 @@ import {
 	Legend,
 } from 'recharts';
 import { M3, subTrendData, subPlanMix, subRevenueByProduct } from '../../utils/static-data';
-import { OutlinedButton } from '../ui';
+import { OutlinedButton } from '@/shared/ui';
 import { ArrowLeft } from 'lucide-react';
 
 // ─── Section heading ───────────────────────────────────────────────────────────

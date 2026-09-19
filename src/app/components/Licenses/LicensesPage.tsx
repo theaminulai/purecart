@@ -1,5 +1,5 @@
 import { Key } from 'lucide-react';
-import { ComingSoon } from '../ui/ComingSoon';
+import { ComingSoon } from '@/shared/ui/ComingSoon';
 
 /**
  * Licenses module page (stub).

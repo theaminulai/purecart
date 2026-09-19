@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { M3 } from '../../utils/static-data';
-import { Card } from '../ui/Card';
+import { Card } from '@/shared/ui/Card';
 
 interface CollapsibleSectionProps {
 	title: string;

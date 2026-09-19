@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { M3 } from './utils/static-data';
 import type { Page } from './utils/static-data';
-import { Sidebar, TopBar } from './components/ui';
+import { Sidebar, TopBar } from '@/shared/layout';
 import { AppRoutes, PAGE_PATHS, getPageFromPath } from './router';
 import { useAppSelector } from './store/hooks';
 

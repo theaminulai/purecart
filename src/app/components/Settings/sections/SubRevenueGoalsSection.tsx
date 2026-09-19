@@ -10,7 +10,7 @@
  */
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { OutlinedButton } from '../../ui/OutlinedButton';
+import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 import { RevenueGoalCard } from '../../Subscriptions/shared';
 import { AddRevenueGoalModal } from '../AddRevenueGoalModal';
 import type { RevenueGoal } from '../../Subscriptions/types';

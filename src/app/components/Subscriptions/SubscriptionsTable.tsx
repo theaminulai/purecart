@@ -11,9 +11,9 @@
  */
 import { CreditCard, ChevronLeft, ChevronRight } from 'lucide-react';
 import { M3 } from '../../utils/static-data';
-import { Card } from '../ui/Card';
-import { StatusBadge } from '../ui/StatusBadge';
-import { ActionDropdown, type ActionItem } from '../ui/ActionDropdown';
+import { Card } from '@/shared/ui/Card';
+import { StatusBadge } from '@/shared/ui/StatusBadge';
+import { ActionDropdown, type ActionItem } from '@/shared/ui/ActionDropdown';
 import { SubscriptionTypeBadge, TYPE_CONFIG, ChurnScoreBadge, InstallmentProgress } from './shared';
 import type { SubscriptionRecord, SubscriptionLinkedEntity } from './types';
 

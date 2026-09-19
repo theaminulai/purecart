@@ -13,11 +13,11 @@
  */
 import { RotateCcw, Calendar, PauseCircle, XCircle } from 'lucide-react';
 import { M3 } from '../../../utils/static-data';
-import { Card } from '../../ui/Card';
-import { OutlinedButton } from '../../ui/OutlinedButton';
+import { Card } from '@/shared/ui/Card';
+import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 import { addBillingInterval } from '../utils';
 import type { SubscriptionRecord } from '../types';
-import type { ConfirmDialogProps, ToastProps } from '../../ui';
+import type { ConfirmDialogProps, ToastProps } from '@/shared/ui';
 
 interface DeliveryTypeTabProps {
 	row: SubscriptionRecord;

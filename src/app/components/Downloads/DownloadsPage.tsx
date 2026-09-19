@@ -1,5 +1,5 @@
 import { Download } from 'lucide-react';
-import { ComingSoon } from '../ui/ComingSoon';
+import { ComingSoon } from '@/shared/ui/ComingSoon';
 
 /**
  * Secure Downloads module page (stub).

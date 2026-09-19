@@ -1,7 +1,7 @@
 import {
 	Cloud
 } from 'lucide-react';
-import { ComingSoon } from '../ui';
+import { ComingSoon } from '@/shared/ui';
 
 /**
  * Main dashboard overview page.

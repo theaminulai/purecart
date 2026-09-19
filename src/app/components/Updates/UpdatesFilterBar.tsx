@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, X } from 'lucide-react';
 import { M3 } from '../../utils/static-data';
-import { FilterChip } from '../ui/FilterChip';
+import { FilterChip } from '@/shared/ui/FilterChip';
 import type { UpdateChannel, Platform, ProductType, PackageStatus } from '../../types/updates';
 
 export interface UpdatesFilterBarProps {

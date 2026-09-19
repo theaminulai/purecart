@@ -8,8 +8,8 @@
  * @since 1.0.0
  */
 import { M3 } from '../../../utils/static-data';
-import { Card } from '../../ui/Card';
-import { OutlinedButton } from '../../ui/OutlinedButton';
+import { Card } from '@/shared/ui/Card';
+import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 import type { SubscriptionRecord, PaymentRecord } from '../types';
 
 const STATUS_STYLE: Record< string, { color: string; bg: string; label: string } > = {

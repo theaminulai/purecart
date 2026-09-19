@@ -1,0 +1,1 @@
+export { TrendChip } from './TrendChip';

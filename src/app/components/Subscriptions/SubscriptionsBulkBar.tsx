@@ -10,10 +10,10 @@
  */
 import { Mail, PauseCircle, XCircle, CreditCard, Tag } from 'lucide-react';
 import { M3 } from '../../utils/static-data';
-import { TextButton } from '../ui/TextButton';
-import { TonalButton } from '../ui/TonalButton';
-import { OutlinedButton } from '../ui/OutlinedButton';
-import { FilledButton } from '../ui/FilledButton';
+import { TextButton } from '@/shared/ui/TextButton';
+import { TonalButton } from '@/shared/ui/TonalButton';
+import { OutlinedButton } from '@/shared/ui/OutlinedButton';
+import { FilledButton } from '@/shared/ui/FilledButton';
 
 export interface SubscriptionsBulkBarProps {
 	selectedCount: number;

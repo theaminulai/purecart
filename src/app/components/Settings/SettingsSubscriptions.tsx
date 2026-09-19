@@ -14,9 +14,9 @@ import { useEffect, useState } from 'react';
 import { defaultSubscriptionSettings, subscriptionsData } from '../../utils/static-data';
 import { fetchRevenueGoals } from '../../api';
 import { useAppSelector } from '../../store/hooks';
-import { FilledButton } from '../ui/FilledButton';
-import { Toast } from '../ui/Toast';
-import type { ToastProps } from '../ui';
+import { FilledButton } from '@/shared/ui/FilledButton';
+import { Toast } from '@/shared/ui/Toast';
+import type { ToastProps } from '@/shared/ui';
 import { CollapsibleSection } from './CollapsibleSection';
 import {
 	SubGeneralSection,
