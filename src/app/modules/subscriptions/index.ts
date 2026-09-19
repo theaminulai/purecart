@@ -5,7 +5,9 @@
  * @since 1.0.0
  */
 export { SubscriptionsPage } from './components/SubscriptionsPage';
+export { SubscriptionsPageSkeleton } from './components/SubscriptionsPageSkeleton';
 export { SubscriptionDetailPage } from './components/SubscriptionDetailPage';
+export { SubscriptionDetailPageSkeleton } from './components/SubscriptionDetailPageSkeleton';
 export { SubscriptionsTable } from './components/SubscriptionsTable';
 export { SubscriptionsFilterBar } from './components/SubscriptionsFilterBar';
 export { SubscriptionsKpiStrip } from './components/SubscriptionsKpiStrip';

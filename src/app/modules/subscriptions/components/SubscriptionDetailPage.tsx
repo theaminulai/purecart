@@ -16,8 +16,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { M3 } from '@/theme';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import { useSuspenseThunk } from '@/shared/suspense';
 import { loadSubscriptions } from '../store/subscriptions.slice';
-import { selectSubscriptionItems, selectSubscriptionStatus } from '../store/subscriptions.selectors';
+import { selectSubscriptionItems } from '../store/subscriptions.selectors';
 import { fetchSubscriptionLogs, fetchSubscriptionEmails, fetchPaymentHistory } from '../api';
 import { PAGE_PATHS } from '@/app/router';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
@@ -55,9 +56,8 @@ export function SubscriptionDetailPage() {
 	const { id } = useParams<{ id: string }>();
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	useSuspenseThunk('subscriptions', () => dispatch(loadSubscriptions()).unwrap());
 	const tableData = useAppSelector(selectSubscriptionItems);
-	const loadStatus = useAppSelector(selectSubscriptionStatus);
-	const loading = loadStatus === 'idle' || loadStatus === 'loading';
 
 	const [activeTab, setActiveTab] = useState<DetailTabId>('overview');
 	const [logs, setLogs] = useState<SubscriptionLogEntry[]>([]);
@@ -78,10 +78,6 @@ export function SubscriptionDetailPage() {
 	} = useSubscriptionActions();
 
 	useEffect(() => {
-		if (loadStatus === 'idle') dispatch(loadSubscriptions());
-	}, [dispatch, loadStatus]);
-
-	useEffect(() => {
 		if (!id) return;
 		fetchSubscriptionLogs(id).then(setLogs);
 		fetchSubscriptionEmails(id).then(setEmails);
@@ -89,16 +85,6 @@ export function SubscriptionDetailPage() {
 	}, [id]);
 
 	const row = tableData.find((r) => r.id === id);
-
-	if (loading) {
-		return (
-			<div className="flex items-center justify-center py-24">
-				<span style={{ color: M3.onSurfaceVariant, fontFamily: 'Roboto, sans-serif' }}>
-					Loading subscription…
-				</span>
-			</div>
-		);
-	}
 
 	if (!row) {
 		return (

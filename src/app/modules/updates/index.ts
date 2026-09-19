@@ -5,6 +5,7 @@
  * @since 1.0.0
  */
 export { UpdatesPage } from './components/UpdatesPage';
+export { UpdatesPageSkeleton } from './components/UpdatesPageSkeleton';
 export { UpdateAnalyticsPage } from './components/UpdateAnalyticsPage';
 export { UpdatesKpiStrip } from './components/UpdatesKpiStrip';
 export { UpdatesFilterBar } from './components/UpdatesFilterBar';

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, BarChart2, RefreshCw } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import { getOrCreateResource } from '@/shared/suspense';
 import {
 	loadVersions,
 	uploadRelease,
@@ -52,13 +53,29 @@ export function UpdatesPage() {
 	const [ rollbackTarget, setRollbackTarget ] = useState<ProductVersion | null>( null );
 	const [ storeProducts, setStoreProducts ] = useState<Array<{ id: number; name: string }>>( [] );
 
+	// Suspends only for the true first load this page session ever sees (a
+	// module-level cache, not component state — see shared/suspense/
+	// resourceCache.ts for why) — later remounts fall through to the effect
+	// below, which keeps this page's existing "refetch every time you visit"
+	// behavior via its own dispatch. The `created` check in that effect
+	// exists solely to avoid double-dispatching loadVersions() on the one
+	// render that just triggered the Suspense fetch.
+	const { resource: suspenseResource, created: suspenseTriggeredFetch } = getOrCreateResource(
+		'updates',
+		() => dispatch( loadVersions( {} ) ).unwrap()
+	);
+	suspenseResource.read();
+
 	useEffect( () => {
-		dispatch( loadVersions() );
+		if ( ! suspenseTriggeredFetch ) {
+			dispatch( loadVersions( {} ) );
+		}
 		fetchProducts().then( ( prods ) => {
 			if ( prods && prods.length > 0 ) {
 				setStoreProducts( prods.map( ( p ) => ( { id: p.id, name: p.name } ) ) );
 			}
 		} ).catch( () => {} );
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ dispatch ] );
 
 	// Product dropdown options derived from store products or packages

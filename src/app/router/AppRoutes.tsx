@@ -1,6 +1,10 @@
+import { Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { SubscriptionsPage, SubscriptionDetailPage } from '@/modules/subscriptions';
-import { SubscriptionAnalyticsPage, AnalyticsPage } from '@/modules/analytics';
+import {
+	SubscriptionsPage, SubscriptionsPageSkeleton,
+	SubscriptionDetailPage, SubscriptionDetailPageSkeleton,
+} from '@/modules/subscriptions';
+import { SubscriptionAnalyticsPage, SubscriptionAnalyticsPageSkeleton, AnalyticsPage } from '@/modules/analytics';
 import { SettingsPage } from '@/modules/settings';
 import { PAGE_PATHS, SUBSCRIPTION_DETAIL_PATH } from './paths';
 
@@ -10,7 +14,7 @@ import { OverviewPage } from '@/modules/overview';
 // Module stubs
 import { LicensesPage }     from '@/modules/licenses';
 import { DownloadsPage }    from '@/modules/downloads';
-import { UpdatesPage, UpdateAnalyticsPage } from '@/modules/updates';
+import { UpdatesPage, UpdatesPageSkeleton, UpdateAnalyticsPage } from '@/modules/updates';
 import { SaasAccountsPage } from '@/modules/saas-accounts';
 import { AffiliatesPage }   from '@/modules/affiliates';
 import { AbandonedCartPage} from '@/modules/abandoned-cart';
@@ -53,18 +57,24 @@ export function AppRoutes() {
 			<Route path={ PAGE_PATHS.downloads }              element={ <DownloadsPage /> } />
 
 			{ /* Updates */ }
-			<Route path={ PAGE_PATHS.updates }                element={ <UpdatesPage /> } />
+			<Route
+				path={ PAGE_PATHS.updates }
+				element={ <Suspense fallback={ <UpdatesPageSkeleton /> }><UpdatesPage /></Suspense> }
+			/>
 			<Route path="/updates/analytics"                  element={ <UpdateAnalyticsPage /> } />
 
 			{ /* Subscriptions */ }
-			<Route path={ PAGE_PATHS.subscriptions }          element={ <SubscriptionsPage /> } />
+			<Route
+				path={ PAGE_PATHS.subscriptions }
+				element={ <Suspense fallback={ <SubscriptionsPageSkeleton /> }><SubscriptionsPage /></Suspense> }
+			/>
 			<Route
 				path={ SUBSCRIPTION_DETAIL_PATH }
-				element={ <SubscriptionDetailPage /> }
+				element={ <Suspense fallback={ <SubscriptionDetailPageSkeleton /> }><SubscriptionDetailPage /></Suspense> }
 			/>
 			<Route
 				path={ PAGE_PATHS[ 'subscription-analytics' ] }
-				element={ <SubscriptionAnalyticsPage /> }
+				element={ <Suspense fallback={ <SubscriptionAnalyticsPageSkeleton /> }><SubscriptionAnalyticsPage /></Suspense> }
 			/>
 
 			{ /* SaaS Accounts */ }

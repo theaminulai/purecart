@@ -28,3 +28,5 @@ export type { ToastProps } from './Toast';
 export { Toggle } from './Toggle';
 export { StatCard } from './StatCard';
 export { ComingSoon } from './ComingSoon';
+export { Skeleton } from './Skeleton';
+export type { SkeletonProps } from './Skeleton';

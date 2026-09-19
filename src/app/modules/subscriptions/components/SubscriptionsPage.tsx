@@ -13,10 +13,11 @@
  * @file
  * @since 1.0.0
  */
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, PauseCircle, XCircle } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
+import { useSuspenseThunk } from '@/shared/suspense';
 import {
 	loadSubscriptions,
 	setSearch,
@@ -33,7 +34,6 @@ import {
 } from '../store/subscriptions.slice';
 import {
 	selectSubscriptionItems,
-	selectSubscriptionStatus,
 	selectSubscriptionFilters,
 	selectSubscriptionPage,
 	selectSubscriptionPerPage,
@@ -44,7 +44,6 @@ import { SubscriptionsTable } from './SubscriptionsTable';
 import { SubscriptionsBulkBar } from './SubscriptionsBulkBar';
 import { useSubscriptionActions } from '../hooks/useSubscriptionActions';
 import { subscriptionDetailPath } from '@/app/router';
-import { M3 } from '@/theme';
 import { exportSubscriptionsCsv } from '../api';
 
 /**
@@ -57,20 +56,16 @@ import { exportSubscriptionsCsv } from '../api';
 export function SubscriptionsPage() {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	useSuspenseThunk('subscriptions', () => dispatch(loadSubscriptions()).unwrap());
+
 	const tableData = useAppSelector(selectSubscriptionItems);
-	const loadStatus = useAppSelector(selectSubscriptionStatus);
 	const filters = useAppSelector(selectSubscriptionFilters);
 	const page = useAppSelector(selectSubscriptionPage);
 	const perPage = useAppSelector(selectSubscriptionPerPage);
-	const loading = loadStatus === 'idle' || loadStatus === 'loading';
 
 	const [selected, setSelected] = useState<string[]>([]);
 	const { rowActions, openBulkDiscount, sendCardUpdateEmail, showToast, openDialog, updateRow, modals } =
 		useSubscriptionActions();
-
-	useEffect(() => {
-		if (loadStatus === 'idle') dispatch(loadSubscriptions());
-	}, [dispatch, loadStatus]);
 
 	const toggleSelect = (id: string) =>
 		setSelected((prev) =>
@@ -133,16 +128,6 @@ export function SubscriptionsPage() {
 		dispatch(setSelectedSubscriptionId(id));
 		navigate(subscriptionDetailPath(id));
 	};
-
-	if (loading) {
-		return (
-			<div className="flex items-center justify-center py-24">
-				<span style={{ color: M3.onSurfaceVariant, fontFamily: 'Roboto, sans-serif' }}>
-					Loading subscriptions…
-				</span>
-			</div>
-		);
-	}
 
 	const cardUpdateEligibleIds = selected.filter((id) => {
 		const r = tableData.find((x) => x.id === id);
