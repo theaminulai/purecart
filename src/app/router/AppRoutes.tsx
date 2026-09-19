@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { SubscriptionsPage, SubscriptionDetailPage } from '@/modules/subscriptions';
-import { SubscriptionAnalyticsPage } from '../components/Analytics';
+import { SubscriptionAnalyticsPage, AnalyticsPage } from '@/modules/analytics';
 import { SettingsPage } from '../components/Settings';
 import { PAGE_PATHS, SUBSCRIPTION_DETAIL_PATH } from './paths';
 
@@ -15,7 +15,6 @@ import { SaasAccountsPage } from '../components/SaasAccounts/SaasAccountsPage';
 import { AffiliatesPage }   from '../components/Affiliates/AffiliatesPage';
 import { AbandonedCartPage} from '../components/AbandonedCart/AbandonedCartPage';
 import { SecurityPage }     from '../components/Security/SecurityPage';
-import { AnalyticsPage }    from '../components/Analytics/AnalyticsPage';
 
 /**
  * All routes for the app.

@@ -28,10 +28,10 @@ import {
 	subRevenueByType,
 	dunningFunnelData,
 	churnByReasonData,
-} from '../../utils/static-data';
-import { fetchRevenueGoals, fetchChurnRisk } from '../../api';
+} from '@/app/utils/static-data';
+import { fetchRevenueGoals, fetchChurnRisk } from '../api';
 import { computeMRR, countNewThisMonth, computeChurnRatePct, computeAvgLtv, addBillingInterval, selectSubscriptionItems } from '@/modules/subscriptions';
-import { useAppSelector } from '../../store/hooks';
+import { useAppSelector } from '@/app/store/hooks';
 import { KpiCard } from '@/shared/ui/KpiCard';
 import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 import { useSubscriptionActions } from '@/modules/subscriptions';

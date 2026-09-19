@@ -13,6 +13,6 @@ export * from './types';
 export * from './client';
 
 // Domain API modules
-export * from './modules/analytics.api';
+// Analytics module has moved to @/modules/analytics — import from there.
 // Subscriptions module has moved to @/modules/subscriptions — import from there.
 // Updates module has moved to @/modules/updates — import from there.

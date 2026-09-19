@@ -5,8 +5,7 @@
  * @since 1.0.0
  */
 
-import { apiFetch, delay, USE_DUMMY_DATA } from '../client';
-import { revenueGoalsData, churnRiskData } from '../../utils/static-data';
+import { purecartFetch } from '@/shared/api';
 import type { RevenueGoal, ChurnRiskEntry } from '@/modules/subscriptions';
 
 /**
@@ -16,8 +15,7 @@ import type { RevenueGoal, ChurnRiskEntry } from '@/modules/subscriptions';
  * @return {Promise<RevenueGoal[]>} All revenue goals.
  */
 export async function fetchRevenueGoals(): Promise<RevenueGoal[]> {
-	if (USE_DUMMY_DATA) return delay([...revenueGoalsData]);
-	return apiFetch<RevenueGoal[]>('/subscriptions/revenue-goals');
+	return purecartFetch<RevenueGoal[]>('/subscriptions/revenue-goals');
 }
 
 /**
@@ -27,6 +25,5 @@ export async function fetchRevenueGoals(): Promise<RevenueGoal[]> {
  * @return {Promise<ChurnRiskEntry[]>} At-risk subscription entries.
  */
 export async function fetchChurnRisk(): Promise<ChurnRiskEntry[]> {
-	if (USE_DUMMY_DATA) return delay([...churnRiskData]);
-	return apiFetch<ChurnRiskEntry[]>('/subscriptions/report/churn-risk');
+	return purecartFetch<ChurnRiskEntry[]>('/subscriptions/report/churn-risk');
 }
