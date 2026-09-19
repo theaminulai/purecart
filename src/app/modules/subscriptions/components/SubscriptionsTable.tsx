@@ -14,79 +14,9 @@ import { M3 } from '@/theme';
 import { Card } from '@/shared/ui/Card';
 import { StatusBadge } from '@/shared/ui/StatusBadge';
 import { ActionDropdown, type ActionItem } from '@/shared/ui/ActionDropdown';
-import { SubscriptionTypeBadge, TYPE_CONFIG, ChurnScoreBadge, InstallmentProgress } from './shared';
-import type { SubscriptionRecord, SubscriptionLinkedEntity } from '../types';
-
-/**
- * Renders the type-specific "Linked" column content for one row.
- *
- * @since 1.0.0
- *
- * @param {Object}                  props        Component props.
- * @param {SubscriptionLinkedEntity} props.entity The row's linked entity.
- *
- * @return {JSX.Element} A small icon + summary text matching the entity's delivery type.
- */
-function LinkedEntityCell({ entity }: { entity: SubscriptionLinkedEntity }) {
-	const iconStyle = { display: 'inline', verticalAlign: -2, marginRight: 4 };
-	switch (entity.type) {
-		case 'software': {
-			const Icon = TYPE_CONFIG.software.icon;
-			return (
-				<>
-					<Icon size={12} style={iconStyle} />
-					{entity.licenseKey.slice(0, 9)}… · {entity.domainCount}
-				</>
-			);
-		}
-		case 'saas': {
-			const Icon = TYPE_CONFIG.saas.icon;
-			return (
-				<>
-					<Icon size={12} style={iconStyle} />
-					{entity.saasAccountName} · {entity.seatUsage}
-				</>
-			);
-		}
-		case 'membership': {
-			const Icon = TYPE_CONFIG.membership.icon;
-			return (
-				<>
-					<Icon size={12} style={iconStyle} />
-					{entity.membershipTier} · {entity.assignedRole}
-				</>
-			);
-		}
-		case 'download': {
-			const Icon = TYPE_CONFIG.download.icon;
-			return (
-				<>
-					<Icon size={12} style={iconStyle} />
-					{entity.downloadsThisCycle}/{entity.downloadLimit ?? '∞'} downloads
-				</>
-			);
-		}
-		case 'course': {
-			const Icon = TYPE_CONFIG.course.icon;
-			return (
-				<>
-					<Icon size={12} style={iconStyle} />
-					{entity.enrolledCourses.length} course
-					{entity.enrolledCourses.length !== 1 ? 's' : ''}
-				</>
-			);
-		}
-		case 'service': {
-			const Icon = TYPE_CONFIG.service.icon;
-			return (
-				<>
-					<Icon size={12} style={iconStyle} />
-					Next due {entity.nextDeliverableDue ?? '—'}
-				</>
-			);
-		}
-	}
-}
+import { SubscriptionTypeBadge, ChurnScoreBadge, InstallmentProgress } from './shared';
+import type { SubscriptionRecord } from '../types';
+import { LinkedEntityCell } from './LinkedEntityCell';
 
 const COLUMN_HEADERS = [
 	'ID', 'Customer', 'Product', 'Type', 'Linked', 'Amount',
