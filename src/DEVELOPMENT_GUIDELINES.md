@@ -1,6 +1,6 @@
 # PureCart Admin SPA — Development Guidelines
 
-This is the engineering contract for `src/` (the PureCart admin React app). It exists because the codebase was refactored from a type-first layout (`components/`, `api/`, `store/` at the top level) into a module-first one, and because that refactor also introduced WordPress-platform integration (`@wordpress/i18n`, `@wordpress/hooks`, `@wordpress/api-fetch`, `@wordpress/route`) that didn't exist before. Everything below reflects what was actually built, not an aspirational ideal — where an example is given, it names a real file in this repo.
+This is the engineering contract for `src/app/` (the PureCart admin React app — `src/app/` is the application root; `src/` itself contains only `app/` and the unrelated `menu-router/` entry). It exists because the codebase was refactored from a type-first layout (`components/`, `api/`, `store/` at the top level) into a module-first one, and because that refactor also introduced WordPress-platform integration (`@wordpress/i18n`, `@wordpress/hooks`, `@wordpress/api-fetch` — and `@wordpress/route`, evaluated and explicitly rejected, see §10) that didn't exist before. Everything below reflects what was actually built, not an aspirational ideal — where an example is given, it names a real file in this repo.
 
 All future development, refactoring, bug fixes, and AI-agent-generated code in `src/` must follow these rules. This file is the first thing to read before touching `src/`, and the first thing to update when an architectural convention changes.
 
@@ -10,18 +10,20 @@ All future development, refactoring, bug fixes, and AI-agent-generated code in `
 
 ```
 src/
-├── main.tsx        entry point
-├── app/            composition root — routing, store, providers, error boundary
-├── modules/         one folder per business capability
-├── shared/           cross-cutting infrastructure with no knowledge of any module
-├── theme/             design tokens (Material 3)
-└── styles/             plain CSS, no framework
+├── menu-router/        unrelated non-React wp-admin sidebar helper
+└── app/                 the whole admin SPA — application root
+    ├── main.tsx            entry point
+    ├── App.tsx, ErrorBoundary.tsx, router/, store/, providers/  ← composition root
+    ├── modules/             one folder per business capability
+    ├── shared/                cross-cutting infrastructure with no knowledge of any module
+    ├── theme/                   design tokens (Material 3)
+    └── styles/                   plain CSS + Tailwind
 ```
 
 Dependency direction is one-way:
 
 ```
-main → app → modules → shared → theme
+main → (composition root) → modules → shared → theme
 ```
 
 **Allowed:**
@@ -84,7 +86,7 @@ Not one `Subscriptions.tsx` containing all of the above as nested function compo
 
 ## 4. Module rules
 
-Each business capability lives under `src/modules/<module-name>/`. A module contains only the subfolders it actually needs:
+Each business capability lives under `src/app/modules/<module-name>/`. A module contains only the subfolders it actually needs:
 
 ```
 modules/<name>/

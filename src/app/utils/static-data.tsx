@@ -1,12 +1,7 @@
 import { M3 } from '@/theme';
 import type {
 	SubscriptionRecord,
-	PaymentRecord,
-	RevenueGoal,
-	ChurnRiskEntry,
 	CancellationReason,
-	SubscriptionLogEntry,
-	SubscriptionEmailLogEntry,
 	SubscriptionSettings,
 } from '@/modules/subscriptions';
 
@@ -359,43 +354,6 @@ export const subscriptionsData: SubscriptionRecord[] = [
 	},
 ];
 
-// ── Subscription analytics data ────────────────────────────────────────────────
-export const subTrendData = [
-	{ month: 'Jan', active: 4100, new: 420, churned: 190, paused: 310 },
-	{ month: 'Feb', active: 4330, new: 510, churned: 210, paused: 298 },
-	{ month: 'Mar', active: 4620, new: 480, churned: 180, paused: 320 },
-	{ month: 'Apr', active: 4880, new: 540, churned: 200, paused: 305 },
-	{ month: 'May', active: 5100, new: 610, churned: 230, paused: 290 },
-	{ month: 'Jun', active: 5241, new: 580, churned: 215, paused: 412 },
-];
-
-export const subPlanMix = [
-	{ name: 'Annual',   value: 58, color: M3.primary },
-	{ name: 'Monthly',  value: 31, color: M3.secondary },
-	{ name: 'Lifetime', value: 11, color: M3.info },
-];
-
-export const subRevenueByProduct = [
-	{ product: 'Plugin Pro',   revenue: 24800 },
-	{ product: 'Theme Bundle', revenue: 11200 },
-	{ product: 'SaaS Pro',     revenue: 6400 },
-	{ product: 'SaaS Starter', revenue: 2200 },
-];
-
-// ── Revenue goals (Analytics widget + Settings management) ──────────────────────
-export const revenueGoalsData: RevenueGoal[] = [
-	{ id: 'goal-1', label: 'MRR Target Q3', type: 'mrr', target: 3000, current: 2310, period: 'Q3 2026', status: 'on_track' },
-	{ id: 'goal-2', label: 'ARR Target 2026', type: 'arr', target: 30000, current: 27720, period: '2026', status: 'on_track' },
-];
-
-// ── Churn risk table (Analytics) — bands: 0–25 Low / 26–50 Medium / 51–75 High / 76–100 Critical
-export const churnRiskData: ChurnRiskEntry[] = [
-	{ subscriptionId: 'SUB-003', customer: 'Emily Davis', product: 'SaaS Starter', cycle: 'Monthly', status: 'past_due', churnScore: 88, dayLabel: '8 days overdue', cardExpiring: true, ltv: 147 },
-	{ subscriptionId: 'SUB-015', customer: 'Grace Kim', product: 'Plugin Pro', cycle: 'Annual', status: 'suspended', churnScore: 95, dayLabel: '21 days overdue', cardExpiring: true, ltv: 99 },
-	{ subscriptionId: 'SUB-009', customer: 'Ava Garcia', product: 'SaaS Pro', cycle: 'Annual', status: 'pending_cancel', churnScore: 72, dayLabel: '18 days left', cardExpiring: false, ltv: 199 },
-	{ subscriptionId: 'SUB-002', customer: 'Marcus Chen', product: 'Theme Bundle', cycle: 'Monthly', status: 'paused', churnScore: 35, dayLabel: 'resumes in 45 days', cardExpiring: false, ltv: 180 },
-];
-
 // ── MRR/ARR/NRR trend (Analytics LineChart) ──────────────────────────────────────
 export const subMrrArrData = [
 	{ month: 'Jan', mrr: 29800, arr: 357600, nrr: 104 },
@@ -455,32 +413,6 @@ export const CANCELLATION_REASONS: CancellationReason[] = [
 	{ id: 'other', label: 'Other', hasTextBox: true, offer: null },
 ];
 
-// ── Dunning config presets (Settings → Billing & Dunning) ────────────────────────
-export const DUNNING_RETRY_PRESETS = [
-	{ label: '3 attempts · 3 days apart (default)', attempts: 3, intervalDays: 3 },
-	{ label: '4 attempts · 7 days apart', attempts: 4, intervalDays: 7 },
-	{ label: 'Aggressive: 5 attempts · 2 days apart', attempts: 5, intervalDays: 2 },
-];
-
-// ── Status History tab data, keyed by subscription ID ────────────────────────────
-export const subscriptionLogsData: Record< string, SubscriptionLogEntry[] > = {
-	'SUB-003': [
-		{ id: 'log-1', event: 'payment_failed', oldStatus: 'active', newStatus: 'past_due', amount: 49, orderId: 'ORD-2201', note: 'Card declined: insufficient_funds', actorType: 'webhook', actorLabel: 'Stripe', createdAt: '2025-01-08T09:15:00' },
-		{ id: 'log-2', event: 'retry_scheduled', oldStatus: null, newStatus: null, amount: null, orderId: null, note: 'Retry scheduled for 2025-01-11', actorType: 'system', actorLabel: 'System', createdAt: '2025-01-08T09:15:05' },
-	],
-	'SUB-009': [
-		{ id: 'log-3', event: 'cancellation_requested', oldStatus: 'active', newStatus: 'pending_cancel', amount: null, orderId: null, note: 'Reason: too_expensive — retention offer declined', actorType: 'customer', actorLabel: 'Ava Garcia', createdAt: '2025-02-04T14:02:00' },
-	],
-};
-
-// ── Emails Sent tab data, keyed by subscription ID ────────────────────────────────
-export const subscriptionEmailsData: Record< string, SubscriptionEmailLogEntry[] > = {
-	'SUB-003': [
-		{ id: 'email-1', emailType: 'Payment Failed', sentAt: '2025-01-08T09:16:00', to: 'emily@example.com', opened: true },
-		{ id: 'email-2', emailType: 'Card Expiring Soon', sentAt: '2025-01-05T08:00:00', to: 'emily@example.com', opened: false },
-	],
-};
-
 export const PLAN_OPTIONS = [
 	{
 		label: 'Monthly',
@@ -532,33 +464,4 @@ export const defaultSubscriptionSettings: SubscriptionSettings = {
 	enrollOnTrialStart: true, revokeEnrollmentOnCancel: true,
 	defaultInvoicingMode: 'manual', invoiceDueDays: 7, enableDeliverableTracking: true,
 	defaultDeliverableTemplate: '',
-};
-
-// Static payment history per subscription (keyed by sub ID)
-export const paymentHistory: Record< string, PaymentRecord[] > = {
-	'SUB-001': [
-		{ id: 'pay-001-1', date: '2025-01-01', amount: '$99.00', amountRaw: 99, method: 'Visa ···4242', status: 'paid', transactionId: 'txn_a1', gatewayResponse: null, dunningAttempt: 0, isEarlyRenewal: false, isSplitInstallment: false, installmentNumber: null, refundedAmount: null },
-		{ id: 'pay-001-2', date: '2024-01-01', amount: '$99.00', amountRaw: 99, method: 'Visa ···4242', status: 'paid', transactionId: 'txn_a2', gatewayResponse: null, dunningAttempt: 0, isEarlyRenewal: false, isSplitInstallment: false, installmentNumber: null, refundedAmount: null },
-		{ id: 'pay-001-3', date: '2023-01-01', amount: '$99.00', amountRaw: 99, method: 'Visa ···4242', status: 'paid', transactionId: 'txn_a3', gatewayResponse: null, dunningAttempt: 0, isEarlyRenewal: false, isSplitInstallment: false, installmentNumber: null, refundedAmount: null },
-	],
-	'SUB-002': [
-		{ id: 'pay-002-1', date: '2025-01-02', amount: '$29.00', amountRaw: 29, method: 'Mastercard ···1234', status: 'paid', transactionId: 'txn_b1', gatewayResponse: null, dunningAttempt: 0, isEarlyRenewal: false, isSplitInstallment: false, installmentNumber: null, refundedAmount: null },
-		{ id: 'pay-002-2', date: '2024-12-02', amount: '$29.00', amountRaw: 29, method: 'Mastercard ···1234', status: 'paid', transactionId: 'txn_b2', gatewayResponse: null, dunningAttempt: 0, isEarlyRenewal: false, isSplitInstallment: false, installmentNumber: null, refundedAmount: null },
-		{ id: 'pay-002-3', date: '2024-11-02', amount: '$29.00', amountRaw: 29, method: 'Mastercard ···1234', status: 'failed', transactionId: null, gatewayResponse: 'insufficient_funds', dunningAttempt: 1, isEarlyRenewal: false, isSplitInstallment: false, installmentNumber: null, refundedAmount: null },
-		{ id: 'pay-002-4', date: '2024-10-02', amount: '$29.00', amountRaw: 29, method: 'Mastercard ···1234', status: 'paid', transactionId: 'txn_b4', gatewayResponse: null, dunningAttempt: 0, isEarlyRenewal: false, isSplitInstallment: false, installmentNumber: null, refundedAmount: null },
-	],
-	'SUB-003': [
-		{ id: 'pay-003-1', date: '2025-01-08', amount: '$49.00', amountRaw: 49, method: 'PayPal', status: 'failed', transactionId: null, gatewayResponse: 'insufficient_funds', dunningAttempt: 1, isEarlyRenewal: false, isSplitInstallment: false, installmentNumber: null, refundedAmount: null },
-		{ id: 'pay-003-2', date: '2024-12-08', amount: '$49.00', amountRaw: 49, method: 'PayPal', status: 'paid', transactionId: 'txn_c2', gatewayResponse: null, dunningAttempt: 0, isEarlyRenewal: false, isSplitInstallment: false, installmentNumber: null, refundedAmount: null },
-	],
-	'SUB-004': [
-		{ id: 'pay-004-1', date: '2025-01-01', amount: '$99.00', amountRaw: 99, method: 'Visa ···9999', status: 'paid', transactionId: 'txn_d1', gatewayResponse: null, dunningAttempt: 0, isEarlyRenewal: false, isSplitInstallment: false, installmentNumber: null, refundedAmount: null },
-	],
-	'SUB-007': [
-		{ id: 'pay-007-1', date: '2025-01-10', amount: '$0.00', amountRaw: 0, method: '—', status: 'trial', transactionId: null, gatewayResponse: null, dunningAttempt: 0, isEarlyRenewal: false, isSplitInstallment: false, installmentNumber: null, refundedAmount: null },
-	],
-	'SUB-008': [
-		{ id: 'pay-008-1', date: '2025-01-15', amount: '$83.00', amountRaw: 83, method: 'Visa ···2211', status: 'paid', transactionId: 'txn_h1', gatewayResponse: null, dunningAttempt: 0, isEarlyRenewal: false, isSplitInstallment: true, installmentNumber: 2, refundedAmount: null },
-		{ id: 'pay-008-2', date: '2024-12-15', amount: '$83.00', amountRaw: 83, method: 'Visa ···2211', status: 'paid', transactionId: 'txn_h2', gatewayResponse: null, dunningAttempt: 0, isEarlyRenewal: false, isSplitInstallment: true, installmentNumber: 1, refundedAmount: null },
-	],
 };
