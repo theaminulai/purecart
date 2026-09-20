@@ -37,8 +37,8 @@ class Activator {
 	/** DB version option key. */
 	private const DB_VERSION_KEY = 'purecart_db_version';
 
-	/** Current DB schema version. 1.4.0 — adds wp_purecart_saas_tokens (SaaS login JWT tracking). */
-	private const DB_VERSION = '1.4.0';
+	/** Current DB schema version. 1.5.0 — adds wp_purecart_product_versions.is_rollback (emergency rollback tracking). */
+	private const DB_VERSION = '1.5.0';
 
 	/** Action Scheduler group for all plugin jobs. */
 	private const AS_GROUP = 'purecart';

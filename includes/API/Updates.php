@@ -585,21 +585,37 @@ class Updates extends PureCartApi {
 			return new \WP_Error( 'purecart_invalid_rollback', __( 'Product and target version are required.', 'purecart' ), array( 'status' => 400 ) );
 		}
 
+		$target_rows = array_values(
+			array_filter(
+				$this->packages->find_by_product( $product_id ),
+				static function ( $row ) use ( $version ) {
+					return (string) $row->version === $version;
+				}
+			)
+		);
+
+		if ( ! $target_rows ) {
+			return new \WP_Error( 'purecart_not_found', __( 'That version has no package to roll back to.', 'purecart' ), array( 'status' => 404 ) );
+		}
+
 		$current_latest = $this->packages->get_latest( $product_id, 'stable' );
 		$from_version = $current_latest ? (string) $current_latest->version : 'unknown';
 
-		// Deactivate newer releases or set active target
-		global $wpdb;
-		$table = $wpdb->prefix . 'purecart_product_versions';
+		// Deactivate every release newer than the rollback target — not just
+		// the single current "latest" row — so get_latest() can't still
+		// resolve to something between the target and where we started.
+		foreach ( $this->packages->find_by_product( $product_id, true ) as $row ) {
+			if ( version_compare( (string) $row->version, $version, '>' ) ) {
+				$this->packages->update( (int) $row->id, array( 'is_active' => 0 ) );
+			}
+		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->query(
-			$wpdb->prepare(
-				"UPDATE {$table} SET is_active = 0 WHERE product_id = %d AND version = %s",
-				$product_id,
-				$from_version
-			)
-		);
+		// Reactivate every row of the target version — one per platform — in
+		// case it had previously been withdrawn, and flag it for the admin
+		// history badge.
+		foreach ( $target_rows as $row ) {
+			$this->packages->update( (int) $row->id, array( 'is_active' => 1, 'is_rollback' => 1 ) );
+		}
 
 		// Record in rollback history
 		$rollbacks = get_option( self::ROLLBACK_OPTION, array() );

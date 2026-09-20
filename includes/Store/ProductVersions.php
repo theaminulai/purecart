@@ -24,6 +24,7 @@ defined( 'ABSPATH' ) || exit;
  *   file_size       shown in the admin version history without stat()-ing each file
  *   release_notes   short non-WP release text, separate from the HTML changelog
  *   is_active       pull a bad release without deleting its row or file
+ *   is_rollback     marks a row reactivated by an emergency rollback, for the admin history badge
  *   download_count  per-version download analytics
  *   created_by      audit: which admin uploaded this package
  *
@@ -63,6 +64,7 @@ class ProductVersions extends PureCartStore {
             changelog       LONGTEXT,
             release_notes   TEXT NULL,
             is_active       TINYINT(1) NOT NULL DEFAULT 1,
+            is_rollback     TINYINT(1) NOT NULL DEFAULT 0,
             download_count  BIGINT UNSIGNED NOT NULL DEFAULT 0,
             released_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             created_by      BIGINT UNSIGNED NULL,

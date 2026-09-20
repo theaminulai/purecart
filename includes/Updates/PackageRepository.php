@@ -58,6 +58,7 @@ class PackageRepository {
 		'changelog'       => '%s',
 		'release_notes'   => '%s',
 		'is_active'       => '%d',
+		'is_rollback'     => '%d',
 		'download_count'  => '%d',
 		'released_at'     => '%s',
 		'created_by'      => '%d',
