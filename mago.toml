@@ -1,0 +1,12 @@
+php-version = "8.1"
+
+[source]
+paths = ["includes", "tests"]
+excludes = ["vendor", "node_modules"]
+
+[formatter]
+use-tabs = true
+tab-width = 4
+function-brace-style = "same_line"
+method-brace-style = "same_line"
+classlike-brace-style = "same_line"
