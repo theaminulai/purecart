@@ -37,7 +37,7 @@
         "test":    "vendor/bin/phpunit --testdox",
         "test:demo": "php tests/seed-data/run.php",
         "test:remove": "php tests/seed-data/remove.php",
-        "format":  "vendor/bin/mago format"
+        "format":  "vendor/bin/mago format --dry-run"
     },
     "config": {
         "allow-plugins": {
