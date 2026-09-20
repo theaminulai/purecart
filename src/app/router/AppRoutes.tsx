@@ -1,22 +1,24 @@
+import { Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { SubscriptionsPage, SubscriptionDetailPage } from '../components/Subscriptions';
-import { SubscriptionAnalyticsPage } from '../components/Analytics';
-import { SettingsPage } from '../components/Settings';
+import {
+	SubscriptionsPage, SubscriptionsPageSkeleton,
+	SubscriptionDetailPage, SubscriptionDetailPageSkeleton,
+} from '@/modules/subscriptions';
+import { SubscriptionAnalyticsPage, SubscriptionAnalyticsPageSkeleton, AnalyticsPage } from '@/modules/analytics';
+import { SettingsPage } from '@/modules/settings';
 import { PAGE_PATHS, SUBSCRIPTION_DETAIL_PATH } from './paths';
 
 // Overview
-import { OverviewPage } from '../components/Overview/OverviewPage';
+import { OverviewPage } from '@/modules/overview';
 
 // Module stubs
-import { LicensesPage }     from '../components/Licenses/LicensesPage';
-import { DownloadsPage }    from '../components/Downloads/DownloadsPage';
-import { UpdatesPage }      from '../components/Updates/UpdatesPage';
-import { UpdateAnalyticsPage } from '../components/Updates/UpdateAnalyticsPage';
-import { SaasAccountsPage } from '../components/SaasAccounts/SaasAccountsPage';
-import { AffiliatesPage }   from '../components/Affiliates/AffiliatesPage';
-import { AbandonedCartPage} from '../components/AbandonedCart/AbandonedCartPage';
-import { SecurityPage }     from '../components/Security/SecurityPage';
-import { AnalyticsPage }    from '../components/Analytics/AnalyticsPage';
+import { LicensesPage }     from '@/modules/licenses';
+import { DownloadsPage }    from '@/modules/downloads';
+import { UpdatesPage, UpdatesPageSkeleton, UpdateAnalyticsPage } from '@/modules/updates';
+import { SaasAccountsPage } from '@/modules/saas-accounts';
+import { AffiliatesPage }   from '@/modules/affiliates';
+import { AbandonedCartPage} from '@/modules/abandoned-cart';
+import { SecurityPage }     from '@/modules/security';
 
 /**
  * All routes for the app.
@@ -55,18 +57,24 @@ export function AppRoutes() {
 			<Route path={ PAGE_PATHS.downloads }              element={ <DownloadsPage /> } />
 
 			{ /* Updates */ }
-			<Route path={ PAGE_PATHS.updates }                element={ <UpdatesPage /> } />
+			<Route
+				path={ PAGE_PATHS.updates }
+				element={ <Suspense key="updates" fallback={ <UpdatesPageSkeleton /> }><UpdatesPage /></Suspense> }
+			/>
 			<Route path="/updates/analytics"                  element={ <UpdateAnalyticsPage /> } />
 
 			{ /* Subscriptions */ }
-			<Route path={ PAGE_PATHS.subscriptions }          element={ <SubscriptionsPage /> } />
+			<Route
+				path={ PAGE_PATHS.subscriptions }
+				element={ <Suspense key="subscriptions" fallback={ <SubscriptionsPageSkeleton /> }><SubscriptionsPage /></Suspense> }
+			/>
 			<Route
 				path={ SUBSCRIPTION_DETAIL_PATH }
-				element={ <SubscriptionDetailPage /> }
+				element={ <Suspense key="subscription-detail" fallback={ <SubscriptionDetailPageSkeleton /> }><SubscriptionDetailPage /></Suspense> }
 			/>
 			<Route
 				path={ PAGE_PATHS[ 'subscription-analytics' ] }
-				element={ <SubscriptionAnalyticsPage /> }
+				element={ <Suspense key="subscription-analytics" fallback={ <SubscriptionAnalyticsPageSkeleton /> }><SubscriptionAnalyticsPage /></Suspense> }
 			/>
 
 			{ /* SaaS Accounts */ }

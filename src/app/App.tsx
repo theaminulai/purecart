@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { M3 } from './utils/static-data';
-import type { Page } from './utils/static-data';
-import { Sidebar, TopBar } from './components/ui';
+import { M3 } from '@/theme';
+import type { Page } from '@/shared/types/page';
+import { Sidebar, TopBar } from '@/shared/layout';
 import { AppRoutes, PAGE_PATHS, getPageFromPath } from './router';
 import { useAppSelector } from './store/hooks';
+import { selectSubscriptionById } from '@/modules/subscriptions';
 
 // ─── WordPress global type declaration ─────────────────────────────────────────
 declare global {
@@ -60,7 +61,7 @@ export default function App() {
 	// rather than threaded down from whichever page navigated here, so a
 	// direct deep link to /subscriptions/SUB-003 shows the right title too.
 	const detailId = page === 'subscription-detail' ? location.pathname.split( '/' ).pop() : undefined;
-	const detailRow = useAppSelector( ( s ) => s.subscriptions.items.find( ( r ) => r.id === detailId ) );
+	const detailRow = useAppSelector( ( s ) => selectSubscriptionById( s, detailId ) );
 	const detailLabel = detailRow ? `${ detailRow.id } · ${ detailRow.product }` : undefined;
 
 	// The Detail page isn't its own nav item (it's a drill-down destination),

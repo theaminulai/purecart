@@ -10,6 +10,13 @@
 		"module": "ESNext",
 		"moduleResolution": "Bundler",
 		"resolveJsonModule": true,
+		"paths": {
+			"@/app/*": ["./src/app/*"],
+			"@/modules/*": ["./src/app/modules/*"],
+			"@/shared/*": ["./src/app/shared/*"],
+			"@/theme": ["./src/app/theme/index.ts"],
+			"@/theme/*": ["./src/app/theme/*"]
+		},
 
 		/*  JSX (React 17+ automatic runtime)*/
 		"jsx": "react-jsx",
