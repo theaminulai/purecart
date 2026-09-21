@@ -14,7 +14,7 @@
 import { useState } from 'react';
 import { Repeat } from 'lucide-react';
 import { M3 } from '@/theme';
-import { PLAN_OPTIONS } from '@/app/utils/static-data';
+import { PLAN_OPTIONS } from '../../constants';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
 import { addBillingInterval } from '../../utils';

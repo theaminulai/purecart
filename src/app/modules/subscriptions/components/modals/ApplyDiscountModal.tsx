@@ -13,7 +13,7 @@
 import { useState } from 'react';
 import { Tag } from 'lucide-react';
 import { M3 } from '@/theme';
-import { DISCOUNT_DURATIONS } from '@/app/utils/static-data';
+import { DISCOUNT_DURATIONS } from '../../constants';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
 import type { SubscriptionRecord } from '../../types';

@@ -11,9 +11,8 @@
  * @since 1.0.0
  */
 import { useEffect, useState } from 'react';
-import { defaultSubscriptionSettings, subscriptionsData } from '@/app/utils/static-data';
 import { fetchRevenueGoals } from '@/modules/analytics';
-import { useAppSelector } from '@/app/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/app/store/hooks';
 import { FilledButton } from '@/shared/ui/FilledButton';
 import { Toast } from '@/shared/ui/Toast';
 import type { ToastProps } from '@/shared/ui';
@@ -34,7 +33,7 @@ import {
 	SubCoursesSection,
 	SubServiceSection,
 } from './sections';
-import { selectSubscriptionItems } from '@/modules/subscriptions';
+import { selectSubscriptionItems, loadSubscriptions, defaultSubscriptionSettings } from '@/modules/subscriptions';
 import type { SubscriptionSettings, SubscriptionDeliveryType, RevenueGoal } from '@/modules/subscriptions';
 
 /**
@@ -45,23 +44,27 @@ import type { SubscriptionSettings, SubscriptionDeliveryType, RevenueGoal } from
  * @return {JSX.Element} The Subscriptions settings tab.
  */
 export function SettingsSubscriptions() {
+	const dispatch = useAppDispatch();
 	const [ settings, setSettings ] = useState< SubscriptionSettings >( defaultSubscriptionSettings );
 	const [ isDirty, setIsDirty ] = useState( false );
 	const [ goals, setGoals ] = useState< RevenueGoal[] >( [] );
 	const [ toast, setToast ] = useState< ToastProps >( { message: '', type: 'success', visible: false } );
 
-	// Falls back to the static sample data if the Redux store hasn't loaded
-	// yet (e.g. the admin navigates straight to Settings) - a real backend
-	// would instead ask "does a published product with this delivery type
-	// exist," a manage_woocommerce-gated product query the frontend can't
-	// determine on its own; this is a placeholder rule, not final logic.
+	// Real subscriptions, not the store's default empty state — loaded here
+	// too (not just on the Subscriptions page) since an admin can land on
+	// Settings directly without the list ever having been fetched this
+	// session. Which type-specific sections (Membership, Downloads, ...)
+	// show below depends on whether any real subscription uses that
+	// delivery type; a real backend query ("does a published product with
+	// this delivery type exist") would be more precise, but this is what's
+	// already loaded, so it's what's used.
 	const storeItems = useAppSelector( selectSubscriptionItems );
-	const sampleSource = storeItems.length > 0 ? storeItems : subscriptionsData;
-	const hasType = ( type: SubscriptionDeliveryType ) => sampleSource.some( ( r ) => r.deliveryType === type );
+	const hasType = ( type: SubscriptionDeliveryType ) => storeItems.some( ( r ) => r.deliveryType === type );
 
 	useEffect( () => {
 		fetchRevenueGoals().then( setGoals );
-	}, [] );
+		dispatch( loadSubscriptions() );
+	}, [ dispatch ] );
 
 	const showToast = ( msg: string, type: ToastProps[ 'type' ] = 'success' ) => {
 		setToast( { message: msg, type, visible: true } );

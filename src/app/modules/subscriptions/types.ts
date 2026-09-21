@@ -1,9 +1,8 @@
 /**
  * Subscription module TypeScript data shapes.
  *
- * Every subscription-related interface lives here rather than inline in
- * static-data.tsx, so components can `import type { ... }` without pulling
- * in sample data.
+ * Every subscription-related interface lives here so components can
+ * `import type { ... }` without pulling in any implementation.
  *
  * @file
  * @since 1.0.0
@@ -199,7 +198,7 @@ export interface RetentionOffer {
 	type: 'discount' | 'pause' | 'skip' | 'downgrade' | 'contact';
 	label: string; // 'Get 20% off for 3 months'
 	discountPct?: number;
-	discountDuration?: 'Once' | '3 months' | '6 months' | 'Forever';
+	discountDuration?: string; // display text, e.g. '3 billing cycles'
 	pauseDuration?: number; // days
 	downgradePlanId?: string;
 	downgradePlanLabel?: string; // for display without a lookup
