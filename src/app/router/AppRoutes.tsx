@@ -6,13 +6,19 @@ import {
 } from '@/modules/subscriptions';
 import { SubscriptionAnalyticsPage, SubscriptionAnalyticsPageSkeleton, AnalyticsPage } from '@/modules/analytics';
 import { SettingsPage } from '@/modules/settings';
-import { PAGE_PATHS, SUBSCRIPTION_DETAIL_PATH } from './paths';
+import { PAGE_PATHS, SUBSCRIPTION_DETAIL_PATH, LICENSE_DETAIL_PATH } from './paths';
 
 // Overview
 import { OverviewPage } from '@/modules/overview';
 
+// Licenses
+import {
+	LicensesPage, LicensesPageSkeleton,
+	LicenseDetailPage, LicenseDetailPageSkeleton,
+	LicenseSummaryPage,
+} from '@/modules/licenses';
+
 // Module stubs
-import { LicensesPage }     from '@/modules/licenses';
 import { DownloadsPage }    from '@/modules/downloads';
 import { UpdatesPage, UpdatesPageSkeleton, UpdateAnalyticsPage } from '@/modules/updates';
 import { SaasAccountsPage } from '@/modules/saas-accounts';
@@ -51,7 +57,15 @@ export function AppRoutes() {
 			/>
 
 			{ /* Licenses */ }
-			<Route path={ PAGE_PATHS.licenses }               element={ <LicensesPage /> } />
+			<Route
+				path={ PAGE_PATHS.licenses }
+				element={ <Suspense key="licenses" fallback={ <LicensesPageSkeleton /> }><LicensesPage /></Suspense> }
+			/>
+			<Route path={ PAGE_PATHS[ 'license-summary' ] }   element={ <LicenseSummaryPage /> } />
+			<Route
+				path={ LICENSE_DETAIL_PATH }
+				element={ <Suspense key="license-detail" fallback={ <LicenseDetailPageSkeleton /> }><LicenseDetailPage /></Suspense> }
+			/>
 
 			{ /* Downloads */ }
 			<Route path={ PAGE_PATHS.downloads }              element={ <DownloadsPage /> } />

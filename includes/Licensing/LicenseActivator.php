@@ -233,6 +233,70 @@ class LicenseActivator {
 		);
 	}
 
+	// -----------------------------------------------------------------------
+	// Admin dashboard support
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Every activation record for one license, newest first — the Activation
+	 * Records table on LicenseDetailPage.
+	 *
+	 * @since 1.0.0
+	 * @param int $license_id License row ID.
+	 * @return array<int, object>
+	 */
+	public function find_by_license( int $license_id ): array {
+		global $wpdb;
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin detail view; must reflect an activation/deactivation just performed.
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}purecart_license_activations
+                  WHERE license_id = %d
+               ORDER BY activated_at DESC",
+				$license_id
+			)
+		) ?: array();
+	}
+
+	/**
+	 * Clear every activation on a license and reset its counter to zero —
+	 * the "Reset Activations" row action, for when a customer has lost track
+	 * of which sites are still using a slot.
+	 *
+	 * @since 1.0.0
+	 * @param int $license_id License row ID.
+	 * @return bool
+	 */
+	public function reset_activations( int $license_id ): bool {
+		global $wpdb;
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- DELETE from custom table; no WP API available.
+		$wpdb->delete(
+			$wpdb->prefix . 'purecart_license_activations',
+			array( 'license_id' => $license_id ),
+			array( '%d' )
+		);
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table UPDATE; no WP API available.
+		$updated = $wpdb->update(
+			$wpdb->prefix . 'purecart_licenses',
+			array(
+				'activated_count' => 0,
+				'updated_at'      => current_time( 'mysql' ),
+			),
+			array( 'id' => $license_id ),
+			array( '%d', '%s' ),
+			array( '%d' )
+		);
+
+		if ( false !== $updated ) {
+			do_action( 'purecart_license_activations_reset', $license_id );
+		}
+
+		return false !== $updated;
+	}
+
 	/**
 	 * Determine whether a domain (or an explicitly-declared environment) is
 	 * exempt from activation-limit enforcement.
