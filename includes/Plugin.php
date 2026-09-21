@@ -15,8 +15,8 @@ use PureCart\Commerce\OrderHandler;
 use PureCart\Commerce\ProductTypes;
 use PureCart\API\RestApi;
 use PureCart\CustomerDashboard\Dashboard;
-use PureCart\Downloads\AccountDownloadsMerger;
 use PureCart\Admin\Admin;
+use PureCart\Downloads\Module as DownloadsModule;
 use PureCart\Subscriptions\Module as SubscriptionsModule;
 use PureCart\Updates\Module as UpdatesModule;
 use PureCart\SaaS\Module as SaasModule;
@@ -64,7 +64,7 @@ final class Plugin {
 		new OrderHandler();
 		new RestApi();
 		new Dashboard();
-		new AccountDownloadsMerger();
+		new DownloadsModule();
 		new SubscriptionsModule();
 		new UpdatesModule();
 		new SaasModule();

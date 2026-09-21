@@ -19,7 +19,6 @@ use PureCart\Licensing\LicenseTokenIssuer;
 use PureCart\Licensing\LicenseTokenValidator;
 use PureCart\Licensing\LicenseTokenRefresher;
 use PureCart\Licensing\LicenseTokenRevoker;
-use PureCart\Downloads\DownloadDispatcher;
 use PureCart\Downloads\DownloadLogRepository;
 use PureCart\Downloads\TokenManager;
 
@@ -29,13 +28,15 @@ use PureCart\Downloads\TokenManager;
 class RestApi {
 
 	/**
-	 * Boot sub-modules and register the rest_api_init hook.
+	 * Register the rest_api_init hook.
+	 *
+	 * DownloadDispatcher is booted by `PureCart\Downloads\Module` — it hooks
+	 * `template_redirect`/rewrite rules, not a REST route, so it doesn't
+	 * belong to this class's job of registering `/purecart/v1/*` routes.
 	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-		new DownloadDispatcher();
-
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 	}
 
