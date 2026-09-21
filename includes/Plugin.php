@@ -13,16 +13,15 @@ defined( 'ABSPATH' ) || exit;
 
 use PureCart\Commerce\OrderHandler;
 use PureCart\Commerce\ProductTypes;
-use PureCart\API\RestApi;
 use PureCart\CustomerDashboard\Dashboard;
 use PureCart\Admin\Admin;
 use PureCart\Downloads\Module as DownloadsModule;
+use PureCart\Licensing\Module as LicensingModule;
 use PureCart\Subscriptions\Module as SubscriptionsModule;
 use PureCart\Updates\Module as UpdatesModule;
 use PureCart\SaaS\Module as SaasModule;
 use PureCart\CLI\LicenseCommands;
 use PureCart\CLI\SaasCommands;
-use PureCart\Licensing\JwtHooks;
 
 /**
  * Plugin singleton.
@@ -62,13 +61,12 @@ final class Plugin {
 
 		new ProductTypes();
 		new OrderHandler();
-		new RestApi();
 		new Dashboard();
 		new DownloadsModule();
+		new LicensingModule();
 		new SubscriptionsModule();
 		new UpdatesModule();
 		new SaasModule();
-		new JwtHooks();
 
 		if ( is_admin() ) {
 			new Admin();
