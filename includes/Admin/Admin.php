@@ -196,6 +196,7 @@ class Admin {
 				'nonce'       => wp_create_nonce( 'purecart_admin_nonce' ),
 				'restNonce'   => wp_create_nonce( 'wp_rest' ),
 				'apiUrl'      => esc_url_raw( rest_url( PURECART_API_NAMESPACE . '/' ) ),
+				'adminUrl'    => esc_url_raw( admin_url() ),
 				'currentPage' => $current_page,
 				'version'     => PURECART_VERSION,
 			)

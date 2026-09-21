@@ -14,6 +14,10 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Creates and maintains the secure download tokens table.
  *
+ * `status` (added 1.6.0, admin token management) is either `active` or
+ * `revoked`; `expired` is derived at read time from `expires_at`, not
+ * stored, since it changes on its own without a write.
+ *
  * @since 1.0.0
  */
 class Downloads extends PureCartStore {
@@ -38,6 +42,7 @@ class Downloads extends PureCartStore {
             expires_at     DATETIME NOT NULL,
             ip_address     VARCHAR(45) NOT NULL DEFAULT '',
             country_code   VARCHAR(2)  NOT NULL DEFAULT '',
+            status         VARCHAR(20) NOT NULL DEFAULT 'active',
             created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY  (id),
             UNIQUE KEY  token (token),

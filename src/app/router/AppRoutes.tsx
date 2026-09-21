@@ -11,9 +11,11 @@ import { PAGE_PATHS, SUBSCRIPTION_DETAIL_PATH } from './paths';
 // Overview
 import { OverviewPage } from '@/modules/overview';
 
+// Downloads
+import { DownloadsPage, DownloadsPageSkeleton } from '@/modules/downloads';
+
 // Module stubs
 import { LicensesPage }     from '@/modules/licenses';
-import { DownloadsPage }    from '@/modules/downloads';
 import { UpdatesPage, UpdatesPageSkeleton, UpdateAnalyticsPage } from '@/modules/updates';
 import { SaasAccountsPage } from '@/modules/saas-accounts';
 import { AffiliatesPage }   from '@/modules/affiliates';
@@ -54,7 +56,10 @@ export function AppRoutes() {
 			<Route path={ PAGE_PATHS.licenses }               element={ <LicensesPage /> } />
 
 			{ /* Downloads */ }
-			<Route path={ PAGE_PATHS.downloads }              element={ <DownloadsPage /> } />
+			<Route
+				path={ PAGE_PATHS.downloads }
+				element={ <Suspense key="downloads" fallback={ <DownloadsPageSkeleton /> }><DownloadsPage /></Suspense> }
+			/>
 
 			{ /* Updates */ }
 			<Route
