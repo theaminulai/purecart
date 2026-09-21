@@ -18,12 +18,12 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * `GET /saas/usage/{api_key}` deliberately stays registered in
- * `API\RestApi` rather than being duplicated or moved here — it already
- * works, and re-registering the same route path from two controllers risks
- * one silently shadowing the other depending on load order. Everything new
- * (admin CRUD, settings, and the JWT login endpoints from Step 5) lives in
- * this controller, mirroring API\Updates / API\Subscriptions.
+ * Every SaaS REST route: admin CRUD/settings, the customer-facing JWT
+ * login endpoints, and `GET /saas/usage/{api_key}` (moved here from the
+ * now-deleted API\RestApi — that file previously kept it separate to
+ * avoid two controllers registering the same path; now there's only one
+ * controller, so that risk doesn't apply). Mirrors API\Updates /
+ * API\Subscriptions / API\Licenses.
  *
  * @since 1.0.0
  */
@@ -210,6 +210,17 @@ class SaaS extends PureCartApi {
 						'sanitize_callback' => 'sanitize_text_field',
 					),
 				),
+			)
+		);
+
+		// Authenticated by the API key in the path itself, not a WP capability.
+		register_rest_route(
+			$ns,
+			'/saas/usage/(?P<api_key>[a-z0-9_]+)',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'usage' ),
+				'permission_callback' => '__return_true',
 			)
 		);
 	}
@@ -447,6 +458,41 @@ class SaaS extends PureCartApi {
 		$result = $this->jwt->refresh( (string) $request->get_param( 'refresh_token' ) );
 
 		return is_wp_error( $result ) ? $result : rest_ensure_response( $result );
+	}
+
+	/**
+	 * Handle GET /purecart/v1/saas/usage/{api_key}.
+	 *
+	 * @since  1.0.0
+	 * @param  \WP_REST_Request $request REST request object.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function usage( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		global $wpdb;
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- API key authentication; cached status could allow suspended accounts through.
+		$account = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}purecart_saas_accounts WHERE api_key = %s LIMIT 1",
+				sanitize_text_field( $request->get_param( 'api_key' ) )
+			)
+		);
+
+		if ( ! $account ) {
+			return new \WP_Error( 'purecart_not_found', __( 'Invalid API key.', 'purecart' ), array( 'status' => 401 ) );
+		}
+
+		if ( 'active' !== $account->status ) {
+			return new \WP_Error( 'purecart_account_suspended', __( 'Account is not active.', 'purecart' ), array( 'status' => 403 ) );
+		}
+
+		return rest_ensure_response(
+			array(
+				'plan'           => $account->plan,
+				'status'         => $account->status,
+				'provisioned_at' => $account->provisioned_at,
+			)
+		);
 	}
 
 	// -----------------------------------------------------------------------
