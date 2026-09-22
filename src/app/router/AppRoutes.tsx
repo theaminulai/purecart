@@ -22,7 +22,6 @@ import {
 } from '@/modules/licenses';
 
 // Module stubs
-import { DownloadsPage }    from '@/modules/downloads';
 import { UpdatesPage, UpdatesPageSkeleton, UpdateAnalyticsPage } from '@/modules/updates';
 import { SaasAccountsPage } from '@/modules/saas-accounts';
 import { AffiliatesPage }   from '@/modules/affiliates';
