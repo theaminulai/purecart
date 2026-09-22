@@ -4,6 +4,11 @@ import type { Page } from '@/shared/types/page';
 export const PAGE_PATHS: Record< Page, string > = {
 	'overview':               '/overview',
 	'licenses':               '/licenses',
+	// 'license-detail' has no single canonical path — its real route is
+	// `${PAGE_PATHS.licenses}/:id` (see LICENSE_DETAIL_PATH below). This
+	// entry only exists so PAGE_PATHS satisfies Record<Page, string>.
+	'license-detail':         '/licenses',
+	'license-summary':        '/licenses/summary',
 	'downloads':              '/downloads',
 	'updates':                '/updates',
 	'subscriptions':          '/subscriptions',
@@ -28,6 +33,18 @@ export function subscriptionDetailPath( id: string ): string {
 	return `${ PAGE_PATHS.subscriptions }/${ id }`;
 }
 
+/**
+ * Route pattern for the License Detail page. '/licenses/summary' (a static
+ * segment) always matches its own route ahead of this dynamic ':id' one —
+ * see AppRoutes.tsx's docblock on React Router v6's path-ranking.
+ */
+export const LICENSE_DETAIL_PATH = `${ PAGE_PATHS.licenses }/:id`;
+
+/** Builds a real, navigable detail-page URL for one license. */
+export function licenseDetailPath( id: number ): string {
+	return `${ PAGE_PATHS.licenses }/${ id }`;
+}
+
 // Reverse lookup: route path -> Page id. Used by components (Sidebar, TopBar)
 // that only know about the Page type and have no awareness of routing.
 export const PATH_TO_PAGE: Record< string, Page > = Object.fromEntries(
@@ -42,6 +59,12 @@ export const PATH_TO_PAGE: Record< string, Page > = Object.fromEntries(
 export function getPageFromPath( pathname: string ): Page {
 	if ( pathname.startsWith( `${ PAGE_PATHS.subscriptions }/` ) && pathname !== PAGE_PATHS[ 'subscription-analytics' ] ) {
 		return 'subscription-detail';
+	}
+	if ( pathname === PAGE_PATHS[ 'license-summary' ] ) {
+		return 'license-summary';
+	}
+	if ( pathname.startsWith( `${ PAGE_PATHS.licenses }/` ) ) {
+		return 'license-detail';
 	}
 	return PATH_TO_PAGE[ pathname ] ?? 'overview';
 }

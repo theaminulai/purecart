@@ -5,5 +5,7 @@ export {
 	PATH_TO_PAGE,
 	SUBSCRIPTION_DETAIL_PATH,
 	subscriptionDetailPath,
+	LICENSE_DETAIL_PATH,
+	licenseDetailPath,
 	getPageFromPath,
 } from './paths';

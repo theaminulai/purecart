@@ -164,4 +164,53 @@ class SubscriptionLogRepository {
 
 		return array_map( 'intval', (array) $ids );
 	}
+
+	/**
+	 * Raw dunning retry rows, one per (event, note) group.
+	 *
+	 * `note` carries "attempt N" (see DunningManager::run_retry()), so the
+	 * caller parses the attempt number out of it rather than this query
+	 * assuming a particular note format.
+	 *
+	 * @since 1.0.0
+	 * @return array<int, object> Rows of { event, note, total }.
+	 */
+	public function dunning_attempt_counts(): array {
+		global $wpdb;
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Reporting aggregate over a custom table; fixed query, no variable input.
+		return $wpdb->get_results(
+			"SELECT event, note, COUNT(*) AS total
+               FROM {$this->table()}
+              WHERE event IN ( 'dunning_retry_failed', 'dunning_retry_succeeded' )
+           GROUP BY event, note"
+		) ?: array();
+	}
+
+	/**
+	 * Cancellation counts grouped by the reason slug the customer selected
+	 * (SubscriptionManager::cancel()'s $reason, stored as this row's note).
+	 *
+	 * @since 1.0.0
+	 * @param string $start Inclusive range start (MySQL datetime).
+	 * @param string $end   Inclusive range end (MySQL datetime).
+	 * @return array<int, object> Rows of { reason, total }, most common first.
+	 */
+	public function cancellation_reason_counts( string $start, string $end ): array {
+		global $wpdb;
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Reporting aggregate over a custom table; {$this->table()} is not user input, $start/$end are bound below.
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT note AS reason, COUNT(*) AS total
+                   FROM {$this->table()}
+                  WHERE event = 'cancelled' AND note IS NOT NULL AND note != ''
+                    AND created_at >= %s AND created_at <= %s
+               GROUP BY note
+               ORDER BY total DESC",
+				$start,
+				$end
+			)
+		) ?: array();
+	}
 }

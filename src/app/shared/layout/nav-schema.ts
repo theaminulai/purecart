@@ -55,6 +55,8 @@ export const NAV_SCHEMA: Array< {
 export const PAGE_TITLES: Record< Page, string > = {
 	'overview':               'Overview',
 	'licenses':               'Licenses',
+	'license-detail':         'License Detail',
+	'license-summary':        'License Summary',
 	'downloads':              'Downloads',
 	'updates':                'Updates',
 	'subscriptions':          'Subscriptions',
@@ -72,4 +74,6 @@ export const PAGE_TITLES: Record< Page, string > = {
 /** Pages that are children of another page in the breadcrumb trail. */
 export const PAGE_PARENT: Partial< Record< Page, Page > > = {
 	'subscription-analytics': 'subscriptions',
+	'license-detail':         'licenses',
+	'license-summary':        'licenses',
 };

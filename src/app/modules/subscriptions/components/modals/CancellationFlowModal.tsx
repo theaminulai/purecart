@@ -7,19 +7,47 @@
  * offer aborts the cancellation entirely - most of the time "cancel" should
  * not end in a cancellation.
  *
+ * Reasons come from GET /subscriptions/{id}/cancellation/reasons
+ * (RetentionFlow::get_reasons()) and the offer for a chosen reason from
+ * GET .../cancellation/offers - both real, backend-driven eligibility
+ * rules (subscription age, value, customer LTV), not a fixed local list.
+ *
  * @file
  * @since 1.0.0
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { XCircle } from 'lucide-react';
 import { M3 } from '@/theme';
-import { CANCELLATION_REASONS } from '@/app/utils/static-data';
+import { fetchCancellationReasons, fetchCancellationOffers } from '../../api';
 import { TextButton } from '@/shared/ui/TextButton';
 import { FilledButton } from '@/shared/ui/FilledButton';
 import { StepIndicator, CancellationReasonList, RetentionOfferCard } from '../shared';
-import type { SubscriptionRecord, RetentionOffer } from '../../types';
+import type { SubscriptionRecord, RetentionOffer, CancellationReason } from '../../types';
 
 type Step = 0 | 1 | 2;
+
+/** Reasons vague enough to benefit from an optional free-text follow-up. */
+const REASONS_WITH_TEXTBOX = new Set( [ 'missing_features', 'switching', 'other' ] );
+
+/** Maps one raw offer from GET .../cancellation/offers to the RetentionOffer shape RetentionOfferCard expects. */
+function mapBackendOffer( raw: {
+	type: RetentionOffer[ 'type' ];
+	label: string;
+	percent?: number;
+	cycles?: number;
+	pause_days?: number;
+	url?: string;
+} ): RetentionOffer {
+	return {
+		type: raw.type,
+		label: raw.label,
+		description: raw.label,
+		discountPct: raw.percent,
+		discountDuration: raw.cycles ? `${ raw.cycles } billing cycle${ raw.cycles === 1 ? '' : 's' }` : undefined,
+		pauseDuration: raw.pause_days,
+		contactUrl: raw.url,
+	};
+}
 
 interface CancellationFlowModalProps {
 	row: SubscriptionRecord;
@@ -44,28 +72,57 @@ export function CancellationFlowModal( {
 	onOfferAccepted,
 }: CancellationFlowModalProps ) {
 	const [ step, setStep ] = useState< Step >( 0 );
+	const [ reasons, setReasons ] = useState< CancellationReason[] >( [] );
 	const [ selectedReasonId, setSelectedReasonId ] = useState< string | null >( null );
 	const [ reasonText, setReasonText ] = useState( '' );
 	const [ timing, setTiming ] = useState< 'end_of_period' | 'immediate' >( 'end_of_period' );
+	const [ offer, setOffer ] = useState< RetentionOffer | null >( null );
+	const [ loadingOffer, setLoadingOffer ] = useState( false );
 
-	const selectedReason = CANCELLATION_REASONS.find( ( r ) => r.id === selectedReasonId );
+	useEffect( () => {
+		fetchCancellationReasons( row.id ).then( ( labels ) => {
+			setReasons(
+				Object.entries( labels ).map( ( [ id, label ] ) => ( {
+					id,
+					label,
+					hasTextBox: REASONS_WITH_TEXTBOX.has( id ),
+					offer: null,
+				} ) )
+			);
+		} );
+	}, [ row.id ] );
 
-	const goNext = () => {
-		if ( step === 0 ) setStep( selectedReason?.offer ? 1 : 2 );
-		else if ( step === 1 ) setStep( 2 );
+	const goNext = async () => {
+		if ( step === 0 ) {
+			if ( ! selectedReasonId ) return;
+
+			setLoadingOffer( true );
+			const eligible = await fetchCancellationOffers( row.id, selectedReasonId ).catch( () => [] );
+			setLoadingOffer( false );
+
+			if ( eligible.length > 0 ) {
+				setOffer( mapBackendOffer( eligible[ 0 ] ) );
+				setStep( 1 );
+			} else {
+				setOffer( null );
+				setStep( 2 );
+			}
+			return;
+		}
+		if ( step === 1 ) setStep( 2 );
 	};
 
 	const goBack = () => {
 		if ( step === 2 ) {
-			setStep( selectedReason?.offer ? 1 : 0 );
+			setStep( offer ? 1 : 0 );
 		} else if ( step === 1 ) {
 			setStep( 0 );
 		}
 	};
 
 	const handleAcceptOffer = () => {
-		if ( ! selectedReason?.offer ) return;
-		onOfferAccepted( selectedReason.offer, selectedReasonId ?? 'too_expensive' );
+		if ( ! offer || ! selectedReasonId ) return;
+		onOfferAccepted( offer, selectedReasonId );
 		onClose();
 	};
 
@@ -125,7 +182,7 @@ export function CancellationFlowModal( {
 						</div>
 						<div className="px-6 pb-6 pt-2">
 							<CancellationReasonList
-								reasons={ CANCELLATION_REASONS }
+								reasons={ reasons }
 								selectedId={ selectedReasonId }
 								onSelect={ setSelectedReasonId }
 								textValue={ reasonText }
@@ -137,14 +194,14 @@ export function CancellationFlowModal( {
 							style={ { borderTop: `1px solid ${ M3.outlineVariant }` } }
 						>
 							<TextButton onClick={ onClose }>Cancel</TextButton>
-							<FilledButton small onClick={ goNext } disabled={ ! selectedReasonId }>
-								Next →
+							<FilledButton small onClick={ goNext } disabled={ ! selectedReasonId || loadingOffer }>
+								{ loadingOffer ? 'Loading…' : 'Next →' }
 							</FilledButton>
 						</div>
 					</>
 				) }
 
-				{ step === 1 && selectedReason?.offer && (
+				{ step === 1 && offer && (
 					<>
 						<div className="px-6 pt-4 pb-4 text-center">
 							<div
@@ -156,7 +213,7 @@ export function CancellationFlowModal( {
 						</div>
 						<div className="px-6 pb-4">
 							<RetentionOfferCard
-								offer={ selectedReason.offer }
+								offer={ offer }
 								currentAmount={ row.amount }
 								onAccept={ handleAcceptOffer }
 								onDecline={ goNext }
