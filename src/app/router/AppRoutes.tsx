@@ -22,6 +22,9 @@ import {
 // Overview
 import { OverviewPage } from '@/modules/overview';
 
+// Downloads
+import { DownloadsPage, DownloadsPageSkeleton } from '@/modules/downloads';
+
 // Licenses
 import {
 	LicensesPage,
@@ -31,8 +34,6 @@ import {
 	LicenseSummaryPage,
 } from '@/modules/licenses';
 
-// Module stubs
-import { DownloadsPage } from '@/modules/downloads';
 import {
 	UpdatesPage,
 	UpdatesPageSkeleton,
