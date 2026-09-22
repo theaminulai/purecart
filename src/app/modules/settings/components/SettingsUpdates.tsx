@@ -1,17 +1,73 @@
-import React, { useState } from 'react';
-import { Key, Eye, RefreshCw, Mail } from 'lucide-react';
+/**
+ * SettingsUpdates - the "Updates" settings tab.
+ *
+ * Mirrors SettingsSubscriptions' structure (CollapsibleSection cards built
+ * from the shared SettingsField/SettingsToggleField/SettingsSelectField
+ * row primitives) so the two real settings tabs share one visual language
+ * instead of each inventing its own markup.
+ *
+ * @file
+ * @since 1.0.0
+ */
+import { useState } from 'react';
+import { Mail, RefreshCw } from 'lucide-react';
 import { M3 } from '@/theme';
 import { fetchEmailPreview } from '@/modules/updates';
+import { FilledButton } from '@/shared/ui/FilledButton';
+import { OutlinedButton } from '@/shared/ui/OutlinedButton';
+import { TonalButton } from '@/shared/ui/TonalButton';
+import { TextButton } from '@/shared/ui/TextButton';
+import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
+import { Toast } from '@/shared/ui/Toast';
+import { Input } from '@/shared/ui/Input';
+import type { ToastProps } from '@/shared/ui';
+import { CollapsibleSection } from './CollapsibleSection';
+import {
+	SettingsField,
+	SettingsToggleField,
+	SettingsSelectField,
+} from './shared';
 
+const CHANNEL_OPTIONS = [
+	{ label: 'Stable (Production Releases)', value: 'stable' },
+	{ label: 'Beta (Pre-release testing)', value: 'beta' },
+	{ label: 'Nightly (Bleeding Edge)', value: 'nightly' },
+];
+
+/**
+ * Renders the Updates settings tab.
+ *
+ * @since 1.0.0
+ *
+ * @return {JSX.Element} The Updates settings tab.
+ */
 export function SettingsUpdates() {
 	const [ defaultChannel, setDefaultChannel ] = useState( 'stable' );
 	const [ requireLicense, setRequireLicense ] = useState( true );
 	const [ allowRollback, setAllowRollback ] = useState( true );
 	const [ tokenTtl, setTokenTtl ] = useState( 15 );
 	const [ emailNotifications, setEmailNotifications ] = useState( true );
-	const [ previewHtml, setPreviewHtml ] = useState<string | null>( null );
+	const [ isDirty, setIsDirty ] = useState( false );
+
+	const [ confirmRegenerate, setConfirmRegenerate ] = useState( false );
+	const [ previewHtml, setPreviewHtml ] = useState< string | null >( null );
 	const [ previewLoading, setPreviewLoading ] = useState( false );
-	const [ saved, setSaved ] = useState( false );
+	const [ toast, setToast ] = useState< ToastProps >( {
+		message: '',
+		type: 'success',
+		visible: false,
+	} );
+
+	const showToast = (
+		msg: string,
+		type: ToastProps[ 'type' ] = 'success'
+	) => {
+		setToast( { message: msg, type, visible: true } );
+		setTimeout(
+			() => setToast( ( t ) => ( { ...t, visible: false } ) ),
+			3000
+		);
+	};
 
 	const handlePreviewEmail = async () => {
 		setPreviewLoading( true );
@@ -20,272 +76,204 @@ export function SettingsUpdates() {
 			setPreviewHtml( res.html );
 		} catch ( err ) {
 			console.error( 'Failed to load preview:', err );
+			showToast( 'Failed to load email preview', 'error' );
 		} finally {
 			setPreviewLoading( false );
 		}
 	};
 
-	const handleSave = () => {
-		setSaved( true );
-		setTimeout( () => setSaved( false ), 3000 );
+	const handleRegenerateSecret = () => {
+		setConfirmRegenerate( false );
+		showToast(
+			'HMAC secret regenerated - all previous download links are now invalid',
+			'success'
+		);
 	};
 
 	return (
-		<div style={ { display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '800px' } }>
-			{ /* General Settings */ }
-			<div
-				style={ {
-					backgroundColor: M3.surface,
-					padding: '24px',
-					borderRadius: '12px',
-					border: `1px solid ${ M3.outlineVariant }`,
-				} }
+		<div className="flex flex-col gap-3 pb-20">
+			<CollapsibleSection
+				title="General"
+				description="Update channel and license requirements for customer downloads"
+				defaultOpen
 			>
-				<h3 style={ { margin: '0 0 16px', fontSize: '16px', fontWeight: 600, color: M3.onSurface } }>
-					General Update Policies
-				</h3>
+				<SettingsSelectField
+					label="Default Update Channel"
+					value={ defaultChannel }
+					options={ CHANNEL_OPTIONS }
+					onChange={ ( v ) => {
+						setDefaultChannel( v );
+						setIsDirty( true );
+					} }
+				/>
+				<SettingsToggleField
+					label="Require Active License"
+					checked={ requireLicense }
+					onChange={ ( v ) => {
+						setRequireLicense( v );
+						setIsDirty( true );
+					} }
+					helpText="Require an active, unexpired license key to download package updates"
+				/>
+				<SettingsToggleField
+					label="Allow Manual Rollback"
+					checked={ allowRollback }
+					onChange={ ( v ) => {
+						setAllowRollback( v );
+						setIsDirty( true );
+					} }
+					helpText="Let customers manually download previous versions from their account"
+				/>
+			</CollapsibleSection>
 
-				<div style={ { display: 'flex', flexDirection: 'column', gap: '16px' } }>
+			<CollapsibleSection
+				title="Security & Signed Tokens"
+				description="HMAC signing and expiry for 1-click update download links"
+			>
+				<div className="flex items-center justify-between gap-4 py-2.5">
 					<div>
-						<label style={ { display: 'block', fontSize: '13px', fontWeight: 600, color: M3.onSurface, marginBottom: '6px' } }>
-							Default Update Channel:
-						</label>
-						<select
-							value={ defaultChannel }
-							onChange={ ( e ) => setDefaultChannel( e.target.value ) }
+						<div
+							className="text-sm"
 							style={ {
-								padding: '8px 12px',
-								borderRadius: '8px',
-								border: `1px solid ${ M3.outlineVariant }`,
-								backgroundColor: M3.surface,
-								fontSize: '13px',
 								color: M3.onSurface,
-								width: '240px',
+								fontFamily: 'Roboto, sans-serif',
 							} }
 						>
-							<option value="stable">Stable (Production Releases)</option>
-							<option value="beta">Beta (Pre-release testing)</option>
-							<option value="nightly">Nightly (Bleeding Edge)</option>
-						</select>
-					</div>
-
-					<div style={ { display: 'flex', alignItems: 'center', gap: '10px' } }>
-						<input
-							type="checkbox"
-							id="requireLicense"
-							checked={ requireLicense }
-							onChange={ ( e ) => setRequireLicense( e.target.checked ) }
-							style={ { width: '16px', height: '16px', cursor: 'pointer' } }
-						/>
-						<label htmlFor="requireLicense" style={ { fontSize: '13px', color: M3.onSurface, cursor: 'pointer' } }>
-							Require active, unexpired license key to download package updates
-						</label>
-					</div>
-
-					<div style={ { display: 'flex', alignItems: 'center', gap: '10px' } }>
-						<input
-							type="checkbox"
-							id="allowRollback"
-							checked={ allowRollback }
-							onChange={ ( e ) => setAllowRollback( e.target.checked ) }
-							style={ { width: '16px', height: '16px', cursor: 'pointer' } }
-						/>
-						<label htmlFor="allowRollback" style={ { fontSize: '13px', color: M3.onSurface, cursor: 'pointer' } }>
-							Allow customers to manually download previous versions from their account
-						</label>
-					</div>
-				</div>
-			</div>
-
-			{ /* Security & Signed Tokens */ }
-			<div
-				style={ {
-					backgroundColor: M3.surface,
-					padding: '24px',
-					borderRadius: '12px',
-					border: `1px solid ${ M3.outlineVariant }`,
-				} }
-			>
-				<h3 style={ { margin: '0 0 16px', fontSize: '16px', fontWeight: 600, color: M3.onSurface } }>
-					Signed Download URL & Token Security
-				</h3>
-
-				<div style={ { display: 'flex', flexDirection: 'column', gap: '16px' } }>
-					<div>
-						<label style={ { display: 'block', fontSize: '13px', fontWeight: 600, color: M3.onSurface, marginBottom: '6px' } }>
-							HMAC Signing Secret:
-						</label>
-						<div style={ { display: 'flex', alignItems: 'center', gap: '8px' } }>
-							<input
-								type="password"
-								value="••••••••••••••••••••••••••••••••"
-								readOnly
-								style={ {
-									padding: '8px 12px',
-									borderRadius: '8px',
-									border: `1px solid ${ M3.outlineVariant }`,
-									backgroundColor: M3.surfaceContainerLow,
-									fontSize: '13px',
-									fontFamily: 'monospace',
-									color: M3.onSurface,
-									width: '320px',
-								} }
-							/>
-							<button
-								type="button"
-								onClick={ () => alert( 'Secret regeneration will invalidate all current download links.' ) }
-								style={ {
-									display: 'inline-flex',
-									alignItems: 'center',
-									gap: '6px',
-									padding: '8px 12px',
-									borderRadius: '8px',
-									border: `1px solid ${ M3.error }`,
-									background: 'none',
-									color: M3.error,
-									fontSize: '12px',
-									fontWeight: 600,
-									cursor: 'pointer',
-								} }
-							>
-								<RefreshCw size={ 13 } />
-								<span>Regenerate Secret</span>
-							</button>
+							HMAC Signing Secret
 						</div>
-						<span style={ { fontSize: '12px', color: M3.onSurfaceVariant, display: 'block', marginTop: '4px' } }>
-							Used to create cryptographic HMAC-SHA256 tokens for 1-click update links.
-						</span>
-					</div>
-
-					<div>
-						<label style={ { display: 'block', fontSize: '13px', fontWeight: 600, color: M3.onSurface, marginBottom: '6px' } }>
-							Signed URL Lifetime (Minutes):
-						</label>
-						<input
-							type="number"
-							value={ tokenTtl }
-							onChange={ ( e ) => setTokenTtl( Number( e.target.value ) ) }
-							min={ 5 }
-							max={ 1440 }
+						<div
+							className="text-xs mt-0.5"
 							style={ {
-								padding: '8px 12px',
-								borderRadius: '8px',
-								border: `1px solid ${ M3.outlineVariant }`,
-								backgroundColor: M3.surface,
-								fontSize: '13px',
-								color: M3.onSurface,
-								width: '120px',
+								color: M3.onSurfaceVariant,
+								fontFamily: 'Roboto, sans-serif',
 							} }
+						>
+							Used to sign 1-click update links. Rotate this
+							regularly.
+						</div>
+					</div>
+					<div className="flex items-center gap-2 flex-shrink-0">
+						<Input
+							type="password"
+							value="••••••••••••••••••••••••••••••••"
+							readOnly
 						/>
-						<span style={ { fontSize: '12px', color: M3.onSurfaceVariant, display: 'block', marginTop: '4px' } }>
-							Download links auto-expire after this duration (default: 15 minutes).
-						</span>
+						<OutlinedButton
+							danger
+							small
+							onClick={ () => setConfirmRegenerate( true ) }
+						>
+							<RefreshCw size={ 13 } />
+							Regenerate
+						</OutlinedButton>
 					</div>
 				</div>
-			</div>
+				<SettingsField
+					label="Signed URL Lifetime"
+					suffix="minutes"
+					type="number"
+					value={ tokenTtl }
+					onChange={ ( v ) => {
+						setTokenTtl( parseInt( v, 10 ) || 0 );
+						setIsDirty( true );
+					} }
+					helpText="Download links auto-expire after this duration"
+				/>
+			</CollapsibleSection>
 
-			{ /* Customer Notification Emails */ }
-			<div
-				style={ {
-					backgroundColor: M3.surface,
-					padding: '24px',
-					borderRadius: '12px',
-					border: `1px solid ${ M3.outlineVariant }`,
-				} }
+			<CollapsibleSection
+				title="Release Announcement Emails"
+				description="Notify license holders when a new stable version ships"
 			>
-				<h3 style={ { margin: '0 0 16px', fontSize: '16px', fontWeight: 600, color: M3.onSurface } }>
-					Release Announcement Emails
-				</h3>
-
-				<div style={ { display: 'flex', flexDirection: 'column', gap: '16px' } }>
-					<div style={ { display: 'flex', alignItems: 'center', gap: '10px' } }>
-						<input
-							type="checkbox"
-							id="emailNotifications"
-							checked={ emailNotifications }
-							onChange={ ( e ) => setEmailNotifications( e.target.checked ) }
-							style={ { width: '16px', height: '16px', cursor: 'pointer' } }
-						/>
-						<label htmlFor="emailNotifications" style={ { fontSize: '13px', color: M3.onSurface, cursor: 'pointer' } }>
-							Send automated announcement email to active license holders when a stable version is released
-						</label>
+				<SettingsToggleField
+					label="Send Release Announcements"
+					checked={ emailNotifications }
+					onChange={ ( v ) => {
+						setEmailNotifications( v );
+						setIsDirty( true );
+					} }
+					helpText="Email active license holders when a stable version is released"
+				/>
+				<div className="flex items-center justify-between gap-4 py-2.5">
+					<div
+						className="text-sm"
+						style={ {
+							color: M3.onSurface,
+							fontFamily: 'Roboto, sans-serif',
+						} }
+					>
+						Email Template
 					</div>
-
-					<div>
-						<button
-							type="button"
-							onClick={ handlePreviewEmail }
-							disabled={ previewLoading }
+					<TonalButton small onClick={ handlePreviewEmail }>
+						<Mail size={ 14 } />
+						{ previewLoading
+							? 'Loading Preview...'
+							: 'Preview Template' }
+					</TonalButton>
+				</div>
+				{ previewHtml && (
+					<div className="pt-2 pb-2.5">
+						<div
+							className="rounded-xl p-4"
 							style={ {
-								display: 'inline-flex',
-								alignItems: 'center',
-								gap: '6px',
-								padding: '8px 14px',
-								borderRadius: '8px',
 								border: `1px solid ${ M3.outlineVariant }`,
 								backgroundColor: M3.surfaceContainerLow,
-								color: M3.onSurface,
-								fontSize: '12px',
-								fontWeight: 500,
-								cursor: 'pointer',
 							} }
 						>
-							<Mail size={ 14 } />
-							<span>{ previewLoading ? 'Loading Preview...' : 'Preview Email Template' }</span>
-						</button>
-					</div>
-
-					{ previewHtml && (
-						<div
-							style={ {
-								marginTop: '12px',
-								padding: '16px',
-								borderRadius: '8px',
-								border: `1px solid ${ M3.outlineVariant }`,
-								backgroundColor: '#fff',
-							} }
-						>
-							<div style={ { display: 'flex', justifyContent: 'space-between', marginBottom: '8px' } }>
-								<span style={ { fontSize: '12px', fontWeight: 600, color: M3.onSurfaceVariant } }>
-									Sandboxed Preview:
+							<div className="flex items-center justify-between mb-2">
+								<span
+									className="text-xs font-medium"
+									style={ {
+										color: M3.onSurfaceVariant,
+										fontFamily: 'Roboto, sans-serif',
+									} }
+								>
+									Sandboxed Preview
 								</span>
-								<button
+								<TextButton
+									small
 									onClick={ () => setPreviewHtml( null ) }
-									style={ { background: 'none', border: 'none', color: M3.primary, fontSize: '12px', cursor: 'pointer' } }
 								>
 									Hide Preview
-								</button>
+								</TextButton>
 							</div>
-							<div dangerouslySetInnerHTML={ { __html: previewHtml } } />
+							<div
+								dangerouslySetInnerHTML={ {
+									__html: previewHtml,
+								} }
+							/>
 						</div>
-					) }
-				</div>
-			</div>
+					</div>
+				) }
+			</CollapsibleSection>
 
-			{ /* Save Button */ }
-			<div style={ { display: 'flex', alignItems: 'center', gap: '12px' } }>
-				<button
-					type="button"
-					onClick={ handleSave }
-					style={ {
-						padding: '10px 24px',
-						fontSize: '13px',
-						fontWeight: 600,
-						borderRadius: '8px',
-						border: 'none',
-						backgroundColor: M3.primary,
-						color: M3.onPrimary,
-						cursor: 'pointer',
+			<div className="fixed bottom-6 right-6">
+				<FilledButton
+					disabled={ ! isDirty }
+					onClick={ () => {
+						showToast( 'Settings saved', 'success' );
+						setIsDirty( false );
 					} }
 				>
 					Save Changes
-				</button>
-				{ saved && (
-					<span style={ { fontSize: '13px', color: M3.success, fontWeight: 500 } }>
-						✓ Settings saved successfully
-					</span>
-				) }
+				</FilledButton>
 			</div>
+			<Toast
+				message={ toast.message }
+				type={ toast.type }
+				visible={ toast.visible }
+			/>
+
+			<ConfirmDialog
+				open={ confirmRegenerate }
+				title="Regenerate HMAC Secret?"
+				body="All previously generated 1-click update links will stop working immediately. This can't be undone."
+				confirmLabel="Regenerate"
+				danger
+				icon={ RefreshCw }
+				onConfirm={ handleRegenerateSecret }
+				onCancel={ () => setConfirmRegenerate( false ) }
+			/>
 		</div>
 	);
 }

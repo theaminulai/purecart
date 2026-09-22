@@ -7,6 +7,8 @@
 export type Page =
 	| 'overview'
 	| 'licenses'
+	| 'license-detail'
+	| 'license-summary'
 	| 'downloads'
 	| 'updates'
 	| 'subscriptions'

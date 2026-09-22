@@ -8,8 +8,9 @@
  * @file
  * @since 1.0.0
  */
+import { useEffect, useState } from 'react';
 import { M3 } from '@/theme';
-import { CANCELLATION_REASONS } from '@/app/utils/static-data';
+import { fetchCancellationReasons } from '../../api';
 import { Card } from '@/shared/ui/Card';
 import { SubscriptionTimeline } from '../shared';
 import type { SubscriptionRecord, SubscriptionLogEntry } from '../../types';
@@ -29,6 +30,12 @@ interface RetentionTabProps {
  * @return {JSX.Element} The retention tab content.
  */
 export function RetentionTab( { row, events = [] }: RetentionTabProps ) {
+	const [ reasonLabels, setReasonLabels ] = useState< Record< string, string > >( {} );
+
+	useEffect( () => {
+		fetchCancellationReasons( row.id ).then( setReasonLabels );
+	}, [ row.id ] );
+
 	const offerEvents = ( events || [] ).filter( ( e ) => {
 		const ev = ( e.event || '' ).toLowerCase();
 		const note = ( e.note || '' ).toLowerCase();
@@ -46,8 +53,7 @@ export function RetentionTab( { row, events = [] }: RetentionTabProps ) {
 		);
 	} );
 
-	const matchedReason = CANCELLATION_REASONS.find( ( r ) => r.id === row.cancellationReasonId );
-	let reasonLabel = matchedReason?.label;
+	let reasonLabel = row.cancellationReasonId ? reasonLabels[ row.cancellationReasonId ] : undefined;
 	if ( ! reasonLabel && row.cancellationReasonId ) {
 		reasonLabel = row.cancellationReasonId
 			.replace( /[_-]/g, ' ' )
@@ -59,8 +65,7 @@ export function RetentionTab( { row, events = [] }: RetentionTabProps ) {
 				const match = ev.note.match( /reason=([^,;]+)/ );
 				if ( match && match[ 1 ] ) {
 					const reasonId = match[ 1 ].trim();
-					const found = CANCELLATION_REASONS.find( ( r ) => r.id === reasonId );
-					reasonLabel = found?.label ?? reasonId.replace( /[_-]/g, ' ' ).replace( /\b\w/g, ( c ) => c.toUpperCase() );
+					reasonLabel = reasonLabels[ reasonId ] ?? reasonId.replace( /[_-]/g, ' ' ).replace( /\b\w/g, ( c ) => c.toUpperCase() );
 					break;
 				}
 			}

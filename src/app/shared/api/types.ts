@@ -10,7 +10,6 @@ declare global {
 			nonce: string;
 			restNonce: string; // wp_create_nonce( 'wp_rest' )
 			apiUrl: string; // e.g. 'http://localhost:8080/woo-digital-downloads/wp-json/purecart/v1/'
-			adminUrl: string; // e.g. 'http://localhost:8080/wp-admin/'
 			currentPage: string;
 			version: string;
 		};

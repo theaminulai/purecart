@@ -71,16 +71,13 @@ class TokenManager {
 	}
 
 	/**
-	 * Validate a download token and report why it failed, if it did.
+	 * Validate a download token — returns the row only if unexpired and within download limit.
 	 *
 	 * @since  1.0.0
 	 * @param  string $token The hex download token.
-	 * @return array{download: ?object, reason: ?string} `reason` is null on
-	 *               success, otherwise one of 'not_found', 'expired',
-	 *               'exhausted', 'revoked'. `download` is the row when found
-	 *               (even if invalid), so callers can log against its ID.
+	 * @return object|null   The download row, or null if invalid/expired/exhausted.
 	 */
-	public function validate_token( string $token ): array {
+	public function validate_token( string $token ): ?object {
 		global $wpdb;
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Token validation is time-sensitive; caching could allow replays of expired/exhausted tokens.
@@ -92,38 +89,18 @@ class TokenManager {
 		);
 
 		if ( ! $row ) {
-			return array(
-				'download' => null,
-				'reason'   => 'not_found',
-			);
-		}
-
-		if ( 'revoked' === $row->status ) {
-			return array(
-				'download' => $row,
-				'reason'   => 'revoked',
-			);
+			return null;
 		}
 
 		if ( strtotime( $row->expires_at ) < time() ) {
-			return array(
-				'download' => $row,
-				'reason'   => 'expired',
-			);
+			return null;
 		}
 
-		// max_downloads = 0 means unlimited.
-		if ( (int) $row->max_downloads > 0 && (int) $row->download_count >= (int) $row->max_downloads ) {
-			return array(
-				'download' => $row,
-				'reason'   => 'exhausted',
-			);
+		if ( (int) $row->download_count >= (int) $row->max_downloads ) {
+			return null;
 		}
 
-		return array(
-			'download' => $row,
-			'reason'   => null,
-		);
+		return $row;
 	}
 
 	/**
@@ -158,90 +135,6 @@ class TokenManager {
 			),
 			array( '%d', '%s', '%s', '%s', '%s' )
 		);
-	}
-
-	/**
-	 * Log a rejected download attempt against an existing download row.
-	 *
-	 * @since  1.0.0
-	 * @param  int    $download_id The purecart_downloads row ID.
-	 * @param  string $status      One of 'rejected_expired', 'rejected_exhausted',
-	 *                             'rejected_revoked'.
-	 * @return void
-	 */
-	public function log_rejected( int $download_id, string $status ): void {
-		global $wpdb;
-
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Append-only event log; no WP API available.
-		$wpdb->insert(
-			$wpdb->prefix . 'purecart_download_logs',
-			array(
-				'download_id'   => $download_id,
-				'ip_address'    => sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? '' ) ),
-				'user_agent'    => sanitize_text_field( substr( wp_unslash( (string) ( $_SERVER['HTTP_USER_AGENT'] ?? '' ) ), 0, 500 ) ),
-				'country_code'  => '',
-				'status'        => $status,
-				'downloaded_at' => current_time( 'mysql' ),
-			),
-			array( '%d', '%s', '%s', '%s', '%s', '%s' )
-		);
-	}
-
-	/**
-	 * Revoke a download token, blocking any further use.
-	 *
-	 * @since  1.0.0
-	 * @param  int $download_id The purecart_downloads row ID.
-	 * @return bool
-	 */
-	public function revoke( int $download_id ): bool {
-		global $wpdb;
-
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table UPDATE; no WP API available.
-		return false !== $wpdb->update(
-			$wpdb->prefix . 'purecart_downloads',
-			array( 'status' => 'revoked' ),
-			array( 'id' => $download_id ),
-			array( '%s' ),
-			array( '%d' )
-		);
-	}
-
-	/**
-	 * Regenerate a download token: new token string, reset usage, fresh expiry.
-	 *
-	 * @since  1.0.0
-	 * @param  int $download_id The purecart_downloads row ID.
-	 * @return object|null      The updated row, or null if the row doesn't exist.
-	 */
-	public function regenerate( int $download_id ): ?object {
-		global $wpdb;
-
-		$expiry_secs = (int) get_option( 'purecart_download_expiry_seconds', DAY_IN_SECONDS );
-		$token       = bin2hex( random_bytes( 32 ) );
-		$expires_at  = gmdate( 'Y-m-d H:i:s', time() + $expiry_secs );
-
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table UPDATE; no WP API available.
-		$wpdb->update(
-			$wpdb->prefix . 'purecart_downloads',
-			array(
-				'token'          => $token,
-				'download_count' => 0,
-				'expires_at'     => $expires_at,
-				'status'         => 'active',
-			),
-			array( 'id' => $download_id ),
-			array( '%s', '%d', '%s', '%s' ),
-			array( '%d' )
-		);
-
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom table; result just updated, no stale cache risk.
-		return $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->prefix}purecart_downloads WHERE id = %d",
-				$download_id
-			)
-		) ?: null;
 	}
 
 	/**
