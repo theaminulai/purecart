@@ -71,12 +71,42 @@ class DownloadDispatcher {
 
 		do_action( 'purecart_before_file_download', $token );
 
-		$manager  = new TokenManager();
-		$download = $manager->validate_token( $token );
+		$manager = new TokenManager();
+		$result  = $manager->validate_token( $token );
+		$download = $result['download'];
+		$reason   = $result['reason'];
+
+		if ( $download && $reason ) {
+			$manager->log_rejected( (int) $download->id, 'rejected_' . $reason );
+		}
+
+		if ( 'expired' === $reason ) {
+			wp_die(
+				esc_html__( 'This download link has expired.', 'purecart' ),
+				esc_html__( 'Download Error', 'purecart' ),
+				array( 'response' => 403 )
+			);
+		}
+
+		if ( 'exhausted' === $reason ) {
+			wp_die(
+				esc_html__( 'This download link has reached its download limit.', 'purecart' ),
+				esc_html__( 'Download Error', 'purecart' ),
+				array( 'response' => 403 )
+			);
+		}
+
+		if ( 'revoked' === $reason ) {
+			wp_die(
+				esc_html__( 'This download link has been revoked.', 'purecart' ),
+				esc_html__( 'Download Error', 'purecart' ),
+				array( 'response' => 403 )
+			);
+		}
 
 		if ( ! $download ) {
 			wp_die(
-				esc_html__( 'This download link is invalid or has expired.', 'purecart' ),
+				esc_html__( 'This download link is invalid.', 'purecart' ),
 				esc_html__( 'Download Error', 'purecart' ),
 				array( 'response' => 403 )
 			);

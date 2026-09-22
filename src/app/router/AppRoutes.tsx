@@ -11,6 +11,9 @@ import { PAGE_PATHS, SUBSCRIPTION_DETAIL_PATH, LICENSE_DETAIL_PATH } from './pat
 // Overview
 import { OverviewPage } from '@/modules/overview';
 
+// Downloads
+import { DownloadsPage, DownloadsPageSkeleton } from '@/modules/downloads';
+
 // Licenses
 import {
 	LicensesPage, LicensesPageSkeleton,
@@ -68,7 +71,10 @@ export function AppRoutes() {
 			/>
 
 			{ /* Downloads */ }
-			<Route path={ PAGE_PATHS.downloads }              element={ <DownloadsPage /> } />
+			<Route
+				path={ PAGE_PATHS.downloads }
+				element={ <Suspense key="downloads" fallback={ <DownloadsPageSkeleton /> }><DownloadsPage /></Suspense> }
+			/>
 
 			{ /* Updates */ }
 			<Route

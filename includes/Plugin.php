@@ -14,8 +14,8 @@ defined( 'ABSPATH' ) || exit;
 use PureCart\Commerce\OrderHandler;
 use PureCart\Commerce\ProductTypes;
 use PureCart\CustomerDashboard\Dashboard;
-use PureCart\Downloads\AccountDownloadsMerger;
 use PureCart\Admin\Admin;
+use PureCart\Downloads\Module as DownloadsModule;
 use PureCart\Licensing\Module as LicensingModule;
 use PureCart\Subscriptions\Module as SubscriptionsModule;
 use PureCart\Updates\Module as UpdatesModule;
@@ -62,7 +62,7 @@ final class Plugin {
 		new ProductTypes();
 		new OrderHandler();
 		new Dashboard();
-		new AccountDownloadsMerger();
+		new DownloadsModule();
 		new LicensingModule();
 		new SubscriptionsModule();
 		new UpdatesModule();

@@ -2,9 +2,11 @@
 /**
  * Test data for the Secure Downloads module: download tokens + access logs.
  *
- * Covers: an unused token, one that's hit max_downloads, one that's expired
- * without ever being used, and a partially-used one with access-log rows
- * attached for the admin download-log view.
+ * Covers: an unused token, one that's hit max_downloads (plus its rejected
+ * 4th attempt), one that's expired without ever being used (plus its
+ * rejected attempt), a partially-used one with access-log rows attached,
+ * and an admin-revoked one with a rejected post-revoke attempt — for the
+ * admin download-log view's status filter and KPI strip.
  *
  * @package PureCart\Tests
  */
@@ -50,16 +52,25 @@ function purecart_seed_downloads(): array {
 					'ip'      => '198.51.100.20',
 					'ua'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
 					'country' => 'US',
+					'status'  => 'success',
 				),
 				array(
 					'ip'      => '198.51.100.20',
 					'ua'      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
 					'country' => 'US',
+					'status'  => 'success',
 				),
 				array(
 					'ip'      => '198.51.100.21',
 					'ua'      => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15)',
 					'country' => 'US',
+					'status'  => 'success',
+				),
+				array(
+					'ip'      => '198.51.100.21',
+					'ua'      => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15)',
+					'country' => 'US',
+					'status'  => 'rejected_exhausted',
 				),
 			),
 		),
@@ -73,7 +84,14 @@ function purecart_seed_downloads(): array {
 			'download_count' => 0,
 			'max_downloads'  => 3,
 			'expires_at'     => gmdate( 'Y-m-d H:i:s', strtotime( '-2 days' ) ),
-			'logs'           => array(),
+			'logs'           => array(
+				array(
+					'ip'      => '198.51.100.30',
+					'ua'      => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0)',
+					'country' => 'CA',
+					'status'  => 'rejected_expired',
+				),
+			),
 		),
 		// Partially used, from a different country — geo/log review.
 		array(
@@ -90,6 +108,33 @@ function purecart_seed_downloads(): array {
 					'ip'      => '203.0.113.55',
 					'ua'      => 'PureCartCLI/1.0',
 					'country' => 'BD',
+					'status'  => 'success',
+				),
+			),
+		),
+		// Revoked by an admin — admin token-management review.
+		array(
+			'token'          => 'TEST2DL-REVOKED-IIII9999JJJJ0000',
+			'order_id'       => 90005,
+			'user_id'        => PURECART_SEED_USER_ALICE,
+			'product_id'     => PURECART_SEED_PRODUCT_SOFTWARE,
+			'file_id'        => 2,
+			'download_count' => 2,
+			'max_downloads'  => 5,
+			'expires_at'     => gmdate( 'Y-m-d H:i:s', strtotime( '+20 days' ) ),
+			'status'         => 'revoked',
+			'logs'           => array(
+				array(
+					'ip'      => '203.0.113.60',
+					'ua'      => 'Mozilla/5.0 (X11; Linux x86_64)',
+					'country' => 'US',
+					'status'  => 'success',
+				),
+				array(
+					'ip'      => '203.0.113.60',
+					'ua'      => 'Mozilla/5.0 (X11; Linux x86_64)',
+					'country' => 'US',
+					'status'  => 'rejected_revoked',
 				),
 			),
 		),
@@ -98,6 +143,16 @@ function purecart_seed_downloads(): array {
 	$ids = array();
 
 	foreach ( $downloads as $download ) {
+		// Look up any prior seed run's row for this token before replacing it —
+		// its download_id changes on every AUTO_INCREMENT insert below, so its
+		// old log rows must be cleared by the OLD id or they're orphaned forever.
+		$previous_id = $wpdb->get_var(
+			$wpdb->prepare( "SELECT id FROM {$downloads_table} WHERE token = %s", $download['token'] )
+		);
+		if ( $previous_id ) {
+			$wpdb->delete( $logs_table, array( 'download_id' => $previous_id ), array( '%d' ) );
+		}
+
 		$wpdb->delete( $downloads_table, array( 'token' => $download['token'] ), array( '%s' ) );
 
 		$wpdb->insert(
@@ -113,15 +168,15 @@ function purecart_seed_downloads(): array {
 				'expires_at'     => $download['expires_at'],
 				'ip_address'     => '203.0.113.10',
 				'country_code'   => 'US',
+				'status'         => $download['status'] ?? 'active',
 				'created_at'     => current_time( 'mysql' ),
 			),
-			array( '%d', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s', '%s', '%s' )
+			array( '%d', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s', '%s', '%s', '%s' )
 		);
 
 		$download_id               = (int) $wpdb->insert_id;
 		$ids[ $download['token'] ] = $download_id;
 
-		$wpdb->delete( $logs_table, array( 'download_id' => $download_id ), array( '%d' ) );
 		foreach ( $download['logs'] as $log ) {
 			$wpdb->insert(
 				$logs_table,
@@ -130,9 +185,10 @@ function purecart_seed_downloads(): array {
 					'ip_address'    => $log['ip'],
 					'user_agent'    => $log['ua'],
 					'country_code'  => $log['country'],
+					'status'        => $log['status'] ?? 'success',
 					'downloaded_at' => current_time( 'mysql' ),
 				),
-				array( '%d', '%s', '%s', '%s', '%s' )
+				array( '%d', '%s', '%s', '%s', '%s', '%s' )
 			);
 		}
 	}
