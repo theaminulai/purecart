@@ -11,6 +11,8 @@ namespace PureCart\API;
 
 use PureCart\Downloads\DownloadLogRepository;
 use PureCart\Downloads\TokenManager;
+use PureCart\Settings\OptionKeys;
+use PureCart\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -123,6 +125,35 @@ class Downloads extends PureCartApi {
 				)
 			);
 		}
+
+		register_rest_route(
+			$ns,
+			$base . '/settings',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_settings' ),
+					'permission_callback' => array( $this, 'permission_admin' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'save_settings' ),
+					'permission_callback' => array( $this, 'permission_admin' ),
+					'args'                => array(
+						'expiry_seconds' => array(
+							'type'              => 'integer',
+							'sanitize_callback' => 'absint',
+							'required'          => false,
+						),
+						'max_count'      => array(
+							'type'              => 'integer',
+							'sanitize_callback' => 'absint',
+							'required'          => false,
+						),
+					),
+				),
+			)
+		);
 	}
 
 	// -----------------------------------------------------------------------
@@ -329,6 +360,50 @@ class Downloads extends PureCartApi {
 			array(
 				'success' => true,
 				'revoked' => $revoked,
+			)
+		);
+	}
+
+	// -----------------------------------------------------------------------
+	// Settings
+	// -----------------------------------------------------------------------
+
+	/**
+	 * GET /downloads/settings
+	 *
+	 * @since 1.0.0
+	 * @return \WP_REST_Response
+	 */
+	public function get_settings(): \WP_REST_Response {
+		return rest_ensure_response(
+			array(
+				'expiry_seconds' => (int) Settings::get( OptionKeys::DOWNLOAD_EXPIRY_SECONDS, DAY_IN_SECONDS ),
+				'max_count'      => (int) Settings::get( OptionKeys::DOWNLOAD_MAX_COUNT, 3 ),
+			)
+		);
+	}
+
+	/**
+	 * POST /downloads/settings
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request.
+	 * @return \WP_REST_Response
+	 */
+	public function save_settings( \WP_REST_Request $request ): \WP_REST_Response {
+		if ( null !== $request->get_param( 'expiry_seconds' ) ) {
+			Settings::set( OptionKeys::DOWNLOAD_EXPIRY_SECONDS, max( 1, (int) $request->get_param( 'expiry_seconds' ) ) );
+		}
+
+		if ( null !== $request->get_param( 'max_count' ) ) {
+			Settings::set( OptionKeys::DOWNLOAD_MAX_COUNT, max( 0, (int) $request->get_param( 'max_count' ) ) );
+		}
+
+		return rest_ensure_response(
+			array(
+				'success'        => true,
+				'expiry_seconds' => (int) Settings::get( OptionKeys::DOWNLOAD_EXPIRY_SECONDS, DAY_IN_SECONDS ),
+				'max_count'      => (int) Settings::get( OptionKeys::DOWNLOAD_MAX_COUNT, 3 ),
 			)
 		);
 	}

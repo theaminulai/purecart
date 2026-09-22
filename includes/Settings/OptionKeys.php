@@ -97,6 +97,14 @@ class OptionKeys {
 	/** Whether a customer may hold more than one active subscription at a time (default true). */
 	public const SUB_ALLOW_MULTIPLE_SUBSCRIPTIONS = 'purecart_sub_allow_multiple_subscriptions';
 
+	// ─── Downloads module ───────────────────────────────────────────────────────
+
+	/** Download link lifetime in seconds (default DAY_IN_SECONDS). */
+	public const DOWNLOAD_EXPIRY_SECONDS = 'purecart_download_expiry_seconds';
+
+	/** Max downloads per token; 0 = unlimited (default 3). */
+	public const DOWNLOAD_MAX_COUNT = 'purecart_download_max_count';
+
 	// ─── Licensing module ──────────────────────────────────────────────────────
 
 	/** Order status that triggers license/download/SaaS provisioning: 'completed' | 'processing' | 'both' (default 'completed'). */
