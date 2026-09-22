@@ -4,8 +4,12 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsField, SettingsToggleField } from '@/modules/subscriptions';
-import { numbersToCsv, csvToNumbers, type SettingsSectionProps } from '../settingsSectionTypes';
+import { SettingsField, SettingsToggleField } from '../shared';
+import {
+	numbersToCsv,
+	csvToNumbers,
+	type SettingsSectionProps,
+} from '../settingsSectionTypes';
 
 /**
  * Renders the Renewals & Reminders settings section.
@@ -16,18 +20,53 @@ import { numbersToCsv, csvToNumbers, type SettingsSectionProps } from '../settin
  *
  * @return {JSX.Element} The Renewals & Reminders section fields.
  */
-export function SubRenewalsSection( { settings, update }: SettingsSectionProps ) {
+export function SubRenewalsSection( {
+	settings,
+	update,
+}: SettingsSectionProps ) {
 	return (
 		<>
 			<SettingsField
 				label="Renewal reminder days (before due)"
 				value={ numbersToCsv( settings.renewalReminderDays ) }
-				onChange={ ( v ) => update( 'renewalReminderDays', csvToNumbers( v ) ) }
+				onChange={ ( v ) =>
+					update( 'renewalReminderDays', csvToNumbers( v ) )
+				}
 				helpText="Comma-separated, e.g. 7, 3, 1"
 			/>
-			<SettingsField label="Card expiry warning days" type="number" suffix="days" value={ settings.cardExpiryWarningDays } onChange={ ( v ) => update( 'cardExpiryWarningDays', parseInt( v, 10 ) || 0 ) } />
-			<SettingsToggleField label="Enable renewal sync" checked={ settings.enableRenewalSync } onChange={ ( v ) => update( 'enableRenewalSync', v ) } helpText="Align all subscriptions on a product to a fixed calendar date" />
-			<SettingsField label="Sync day of month" type="number" value={ settings.renewalSyncDate } onChange={ ( v ) => update( 'renewalSyncDate', parseInt( v, 10 ) || 1 ) } disabled={ ! settings.enableRenewalSync } />
+			<SettingsField
+				label="Trial ending reminder days (before trial end)"
+				type="number"
+				suffix="days"
+				value={ settings.trialReminderDays }
+				onChange={ ( v ) =>
+					update( 'trialReminderDays', parseInt( v, 10 ) || 0 )
+				}
+			/>
+			<SettingsField
+				label="Card expiry warning days"
+				type="number"
+				suffix="days"
+				value={ settings.cardExpiryWarningDays }
+				onChange={ ( v ) =>
+					update( 'cardExpiryWarningDays', parseInt( v, 10 ) || 0 )
+				}
+			/>
+			<SettingsToggleField
+				label="Enable renewal sync"
+				checked={ settings.enableRenewalSync }
+				onChange={ ( v ) => update( 'enableRenewalSync', v ) }
+				helpText="Align all subscriptions on a product to a fixed calendar date"
+			/>
+			<SettingsField
+				label="Sync day of month"
+				type="number"
+				value={ settings.renewalSyncDate }
+				onChange={ ( v ) =>
+					update( 'renewalSyncDate', parseInt( v, 10 ) || 1 )
+				}
+				disabled={ ! settings.enableRenewalSync }
+			/>
 		</>
 	);
 }

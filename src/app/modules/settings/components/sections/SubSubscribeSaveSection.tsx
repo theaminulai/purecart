@@ -4,7 +4,11 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsToggleField, SettingsSelectField, SettingsField } from '@/modules/subscriptions';
+import {
+	SettingsToggleField,
+	SettingsSelectField,
+	SettingsField,
+} from '../shared';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 const DISCOUNT_TYPE_OPTIONS = [
@@ -21,18 +25,38 @@ const DISCOUNT_TYPE_OPTIONS = [
  *
  * @return {JSX.Element} The Subscribe & Save section fields.
  */
-export function SubSubscribeSaveSection( { settings, update }: SettingsSectionProps ) {
+export function SubSubscribeSaveSection( {
+	settings,
+	update,
+}: SettingsSectionProps ) {
 	return (
 		<>
-			<SettingsToggleField label="Enable Subscribe & Save" checked={ settings.subscribeSaveEnabled } onChange={ ( v ) => update( 'subscribeSaveEnabled', v ) } />
+			<SettingsToggleField
+				label="Enable Subscribe & Save"
+				checked={ settings.subscribeSaveEnabled }
+				onChange={ ( v ) => update( 'subscribeSaveEnabled', v ) }
+			/>
 			<SettingsSelectField
 				label="Discount type"
 				value={ settings.discountType }
 				options={ DISCOUNT_TYPE_OPTIONS }
-				onChange={ ( v ) => update( 'discountType', v as typeof settings.discountType ) }
+				onChange={ ( v ) =>
+					update( 'discountType', v as typeof settings.discountType )
+				}
 			/>
-			<SettingsField label="Discount value" type="number" value={ settings.discountValue } onChange={ ( v ) => update( 'discountValue', parseInt( v, 10 ) || 0 ) } />
-			<SettingsField label="Savings badge label" value={ settings.savingsBadgeLabel } onChange={ ( v ) => update( 'savingsBadgeLabel', v ) } />
+			<SettingsField
+				label="Discount value"
+				type="number"
+				value={ settings.discountValue }
+				onChange={ ( v ) =>
+					update( 'discountValue', parseInt( v, 10 ) || 0 )
+				}
+			/>
+			<SettingsField
+				label="Savings badge label"
+				value={ settings.savingsBadgeLabel }
+				onChange={ ( v ) => update( 'savingsBadgeLabel', v ) }
+			/>
 		</>
 	);
 }

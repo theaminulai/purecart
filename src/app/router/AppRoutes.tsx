@@ -1,12 +1,23 @@
 import { Suspense } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import {
-	SubscriptionsPage, SubscriptionsPageSkeleton,
-	SubscriptionDetailPage, SubscriptionDetailPageSkeleton,
+	SubscriptionsPage,
+	SubscriptionsPageSkeleton,
+	SubscriptionDetailPage,
+	SubscriptionDetailPageSkeleton,
 } from '@/modules/subscriptions';
-import { SubscriptionAnalyticsPage, SubscriptionAnalyticsPageSkeleton, AnalyticsPage } from '@/modules/analytics';
+import {
+	SubscriptionAnalyticsPage,
+	SubscriptionAnalyticsPageSkeleton,
+	AnalyticsPage,
+} from '@/modules/analytics';
 import { SettingsPage } from '@/modules/settings';
-import { PAGE_PATHS, SUBSCRIPTION_DETAIL_PATH, LICENSE_DETAIL_PATH } from './paths';
+import {
+	PAGE_PATHS,
+	SUBSCRIPTION_DETAIL_PATH,
+	LICENSE_DETAIL_PATH,
+	SETTINGS_TAB_PATH,
+} from './paths';
 
 // Overview
 import { OverviewPage } from '@/modules/overview';
@@ -16,17 +27,23 @@ import { DownloadsPage, DownloadsPageSkeleton } from '@/modules/downloads';
 
 // Licenses
 import {
-	LicensesPage, LicensesPageSkeleton,
-	LicenseDetailPage, LicenseDetailPageSkeleton,
+	LicensesPage,
+	LicensesPageSkeleton,
+	LicenseDetailPage,
+	LicenseDetailPageSkeleton,
 	LicenseSummaryPage,
 } from '@/modules/licenses';
 
+import {
+	UpdatesPage,
+	UpdatesPageSkeleton,
+	UpdateAnalyticsPage,
+} from '@/modules/updates';
 // Module stubs
-import { UpdatesPage, UpdatesPageSkeleton, UpdateAnalyticsPage } from '@/modules/updates';
 import { SaasAccountsPage } from '@/modules/saas-accounts';
-import { AffiliatesPage }   from '@/modules/affiliates';
-import { AbandonedCartPage} from '@/modules/abandoned-cart';
-import { SecurityPage }     from '@/modules/security';
+import { AffiliatesPage } from '@/modules/affiliates';
+import { AbandonedCartPage } from '@/modules/abandoned-cart';
+import { SecurityPage } from '@/modules/security';
 
 /**
  * All routes for the app.
@@ -53,7 +70,12 @@ export function AppRoutes() {
 				path={ PAGE_PATHS.overview }
 				element={
 					<OverviewPage
-						onNav={ ( page ) => navigate( PAGE_PATHS[ page as keyof typeof PAGE_PATHS ] ?? PAGE_PATHS.overview ) }
+						onNav={ ( page ) =>
+							navigate(
+								PAGE_PATHS[ page as keyof typeof PAGE_PATHS ] ??
+									PAGE_PATHS.overview
+							)
+						}
 					/>
 				}
 			/>
@@ -61,59 +83,123 @@ export function AppRoutes() {
 			{ /* Licenses */ }
 			<Route
 				path={ PAGE_PATHS.licenses }
-				element={ <Suspense key="licenses" fallback={ <LicensesPageSkeleton /> }><LicensesPage /></Suspense> }
+				element={
+					<Suspense
+						key="licenses"
+						fallback={ <LicensesPageSkeleton /> }
+					>
+						<LicensesPage />
+					</Suspense>
+				}
 			/>
-			<Route path={ PAGE_PATHS[ 'license-summary' ] }   element={ <LicenseSummaryPage /> } />
+			<Route
+				path={ PAGE_PATHS[ 'license-summary' ] }
+				element={ <LicenseSummaryPage /> }
+			/>
 			<Route
 				path={ LICENSE_DETAIL_PATH }
-				element={ <Suspense key="license-detail" fallback={ <LicenseDetailPageSkeleton /> }><LicenseDetailPage /></Suspense> }
+				element={
+					<Suspense
+						key="license-detail"
+						fallback={ <LicenseDetailPageSkeleton /> }
+					>
+						<LicenseDetailPage />
+					</Suspense>
+				}
 			/>
 
 			{ /* Downloads */ }
 			<Route
 				path={ PAGE_PATHS.downloads }
-				element={ <Suspense key="downloads" fallback={ <DownloadsPageSkeleton /> }><DownloadsPage /></Suspense> }
+				element={
+					<Suspense key="downloads" fallback={ <DownloadsPageSkeleton /> }>
+						<DownloadsPage />
+					</Suspense>
+				}
 			/>
 
 			{ /* Updates */ }
 			<Route
 				path={ PAGE_PATHS.updates }
-				element={ <Suspense key="updates" fallback={ <UpdatesPageSkeleton /> }><UpdatesPage /></Suspense> }
+				element={
+					<Suspense
+						key="updates"
+						fallback={ <UpdatesPageSkeleton /> }
+					>
+						<UpdatesPage />
+					</Suspense>
+				}
 			/>
-			<Route path="/updates/analytics"                  element={ <UpdateAnalyticsPage /> } />
+			<Route
+				path="/updates/analytics"
+				element={ <UpdateAnalyticsPage /> }
+			/>
 
 			{ /* Subscriptions */ }
 			<Route
 				path={ PAGE_PATHS.subscriptions }
-				element={ <Suspense key="subscriptions" fallback={ <SubscriptionsPageSkeleton /> }><SubscriptionsPage /></Suspense> }
+				element={
+					<Suspense
+						key="subscriptions"
+						fallback={ <SubscriptionsPageSkeleton /> }
+					>
+						<SubscriptionsPage />
+					</Suspense>
+				}
 			/>
 			<Route
 				path={ SUBSCRIPTION_DETAIL_PATH }
-				element={ <Suspense key="subscription-detail" fallback={ <SubscriptionDetailPageSkeleton /> }><SubscriptionDetailPage /></Suspense> }
+				element={
+					<Suspense
+						key="subscription-detail"
+						fallback={ <SubscriptionDetailPageSkeleton /> }
+					>
+						<SubscriptionDetailPage />
+					</Suspense>
+				}
 			/>
 			<Route
 				path={ PAGE_PATHS[ 'subscription-analytics' ] }
-				element={ <Suspense key="subscription-analytics" fallback={ <SubscriptionAnalyticsPageSkeleton /> }><SubscriptionAnalyticsPage /></Suspense> }
+				element={
+					<Suspense
+						key="subscription-analytics"
+						fallback={ <SubscriptionAnalyticsPageSkeleton /> }
+					>
+						<SubscriptionAnalyticsPage />
+					</Suspense>
+				}
 			/>
 
 			{ /* SaaS Accounts */ }
-			<Route path={ PAGE_PATHS[ 'saas-accounts' ] }    element={ <SaasAccountsPage /> } />
+			<Route
+				path={ PAGE_PATHS[ 'saas-accounts' ] }
+				element={ <SaasAccountsPage /> }
+			/>
 
 			{ /* Affiliates */ }
-			<Route path={ PAGE_PATHS.affiliates }             element={ <AffiliatesPage /> } />
+			<Route
+				path={ PAGE_PATHS.affiliates }
+				element={ <AffiliatesPage /> }
+			/>
 
 			{ /* Abandoned Cart */ }
-			<Route path={ PAGE_PATHS[ 'abandoned-cart' ] }   element={ <AbandonedCartPage /> } />
+			<Route
+				path={ PAGE_PATHS[ 'abandoned-cart' ] }
+				element={ <AbandonedCartPage /> }
+			/>
 
 			{ /* Security */ }
-			<Route path={ PAGE_PATHS.security }               element={ <SecurityPage /> } />
+			<Route path={ PAGE_PATHS.security } element={ <SecurityPage /> } />
 
 			{ /* Analytics */ }
-			<Route path={ PAGE_PATHS.analytics }              element={ <AnalyticsPage /> } />
+			<Route
+				path={ PAGE_PATHS.analytics }
+				element={ <AnalyticsPage /> }
+			/>
 
 			{ /* Settings */ }
-			<Route path={ PAGE_PATHS.settings }               element={ <SettingsPage /> } />
+			<Route path={ PAGE_PATHS.settings } element={ <SettingsPage /> } />
+			<Route path={ SETTINGS_TAB_PATH } element={ <SettingsPage /> } />
 		</Routes>
 	);
 }
-

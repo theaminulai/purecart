@@ -1,12 +1,12 @@
 /**
  * SettingsToggleField component.
  *
- * Renders a label + Toggle row for the Subscriptions settings tab, styled
- * to match SettingsField's layout. Most subscription settings are booleans,
- * so this is the most commonly used Settings* field. Scoped to the
- * Subscriptions module - not a generic ui/ primitive, since nothing outside
- * Subscriptions' Settings tab uses it. Composes the real ui/Toggle switch
- * rather than reimplementing it.
+ * Renders a label + Toggle row shared by every Settings tab, styled to
+ * match SettingsField's layout. Booleans are the most common settings
+ * value, so this is the most commonly used Settings* field. Scoped to the
+ * Settings module - not a generic ui/ primitive, since nothing outside
+ * Settings tabs uses it. Composes the real ui/Toggle switch rather than
+ * reimplementing it.
  *
  * @file
  * @since 1.0.0
@@ -65,7 +65,11 @@ export function SettingsToggleField( {
 					</div>
 				) }
 			</div>
-			<Toggle checked={ checked } onChange={ onChange } disabled={ disabled } />
+			<Toggle
+				checked={ checked }
+				onChange={ onChange }
+				disabled={ disabled }
+			/>
 		</div>
 	);
 }

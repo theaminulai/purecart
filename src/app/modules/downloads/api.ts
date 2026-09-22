@@ -81,6 +81,38 @@ export async function testDownloadDelivery(): Promise<{ success: boolean; messag
 	return purecartFetch<{ success: boolean; message: string }>('/downloads/delivery-test');
 }
 
+export interface DownloadSettings {
+	expirySeconds: number;
+	maxCount: number;
+}
+
+interface RawDownloadSettings {
+	expiry_seconds: number;
+	max_count: number;
+}
+
+/**
+ * GET /purecart/v1/downloads/settings
+ *
+ * @since 1.0.0
+ */
+export async function fetchDownloadSettings(): Promise<DownloadSettings> {
+	const raw = await purecartFetch<RawDownloadSettings>('/downloads/settings');
+	return { expirySeconds: raw.expiry_seconds, maxCount: raw.max_count };
+}
+
+/**
+ * POST /purecart/v1/downloads/settings
+ *
+ * @since 1.0.0
+ */
+export async function saveDownloadSettings(settings: DownloadSettings): Promise<void> {
+	await purecartFetch('/downloads/settings', {
+		method: 'POST',
+		data: { expiry_seconds: settings.expirySeconds, max_count: settings.maxCount },
+	});
+}
+
 /**
  * GET /purecart/v1/downloads/log/export — trigger browser download of CSV.
  *

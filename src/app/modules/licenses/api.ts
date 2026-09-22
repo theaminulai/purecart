@@ -137,6 +137,43 @@ export async function fetchLicenseReportSummary(): Promise<LicenseReportSummary>
 	return purecartFetch<LicenseReportSummary>('/reports/licenses/summary');
 }
 
+export interface LicenseSettings {
+	deliveryStatus: 'completed' | 'processing' | 'both';
+	/** Auto-generated on first use; read-only here — no regenerate endpoint exists yet. */
+	jwtSecret: string;
+}
+
+interface RawLicenseSettings {
+	delivery_status: LicenseSettings['deliveryStatus'];
+	jwt_secret: string;
+}
+
+/**
+ * GET /purecart/v1/licenses/settings
+ *
+ * @since 1.0.0
+ */
+export async function fetchLicenseSettings(): Promise<LicenseSettings> {
+	const raw = await purecartFetch<RawLicenseSettings>('/licenses/settings');
+	return { deliveryStatus: raw.delivery_status, jwtSecret: raw.jwt_secret };
+}
+
+/**
+ * POST /purecart/v1/licenses/settings — `jwtSecret` is intentionally not
+ * accepted here (see includes/API/Licenses.php::save_settings()'s own
+ * docblock: rotating it isn't a side effect of saving this form).
+ *
+ * @since 1.0.0
+ */
+export async function saveLicenseSettings(
+	settings: Pick<LicenseSettings, 'deliveryStatus'>
+): Promise<void> {
+	await purecartFetch('/licenses/settings', {
+		method: 'POST',
+		data: { delivery_status: settings.deliveryStatus },
+	});
+}
+
 /**
  * GET /purecart/v1/licenses/export — trigger browser download of CSV.
  *

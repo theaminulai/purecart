@@ -9,6 +9,9 @@ declare( strict_types=1 );
 
 namespace PureCart\Downloads;
 
+use PureCart\Settings\OptionKeys;
+use PureCart\Settings\Settings;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -33,8 +36,8 @@ class TokenManager {
 			return null;
 		}
 
-		$expiry_secs = (int) get_option( 'purecart_download_expiry_seconds', DAY_IN_SECONDS );
-		$max_count   = (int) get_option( 'purecart_download_max_count', 3 );
+		$expiry_secs = (int) Settings::get( OptionKeys::DOWNLOAD_EXPIRY_SECONDS, DAY_IN_SECONDS );
+		$max_count   = (int) Settings::get( OptionKeys::DOWNLOAD_MAX_COUNT, 3 );
 		$token       = bin2hex( random_bytes( 32 ) );
 		$expires_at  = gmdate( 'Y-m-d H:i:s', time() + $expiry_secs );
 
@@ -217,7 +220,7 @@ class TokenManager {
 	public function regenerate( int $download_id ): ?object {
 		global $wpdb;
 
-		$expiry_secs = (int) get_option( 'purecart_download_expiry_seconds', DAY_IN_SECONDS );
+		$expiry_secs = (int) Settings::get( OptionKeys::DOWNLOAD_EXPIRY_SECONDS, DAY_IN_SECONDS );
 		$token       = bin2hex( random_bytes( 32 ) );
 		$expires_at  = gmdate( 'Y-m-d H:i:s', time() + $expiry_secs );
 

@@ -3,8 +3,8 @@
  *
  * Renders the title and optional description that mark the start of a
  * settings section, with a bottom border separating it from the fields
- * below. Scoped to the Subscriptions module's settings tab - not a generic
- * ui/ primitive, since nothing outside Subscriptions' Settings tab uses it.
+ * below. Scoped to the Settings module - not a generic ui/ primitive,
+ * since nothing outside Settings tabs uses it.
  *
  * @file
  * @since 1.0.0

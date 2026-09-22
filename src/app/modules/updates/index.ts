@@ -22,3 +22,4 @@ export * from './store/updates.slice';
 export * from './store/updates.selectors';
 
 export * from './types';
+export * from './api';
