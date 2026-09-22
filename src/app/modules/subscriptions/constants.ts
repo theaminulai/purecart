@@ -47,15 +47,15 @@ export const DISCOUNT_DURATIONS = [ 'Once', '3 months', '6 months', 'Forever' ] 
 /** SettingsSubscriptions' initial state before the real settings fetch resolves. */
 export const defaultSubscriptionSettings: SubscriptionSettings = {
 	enableSubscriptions: true, enableAutoRenewal: true, allowMixedCart: true,
-	oneTrialPerCustomer: true, avgLifetimeMonths: 24,
+	oneTrialPerCustomer: true, allowMultipleSubscriptions: true, avgLifetimeMonths: 24,
 	maxRetryAttempts: 3, retryIntervalDays: [ 1, 3, 5 ], activeGraceDays: 7,
 	suspendedGraceDays: 7, sendDunningEmails: true,
-	renewalReminderDays: [ 7, 3, 1 ], cardExpiryWarningDays: 30,
+	renewalReminderDays: [ 7, 3, 1 ], trialReminderDays: 3, cardExpiryWarningDays: 30,
 	enableRenewalSync: false, renewalSyncDate: 1,
 	defaultProrationMode: 'apply_at_renewal', allowCustomerUpgrade: true,
 	retentionFlowEnabled: true,
 	allowSelfPause: true, allowSelfCancel: true, allowEarlyRenewal: true,
-	allowSkipRenewal: true, skipLimitPerYear: 1,
+	allowSkipRenewal: true, skipLimitPerYear: 1, resubscribeWindowDays: 30,
 	trialRole: null, activeRole: null, cancelledRole: null,
 	subscribeSaveEnabled: true, discountType: 'percentage', discountValue: 15,
 	savingsBadgeLabel: 'Save 15% with a subscription',

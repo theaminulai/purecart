@@ -268,6 +268,7 @@ export interface SubscriptionSettings {
 	enableAutoRenewal: boolean;
 	allowMixedCart: boolean;
 	oneTrialPerCustomer: boolean;
+	allowMultipleSubscriptions: boolean;
 	avgLifetimeMonths: number;
 	// Billing & Dunning
 	maxRetryAttempts: number;
@@ -277,6 +278,7 @@ export interface SubscriptionSettings {
 	sendDunningEmails: boolean;
 	// Renewals & Reminders
 	renewalReminderDays: number[]; // e.g. [7, 3, 1]
+	trialReminderDays: number;
 	cardExpiryWarningDays: number;
 	enableRenewalSync: boolean;
 	renewalSyncDate: number; // day of month, 1-28
@@ -291,6 +293,7 @@ export interface SubscriptionSettings {
 	allowEarlyRenewal: boolean;
 	allowSkipRenewal: boolean;
 	skipLimitPerYear: number; // 0 = unlimited
+	resubscribeWindowDays: number; // days after cancel/expiry a resubscribe reuses the same record
 	// Role Mapping
 	trialRole: string | null;
 	activeRole: string | null;

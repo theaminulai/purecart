@@ -35,6 +35,15 @@ export function SubRenewalsSection( {
 				helpText="Comma-separated, e.g. 7, 3, 1"
 			/>
 			<SettingsField
+				label="Trial ending reminder days (before trial end)"
+				type="number"
+				suffix="days"
+				value={ settings.trialReminderDays }
+				onChange={ ( v ) =>
+					update( 'trialReminderDays', parseInt( v, 10 ) || 0 )
+				}
+			/>
+			<SettingsField
 				label="Card expiry warning days"
 				type="number"
 				suffix="days"

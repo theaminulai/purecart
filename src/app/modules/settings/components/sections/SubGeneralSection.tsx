@@ -43,6 +43,12 @@ export function SubGeneralSection( {
 				checked={ settings.oneTrialPerCustomer }
 				onChange={ ( v ) => update( 'oneTrialPerCustomer', v ) }
 			/>
+			<SettingsToggleField
+				label="Allow multiple active subscriptions"
+				checked={ settings.allowMultipleSubscriptions }
+				onChange={ ( v ) => update( 'allowMultipleSubscriptions', v ) }
+				helpText="Let a customer hold more than one active subscription at a time"
+			/>
 			<SettingsField
 				label="Average lifetime months (LTV)"
 				type="number"

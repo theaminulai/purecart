@@ -50,6 +50,16 @@ export function SubCustomerPortalSection( {
 					update( 'skipLimitPerYear', parseInt( v, 10 ) || 0 )
 				}
 			/>
+			<SettingsField
+				label="Resubscribe window"
+				type="number"
+				suffix="days"
+				value={ settings.resubscribeWindowDays }
+				onChange={ ( v ) =>
+					update( 'resubscribeWindowDays', parseInt( v, 10 ) || 0 )
+				}
+				helpText="Resubscribing within this many days of cancelling reuses the same record"
+			/>
 		</>
 	);
 }
