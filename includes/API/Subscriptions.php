@@ -11,6 +11,7 @@ namespace PureCart\API;
 
 use PureCart\Subscriptions\SubscriptionRepository;
 use PureCart\Subscriptions\SubscriptionLogRepository;
+use PureCart\Subscriptions\PaymentRepository;
 use PureCart\Subscriptions\SubscriptionManager;
 use PureCart\Subscriptions\SubscriptionReport;
 use PureCart\Subscriptions\RetentionFlow;
@@ -49,6 +50,9 @@ class Subscriptions extends PureCartApi {
 
 	/** @var SubscriptionLogRepository */
 	private SubscriptionLogRepository $logs;
+
+	/** @var PaymentRepository */
+	private PaymentRepository $payments;
 
 	/** @var SubscriptionManager */
 	private SubscriptionManager $manager;
@@ -95,6 +99,7 @@ class Subscriptions extends PureCartApi {
 	) {
 		$this->subscriptions  = new SubscriptionRepository();
 		$this->logs           = new SubscriptionLogRepository();
+		$this->payments       = new PaymentRepository();
 		$this->manager        = $manager;
 		$this->retention      = $retention;
 		$this->renewal_engine = $renewal_engine;
@@ -196,6 +201,16 @@ class Subscriptions extends PureCartApi {
 			array(
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_logs' ),
+				'permission_callback' => array( $this, 'permission_admin' ),
+			)
+		);
+
+		register_rest_route(
+			$ns,
+			$base . '/(?P<id>\d+)/payments',
+			array(
+				'methods'             => \WP_REST_Server::READABLE,
+				'callback'            => array( $this, 'get_payments' ),
 				'permission_callback' => array( $this, 'permission_admin' ),
 			)
 		);
@@ -594,6 +609,23 @@ class Subscriptions extends PureCartApi {
 		}
 
 		return rest_ensure_response( $this->logs->find_by_subscription( $id ) );
+	}
+
+	/**
+	 * GET /subscriptions/{id}/payments — the "Payment Log" tab's per-charge
+	 * ledger (see {@see PaymentRepository::find_by_subscription()}).
+	 *
+	 * @since 1.0.0
+	 * @param \WP_REST_Request $request REST request.
+	 * @return \WP_REST_Response|\WP_Error
+	 */
+	public function get_payments( \WP_REST_Request $request ): \WP_REST_Response|\WP_Error {
+		$id = (int) $request->get_param( 'id' );
+		if ( ! $this->subscriptions->find( $id ) ) {
+			return $this->not_found();
+		}
+
+		return rest_ensure_response( $this->payments->find_by_subscription( $id ) );
 	}
 
 	/**
