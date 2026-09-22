@@ -244,6 +244,106 @@ class LicenseGenerator {
 		return false !== $updated;
 	}
 
+	// -----------------------------------------------------------------------
+	// Admin dashboard support
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Every license, newest first, with the product name and customer
+	 * name/email joined in — the admin Licenses list needs both and this is
+	 * the one place that lookup happens, so API\Licenses stays a thin adapter.
+	 *
+	 * @since 1.0.0
+	 * @return array<int, object>
+	 */
+	public function find_all(): array {
+		global $wpdb;
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin listing; must reflect a just-issued/just-revoked license.
+		return $wpdb->get_results(
+			"SELECT l.*, p.post_title AS product_name, u.display_name AS customer_name, u.user_email AS customer_email
+               FROM {$wpdb->prefix}purecart_licenses l
+               LEFT JOIN {$wpdb->posts} p ON p.ID = l.product_id
+               LEFT JOIN {$wpdb->users} u ON u.ID = l.user_id
+           ORDER BY l.created_at DESC"
+		) ?: array();
+	}
+
+	/**
+	 * Counts behind the Licenses list's KPI strip.
+	 *
+	 * @since 1.0.0
+	 * @return array{total: int, active: int, expiring_30d: int, revoked: int}
+	 */
+	public function stats(): array {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'purecart_licenses';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Admin KPI strip, must reflect the current table state; {$table} is not user input.
+		$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above; status is bound below.
+		$active = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE status = %s", 'active' ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above; status is bound below.
+		$revoked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE status = %s", 'revoked' ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above; all values are bound below.
+		$expiring_30d = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$table} WHERE status = %s AND expires_at IS NOT NULL AND expires_at BETWEEN %s AND %s",
+				'active',
+				current_time( 'mysql' ),
+				gmdate( 'Y-m-d H:i:s', strtotime( '+30 days' ) )
+			)
+		);
+
+		return array(
+			'total'        => $total,
+			'active'       => $active,
+			'expiring_30d' => $expiring_30d,
+			'revoked'      => $revoked,
+		);
+	}
+
+	/**
+	 * Same product/customer join as find_all(), for one license.
+	 *
+	 * @since 1.0.0
+	 * @param int $license_id License row ID.
+	 * @return object|null
+	 */
+	public function get_by_id_with_details( int $license_id ): ?object {
+		global $wpdb;
+
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- License detail view; must reflect current status.
+		return $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT l.*, p.post_title AS product_name, u.display_name AS customer_name, u.user_email AS customer_email
+                   FROM {$wpdb->prefix}purecart_licenses l
+                   LEFT JOIN {$wpdb->posts} p ON p.ID = l.product_id
+                   LEFT JOIN {$wpdb->users} u ON u.ID = l.user_id
+                  WHERE l.id = %d",
+				$license_id
+			)
+		) ?: null;
+	}
+
+	/**
+	 * Issue a fresh license for the same order/user/product as an existing
+	 * one — the "Duplicate License" row action.
+	 *
+	 * @since 1.0.0
+	 * @param int $license_id License row ID to copy.
+	 * @return object|null The new license row, or null if the source doesn't exist.
+	 */
+	public function duplicate( int $license_id ): ?object {
+		$source = $this->get_by_id( $license_id );
+		if ( ! $source ) {
+			return null;
+		}
+
+		return $this->create( (int) $source->order_id, (int) $source->user_id, (int) $source->product_id );
+	}
+
 	/** Generate a formatted license key: XXXXXX-XXXXXX-XXXXXX-XXXXXX */
 	private function generate_key(): string {
 		$segments = array();
