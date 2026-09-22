@@ -9,7 +9,7 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsSelectField } from '@/modules/subscriptions';
+import { SettingsSelectField } from '../shared';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 const ROLE_OPTIONS = [
@@ -28,12 +28,30 @@ const ROLE_OPTIONS = [
  *
  * @return {JSX.Element} The Role Mapping section fields.
  */
-export function SubRoleMappingSection( { settings, update }: SettingsSectionProps ) {
+export function SubRoleMappingSection( {
+	settings,
+	update,
+}: SettingsSectionProps ) {
 	return (
 		<>
-			<SettingsSelectField label="Trial role" value={ settings.trialRole ?? '' } options={ ROLE_OPTIONS } onChange={ ( v ) => update( 'trialRole', v || null ) } />
-			<SettingsSelectField label="Active role" value={ settings.activeRole ?? '' } options={ ROLE_OPTIONS } onChange={ ( v ) => update( 'activeRole', v || null ) } />
-			<SettingsSelectField label="Cancelled role" value={ settings.cancelledRole ?? '' } options={ ROLE_OPTIONS } onChange={ ( v ) => update( 'cancelledRole', v || null ) } />
+			<SettingsSelectField
+				label="Trial role"
+				value={ settings.trialRole ?? '' }
+				options={ ROLE_OPTIONS }
+				onChange={ ( v ) => update( 'trialRole', v || null ) }
+			/>
+			<SettingsSelectField
+				label="Active role"
+				value={ settings.activeRole ?? '' }
+				options={ ROLE_OPTIONS }
+				onChange={ ( v ) => update( 'activeRole', v || null ) }
+			/>
+			<SettingsSelectField
+				label="Cancelled role"
+				value={ settings.cancelledRole ?? '' }
+				options={ ROLE_OPTIONS }
+				onChange={ ( v ) => update( 'cancelledRole', v || null ) }
+			/>
 		</>
 	);
 }

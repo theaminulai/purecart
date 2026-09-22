@@ -5,7 +5,11 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsSelectField, SettingsField, SettingsToggleField } from '@/modules/subscriptions';
+import {
+	SettingsSelectField,
+	SettingsField,
+	SettingsToggleField,
+} from '../shared';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 const LMS_OPTIONS = [
@@ -24,19 +28,51 @@ const LMS_OPTIONS = [
  *
  * @return {JSX.Element} The Courses / LMS section fields.
  */
-export function SubCoursesSection( { settings, update }: SettingsSectionProps ) {
+export function SubCoursesSection( {
+	settings,
+	update,
+}: SettingsSectionProps ) {
 	return (
 		<>
 			<SettingsSelectField
 				label="LMS integration"
 				value={ settings.lmsIntegration }
 				options={ LMS_OPTIONS }
-				onChange={ ( v ) => update( 'lmsIntegration', v as typeof settings.lmsIntegration ) }
+				onChange={ ( v ) =>
+					update(
+						'lmsIntegration',
+						v as typeof settings.lmsIntegration
+					)
+				}
 			/>
-			<SettingsField label="LMS API key" type="text" value={ settings.lmsApiKey } onChange={ ( v ) => update( 'lmsApiKey', v ) } />
-			<SettingsField label="Default course access duration" suffix="months" type="number" value={ settings.defaultCourseAccessMonths } onChange={ ( v ) => update( 'defaultCourseAccessMonths', parseInt( v, 10 ) || 0 ) } />
-			<SettingsToggleField label="Enroll on trial start" checked={ settings.enrollOnTrialStart } onChange={ ( v ) => update( 'enrollOnTrialStart', v ) } />
-			<SettingsToggleField label="Revoke enrollment on cancellation" checked={ settings.revokeEnrollmentOnCancel } onChange={ ( v ) => update( 'revokeEnrollmentOnCancel', v ) } />
+			<SettingsField
+				label="LMS API key"
+				type="text"
+				value={ settings.lmsApiKey }
+				onChange={ ( v ) => update( 'lmsApiKey', v ) }
+			/>
+			<SettingsField
+				label="Default course access duration"
+				suffix="months"
+				type="number"
+				value={ settings.defaultCourseAccessMonths }
+				onChange={ ( v ) =>
+					update(
+						'defaultCourseAccessMonths',
+						parseInt( v, 10 ) || 0
+					)
+				}
+			/>
+			<SettingsToggleField
+				label="Enroll on trial start"
+				checked={ settings.enrollOnTrialStart }
+				onChange={ ( v ) => update( 'enrollOnTrialStart', v ) }
+			/>
+			<SettingsToggleField
+				label="Revoke enrollment on cancellation"
+				checked={ settings.revokeEnrollmentOnCancel }
+				onChange={ ( v ) => update( 'revokeEnrollmentOnCancel', v ) }
+			/>
 		</>
 	);
 }

@@ -7,5 +7,7 @@ export {
 	subscriptionDetailPath,
 	LICENSE_DETAIL_PATH,
 	licenseDetailPath,
+	SETTINGS_TAB_PATH,
+	settingsTabPath,
 	getPageFromPath,
 } from './paths';
