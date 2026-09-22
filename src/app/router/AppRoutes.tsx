@@ -23,7 +23,7 @@ import {
 import { OverviewPage } from '@/modules/overview';
 
 // Downloads
-import { DownloadsPage } from '@/modules/downloads';
+import { DownloadsPage, DownloadsPageSkeleton } from '@/modules/downloads';
 
 // Licenses
 import {
@@ -111,7 +111,11 @@ export function AppRoutes() {
 			{ /* Downloads */ }
 			<Route
 				path={ PAGE_PATHS.downloads }
-				element={ <DownloadsPage /> }
+				element={
+					<Suspense key="downloads" fallback={ <DownloadsPageSkeleton /> }>
+						<DownloadsPage />
+					</Suspense>
+				}
 			/>
 
 			{ /* Updates */ }
