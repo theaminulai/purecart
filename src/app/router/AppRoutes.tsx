@@ -39,6 +39,7 @@ import {
 	UpdatesPageSkeleton,
 	UpdateAnalyticsPage,
 } from '@/modules/updates';
+// Module stubs
 import { SaasAccountsPage } from '@/modules/saas-accounts';
 import { AffiliatesPage } from '@/modules/affiliates';
 import { AbandonedCartPage } from '@/modules/abandoned-cart';
