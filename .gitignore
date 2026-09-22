@@ -13,9 +13,12 @@ yarn-error.log
 package-lock.json
 yarn.lock
 
-# Build output 
+# Build output
 /dist/
 /build/
+
+# Design reference app (Figma export) - reference only, never edited or shipped
+/docs/app/
 
 # PHP tools 
 /.phpunit.cache/

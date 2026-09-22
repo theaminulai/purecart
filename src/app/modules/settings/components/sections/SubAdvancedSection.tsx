@@ -4,7 +4,7 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsTextareaField, SettingsToggleField } from '@/modules/subscriptions';
+import { SettingsTextareaField, SettingsToggleField } from '../shared';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 /**
@@ -16,7 +16,10 @@ import type { SettingsSectionProps } from '../settingsSectionTypes';
  *
  * @return {JSX.Element} The Advanced section fields.
  */
-export function SubAdvancedSection( { settings, update }: SettingsSectionProps ) {
+export function SubAdvancedSection( {
+	settings,
+	update,
+}: SettingsSectionProps ) {
 	return (
 		<>
 			<SettingsTextareaField
@@ -31,8 +34,16 @@ export function SubAdvancedSection( { settings, update }: SettingsSectionProps )
 				value={ settings.gatewayMetaKeys }
 				onChange={ ( v ) => update( 'gatewayMetaKeys', v ) }
 			/>
-			<SettingsToggleField label="Cancel SaaS immediately" checked={ settings.cancelSaasImmediately } onChange={ ( v ) => update( 'cancelSaasImmediately', v ) } />
-			<SettingsToggleField label="Debug mode" checked={ settings.debugMode } onChange={ ( v ) => update( 'debugMode', v ) } />
+			<SettingsToggleField
+				label="Cancel SaaS immediately"
+				checked={ settings.cancelSaasImmediately }
+				onChange={ ( v ) => update( 'cancelSaasImmediately', v ) }
+			/>
+			<SettingsToggleField
+				label="Debug mode"
+				checked={ settings.debugMode }
+				onChange={ ( v ) => update( 'debugMode', v ) }
+			/>
 		</>
 	);
 }

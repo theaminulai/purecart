@@ -3,28 +3,31 @@
  *
  * Renders a label above a <textarea> for multi-line settings values (e.g.
  * one-domain-per-line lists, notes templates). Label sits above the field
- * rather than beside it, since a textarea needs the full row width. Scoped
- * to the Subscriptions module - not a generic ui/ primitive, since nothing
- * outside Subscriptions' Settings tab uses it.
+ * rather than beside it, since a textarea needs the full row width.
+ * Composes the shared ui/Textarea rather than styling its own <textarea>,
+ * so the field's look lives in one place. The label + row layout here is
+ * scoped to Settings - not a generic ui/ primitive, since nothing outside
+ * Settings tabs uses this row shape.
  *
  * @file
  * @since 1.0.0
  */
 import { M3 } from '@/theme';
+import { Textarea } from '@/shared/ui/Textarea';
 
 /**
  * Renders a stacked label + textarea settings field.
  *
  * @since 1.0.0
  *
- * @param {Object}   props              Component props.
- * @param {string}   props.label        Field label.
- * @param {string}   props.value        Current textarea value.
- * @param {Function} props.onChange     Callback invoked with the new raw text on change.
- * @param {number}   [props.rows]       Visible row count, defaults to 3.
+ * @param {Object}   props               Component props.
+ * @param {string}   props.label         Field label.
+ * @param {string}   props.value         Current textarea value.
+ * @param {Function} props.onChange      Callback invoked with the new raw text on change.
+ * @param {number}   [props.rows]        Visible row count, defaults to 3.
  * @param {string}   [props.placeholder] Placeholder text shown when empty.
- * @param {string}   [props.helpText]   Optional muted helper text shown under the label.
- * @param {boolean}  [props.disabled]   Disables the textarea when true.
+ * @param {string}   [props.helpText]    Optional muted helper text shown under the label.
+ * @param {boolean}  [props.disabled]    Disables the textarea when true.
  *
  * @return {JSX.Element} The settings textarea field.
  */
@@ -46,7 +49,7 @@ export function SettingsTextareaField( {
 	disabled?: boolean;
 } ) {
 	return (
-		<div className="py-2.5">
+		<div className="py-3">
 			<div
 				className="text-sm mb-1"
 				style={ {
@@ -67,24 +70,12 @@ export function SettingsTextareaField( {
 					{ helpText }
 				</div>
 			) }
-			<textarea
+			<Textarea
 				value={ value }
+				onChange={ onChange }
 				rows={ rows }
 				placeholder={ placeholder }
 				disabled={ disabled }
-				onChange={ ( e ) => onChange( e.target.value ) }
-				className="w-full rounded-lg outline-none resize-y"
-				style={ {
-					padding: '8px 10px',
-					fontSize: 13,
-					fontFamily: 'Roboto Mono, monospace',
-					color: M3.onSurface,
-					backgroundColor: disabled
-						? M3.surfaceContainer
-						: M3.surfaceContainerLow,
-					border: `1px solid ${ M3.outlineVariant }`,
-					opacity: disabled ? 0.6 : 1,
-				} }
 			/>
 		</div>
 	);

@@ -4,7 +4,7 @@
  * @file
  * @since 1.0.0
  */
-import { SettingsSelectField, SettingsToggleField } from '@/modules/subscriptions';
+import { SettingsSelectField, SettingsToggleField } from '../shared';
 import type { SettingsSectionProps } from '../settingsSectionTypes';
 
 const PRORATION_OPTIONS = [
@@ -22,16 +22,28 @@ const PRORATION_OPTIONS = [
  *
  * @return {JSX.Element} The Upgrade / Downgrade section fields.
  */
-export function SubUpgradeDowngradeSection( { settings, update }: SettingsSectionProps ) {
+export function SubUpgradeDowngradeSection( {
+	settings,
+	update,
+}: SettingsSectionProps ) {
 	return (
 		<>
 			<SettingsSelectField
 				label="Default proration mode"
 				value={ settings.defaultProrationMode }
 				options={ PRORATION_OPTIONS }
-				onChange={ ( v ) => update( 'defaultProrationMode', v as typeof settings.defaultProrationMode ) }
+				onChange={ ( v ) =>
+					update(
+						'defaultProrationMode',
+						v as typeof settings.defaultProrationMode
+					)
+				}
 			/>
-			<SettingsToggleField label="Allow customer upgrade/downgrade" checked={ settings.allowCustomerUpgrade } onChange={ ( v ) => update( 'allowCustomerUpgrade', v ) } />
+			<SettingsToggleField
+				label="Allow customer upgrade/downgrade"
+				checked={ settings.allowCustomerUpgrade }
+				onChange={ ( v ) => update( 'allowCustomerUpgrade', v ) }
+			/>
 		</>
 	);
 }

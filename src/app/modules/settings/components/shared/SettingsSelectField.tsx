@@ -1,15 +1,17 @@
 /**
  * SettingsSelectField component.
  *
- * Renders a label + <select> row for the Subscriptions settings tab, styled
- * to match SettingsField's layout. Scoped to the Subscriptions module - not
- * a generic ui/ primitive, since nothing outside Subscriptions' Settings tab
- * uses it.
+ * Renders a label + dropdown row shared by every Settings tab, matching
+ * SettingsField's layout. Composes the shared ui/Select rather than
+ * styling its own <select>, so the dropdown's look lives in one place. The
+ * label + row layout here is scoped to Settings - not a generic ui/
+ * primitive, since nothing outside Settings tabs uses this row shape.
  *
  * @file
  * @since 1.0.0
  */
 import { M3 } from '@/theme';
+import { Select } from '@/shared/ui/Select';
 
 /**
  * Renders a label-left, dropdown-right settings row.
@@ -42,8 +44,8 @@ export function SettingsSelectField( {
 	disabled?: boolean;
 } ) {
 	return (
-		<div className="flex items-center justify-between gap-4 py-2.5">
-			<div>
+		<div className="flex items-start justify-between gap-4 py-3">
+			<div className="flex-1">
 				<div
 					className="text-sm"
 					style={ {
@@ -65,30 +67,12 @@ export function SettingsSelectField( {
 					</div>
 				) }
 			</div>
-			<select
+			<Select
 				value={ value }
+				options={ options }
+				onChange={ onChange }
 				disabled={ disabled }
-				onChange={ ( e ) => onChange( e.target.value ) }
-				className="rounded-lg outline-none flex-shrink-0"
-				style={ {
-					minWidth: 180,
-					padding: '6px 10px',
-					fontSize: 13,
-					fontFamily: 'Roboto, sans-serif',
-					color: M3.onSurface,
-					backgroundColor: disabled
-						? M3.surfaceContainer
-						: M3.surfaceContainerLow,
-					border: `1px solid ${ M3.outlineVariant }`,
-					opacity: disabled ? 0.6 : 1,
-				} }
-			>
-				{ options.map( ( opt ) => (
-					<option key={ opt.value } value={ opt.value }>
-						{ opt.label }
-					</option>
-				) ) }
-			</select>
+			/>
 		</div>
 	);
 }
