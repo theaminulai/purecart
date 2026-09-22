@@ -127,6 +127,8 @@ class SubscriptionReport {
 				substr( $period_end, 0, 10 )
 			),
 			'currency'              => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'USD',
+			'dunning_funnel'        => $this->dunning_funnel(),
+			'churn_by_reason'       => $this->churn_by_reason( $period_start, $period_end ),
 		);
 	}
 
@@ -299,6 +301,73 @@ class SubscriptionReport {
 		}
 
 		return $bands;
+	}
+
+	/**
+	 * Dunning retry attempts, bucketed by attempt number, with how many
+	 * failed vs. recovered at each stage.
+	 *
+	 * DunningManager logs 'dunning_retry_failed'/'dunning_retry_succeeded'
+	 * with a note of "attempt N" (1-indexed) per SubscriptionLogRepository's
+	 * dunning_attempt_counts(); this just parses that into a funnel shape.
+	 *
+	 * @since 1.0.0
+	 * @return array<int, array{attempt: int, failed: int, recovered: int}>
+	 */
+	public function dunning_funnel(): array {
+		$stages = array();
+
+		foreach ( $this->logs->dunning_attempt_counts() as $row ) {
+			if ( ! preg_match( '/attempt\s+(\d+)/i', (string) $row->note, $m ) ) {
+				continue;
+			}
+
+			$attempt = (int) $m[1];
+			if ( ! isset( $stages[ $attempt ] ) ) {
+				$stages[ $attempt ] = array(
+					'attempt'   => $attempt,
+					'failed'    => 0,
+					'recovered' => 0,
+				);
+			}
+
+			if ( 'dunning_retry_succeeded' === $row->event ) {
+				$stages[ $attempt ]['recovered'] += (int) $row->total;
+			} else {
+				$stages[ $attempt ]['failed'] += (int) $row->total;
+			}
+		}
+
+		ksort( $stages );
+
+		return array_values( $stages );
+	}
+
+	/**
+	 * Cancellation counts grouped by the reason the customer selected,
+	 * within a date range.
+	 *
+	 * Reason slugs match RetentionFlow::get_reasons() — this returns the raw
+	 * slugs rather than resolving labels, since the caller (the REST layer,
+	 * ultimately the admin SPA) already fetches that canonical slug => label
+	 * map for the cancellation flow itself and can reuse it here.
+	 *
+	 * @since 1.0.0
+	 * @param string $period_start Inclusive range start (MySQL datetime).
+	 * @param string $period_end   Inclusive range end (MySQL datetime).
+	 * @return array<int, array{reason: string, count: int}>
+	 */
+	public function churn_by_reason( string $period_start, string $period_end ): array {
+		$rows = array();
+
+		foreach ( $this->logs->cancellation_reason_counts( $period_start, $period_end ) as $row ) {
+			$rows[] = array(
+				'reason' => (string) $row->reason,
+				'count'  => (int) $row->total,
+			);
+		}
+
+		return $rows;
 	}
 
 	/**

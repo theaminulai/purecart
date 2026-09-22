@@ -1,15 +1,14 @@
 /**
  * SubscriptionAnalyticsPage - subscription analytics dashboard.
  *
- * Built from scratch (didn't exist anywhere in this repo before). KPI grid,
- * date-range toggle (only affects the MRR/ARR/NRR trend chart), 5 charts,
+ * KPI grid, date-range toggle (only affects the revenue trend chart), charts,
  * an extended churn risk table, and a read-only revenue goals widget.
  *
- * Most datasets here (trend/mix/revenue-by-type/dunning-funnel/churn-by-
- * reason) have no documented REST endpoint yet, so they're read directly
- * from static-data.tsx rather than through utils/api.ts - only
- * fetchRevenueGoals()/fetchChurnRisk() go through the dummy API layer,
- * since those two are the ones with real endpoints in the backend plan.
+ * Every dataset here now comes from real data: revenue trend / dunning
+ * funnel / churn-by-reason come from GET /reports/subscriptions/summary
+ * (SubscriptionReport::summary()), subscription mix / revenue-by-type are
+ * computed client-side from the already-loaded real subscriptions list, and
+ * revenue goals / churn risk go through their existing endpoints.
  *
  * @file
  * @since 1.0.0
@@ -20,16 +19,13 @@ import {
 	PieChart, Pie, Cell, BarChart, Bar, Legend,
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Users, UserPlus, TrendingDown, DollarSign, TrendingUp, Repeat, HeartPulse, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Users, UserPlus, TrendingDown, DollarSign, TrendingUp, HeartPulse, AlertTriangle } from 'lucide-react';
 import { M3 } from '@/theme';
 import {
-	subMrrArrData,
-	subTypeMix,
-	subRevenueByType,
-	dunningFunnelData,
-	churnByReasonData,
-} from '@/app/utils/static-data';
-import { fetchRevenueGoals, fetchChurnRisk } from '../api';
+	fetchRevenueGoals, fetchChurnRisk, fetchSubscriptionReportSummary,
+	type RevenueMonthPoint, type DunningFunnelStage, type ChurnReasonCount,
+} from '../api';
+import { fetchCancellationReasons } from '@/modules/subscriptions/api';
 import {
 	computeMRR, countNewThisMonth, computeChurnRatePct, computeAvgLtv, addBillingInterval,
 	selectSubscriptionItems, loadSubscriptions,
@@ -41,17 +37,66 @@ import { OutlinedButton } from '@/shared/ui/OutlinedButton';
 import { useSubscriptionActions } from '@/modules/subscriptions';
 import { ChurnRiskTable } from './ChurnRiskTable';
 import { RevenueGoalsWidget } from './RevenueGoalsWidget';
-import type { RevenueGoal, ChurnRiskEntry } from '@/modules/subscriptions';
+import type { RevenueGoal, ChurnRiskEntry, SubscriptionRecord, SubscriptionDeliveryType } from '@/modules/subscriptions';
 
 const RANGE_OPTIONS = [ '30d', '3m', '6m', '12m' ] as const;
 type Range = ( typeof RANGE_OPTIONS )[ number ];
 
-/** Slices subMrrArrData per the selected date-range toggle. */
-function sliceTrend( range: Range ) {
-	if ( range === '30d' ) return subMrrArrData.slice( -1 );
-	if ( range === '3m' ) return subMrrArrData.slice( -3 );
-	if ( range === '6m' ) return subMrrArrData.slice( -6 );
-	return subMrrArrData;
+const DELIVERY_TYPE_LABELS: Record< SubscriptionDeliveryType, string > = {
+	software: 'Software', saas: 'SaaS', membership: 'Membership',
+	download: 'Download', course: 'Course', service: 'Service',
+};
+
+const DELIVERY_TYPE_COLORS: Record< SubscriptionDeliveryType, string > = {
+	software: M3.primary, saas: M3.secondary, membership: M3.info,
+	download: M3.success, course: M3.warning, service: M3.onSurfaceVariant,
+};
+
+/** How many subscriptions of each delivery type, for the mix pie chart. */
+function computeTypeMix( subscriptions: SubscriptionRecord[] ) {
+	const counts: Partial< Record< SubscriptionDeliveryType, number > > = {};
+	for ( const s of subscriptions ) counts[ s.deliveryType ] = ( counts[ s.deliveryType ] ?? 0 ) + 1;
+
+	return Object.entries( counts ).map( ( [ type, value ] ) => ( {
+		name: DELIVERY_TYPE_LABELS[ type as SubscriptionDeliveryType ],
+		value,
+		color: DELIVERY_TYPE_COLORS[ type as SubscriptionDeliveryType ],
+	} ) );
+}
+
+/** Recurring revenue from active subscriptions, summed by delivery type. */
+function computeRevenueByType( subscriptions: SubscriptionRecord[] ) {
+	const totals: Partial< Record< SubscriptionDeliveryType, number > > = {};
+	for ( const s of subscriptions ) {
+		if ( s.status !== 'active' ) continue;
+		totals[ s.deliveryType ] = ( totals[ s.deliveryType ] ?? 0 ) + s.amountRaw;
+	}
+
+	return Object.entries( totals ).map( ( [ type, revenue ] ) => ( {
+		type: DELIVERY_TYPE_LABELS[ type as SubscriptionDeliveryType ],
+		revenue: Math.round( revenue ),
+	} ) );
+}
+
+/** "1st", "2nd", "3rd", "4th retry" ... for the dunning funnel's x-axis. */
+function ordinalRetryLabel( attempt: number ): string {
+	const suffix = [ 'th', 'st', 'nd', 'rd' ][ attempt % 10 > 3 || Math.floor( ( attempt % 100 ) / 10 ) === 1 ? 0 : attempt % 10 ] ?? 'th';
+	return `${ attempt }${ suffix } retry`;
+}
+
+/** Short month label ('Jan', 'Feb', ...) from a 'YYYY-MM' bucket. */
+function monthLabel( yyyyMm: string ): string {
+	const [ year, month ] = yyyyMm.split( '-' ).map( Number );
+	if ( ! year || ! month ) return yyyyMm;
+	return new Date( year, month - 1, 1 ).toLocaleDateString( 'en-US', { month: 'short' } );
+}
+
+/** Slices the revenue trend per the selected date-range toggle. */
+function sliceTrend( data: RevenueMonthPoint[], range: Range ) {
+	if ( range === '30d' ) return data.slice( -1 );
+	if ( range === '3m' ) return data.slice( -3 );
+	if ( range === '6m' ) return data.slice( -6 );
+	return data;
 }
 
 /**
@@ -70,23 +115,36 @@ export function SubscriptionAnalyticsPage() {
 	const [ range, setRange ] = useState< Range >( '6m' );
 	const [ goals, setGoals ] = useState< RevenueGoal[] >( [] );
 	const [ churnRisk, setChurnRisk ] = useState< ChurnRiskEntry[] >( [] );
+	const [ revenueByMonth, setRevenueByMonth ] = useState< RevenueMonthPoint[] >( [] );
+	const [ dunningFunnel, setDunningFunnel ] = useState< DunningFunnelStage[] >( [] );
+	const [ churnByReason, setChurnByReason ] = useState< ChurnReasonCount[] >( [] );
+	const [ reasonLabels, setReasonLabels ] = useState< Record< string, string > >( {} );
 	const { showToast, openDialog, closeDialog, openBulkDiscount, updateRow, modals } = useSubscriptionActions();
 
 	useEffect( () => {
 		fetchRevenueGoals().then( setGoals );
 		fetchChurnRisk().then( setChurnRisk );
+		fetchCancellationReasons().then( setReasonLabels );
+		fetchSubscriptionReportSummary().then( ( summary ) => {
+			setRevenueByMonth( summary.revenue_by_month );
+			setDunningFunnel( summary.dunning_funnel );
+			setChurnByReason( summary.churn_by_reason );
+		} );
 	}, [] );
 
 	const mrr = computeMRR( subscriptions );
 	const arr = mrr * 12;
-	const nrr = subMrrArrData[ subMrrArrData.length - 1 ]?.nrr ?? 0;
 	const activeSubs = subscriptions.filter( ( r ) => r.status === 'active' ).length;
 	const newThisMonth = countNewThisMonth( subscriptions );
 	const churnRatePct = computeChurnRatePct( subscriptions );
 	const avgLtv = computeAvgLtv( subscriptions );
 	const atRiskCount = subscriptions.filter( ( r ) => r.churnRiskScore > 50 ).length;
 
-	const trendData = sliceTrend( range );
+	const trendData = sliceTrend( revenueByMonth, range ).map( ( p ) => ( { month: monthLabel( p.month ), revenue: p.total } ) );
+	const typeMix = computeTypeMix( subscriptions );
+	const revenueByType = computeRevenueByType( subscriptions );
+	const funnelData = dunningFunnel.map( ( f ) => ( { attempt: ordinalRetryLabel( f.attempt ), recovered: f.recovered } ) );
+	const reasonData = churnByReason.map( ( r ) => ( { label: reasonLabels[ r.reason ] ?? r.reason, count: r.count } ) );
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -119,7 +177,6 @@ export function SubscriptionAnalyticsPage() {
 				<KpiCard label="Churn Rate" value={ `${ churnRatePct.toFixed( 1 ) }%` } trend="live" trendUp={ false } icon={ TrendingDown } />
 				<KpiCard label="Sub MRR" value={ `$${ Math.round( mrr ).toLocaleString() }` } trend="live" trendUp icon={ DollarSign } />
 				<KpiCard label="ARR" value={ `$${ Math.round( arr ).toLocaleString() }` } trend="live" trendUp icon={ TrendingUp } />
-				<KpiCard label="Net Revenue Retention" value={ `${ nrr }%` } trend="from trend data" trendUp icon={ Repeat } />
 				<KpiCard label="Avg LTV" value={ `$${ Math.round( avgLtv ).toLocaleString() }` } trend="live" trendUp icon={ HeartPulse } />
 				<KpiCard label="At-Risk Subs" value={ String( atRiskCount ) } trend="live" trendUp={ false } icon={ AlertTriangle } />
 			</div>
@@ -128,19 +185,16 @@ export function SubscriptionAnalyticsPage() {
 			<div className="grid grid-cols-2 gap-5">
 				<div className="p-5 rounded-xl" style={ { backgroundColor: M3.surface } }>
 					<div className="text-sm font-semibold mb-3" style={ { color: M3.onSurface, fontFamily: 'Roboto, sans-serif' } }>
-						MRR / ARR / NRR Trend
+						Revenue Trend
 					</div>
 					<ResponsiveContainer width="100%" height={ 240 }>
 						<LineChart data={ trendData }>
 							<CartesianGrid strokeDasharray="3 3" stroke={ M3.outlineVariant } />
 							<XAxis dataKey="month" tick={ { fontSize: 11 } } />
-							<YAxis yAxisId="left" tick={ { fontSize: 11 } } />
-							<YAxis yAxisId="right" orientation="right" tick={ { fontSize: 11 } } />
+							<YAxis tick={ { fontSize: 11 } } />
 							<Tooltip />
 							<Legend />
-							<Line yAxisId="left" type="monotone" dataKey="mrr" stroke={ M3.primary } name="MRR" />
-							<Line yAxisId="left" type="monotone" dataKey="arr" stroke={ M3.secondary } name="ARR" />
-							<Line yAxisId="right" type="monotone" dataKey="nrr" stroke={ M3.info } strokeDasharray="4 4" name="NRR %" />
+							<Line type="monotone" dataKey="revenue" stroke={ M3.primary } name="Recognized Revenue" />
 						</LineChart>
 					</ResponsiveContainer>
 				</div>
@@ -151,8 +205,8 @@ export function SubscriptionAnalyticsPage() {
 					</div>
 					<ResponsiveContainer width="100%" height={ 240 }>
 						<PieChart>
-							<Pie data={ subTypeMix } dataKey="value" nameKey="name" outerRadius={ 90 } label>
-								{ subTypeMix.map( ( d, i ) => <Cell key={ i } fill={ d.color } /> ) }
+							<Pie data={ typeMix } dataKey="value" nameKey="name" outerRadius={ 90 } label>
+								{ typeMix.map( ( d, i ) => <Cell key={ i } fill={ d.color } /> ) }
 							</Pie>
 							<Tooltip />
 							<Legend />
@@ -165,7 +219,7 @@ export function SubscriptionAnalyticsPage() {
 						Revenue by Type
 					</div>
 					<ResponsiveContainer width="100%" height={ 240 }>
-						<BarChart data={ subRevenueByType } layout="vertical">
+						<BarChart data={ revenueByType } layout="vertical">
 							<CartesianGrid strokeDasharray="3 3" stroke={ M3.outlineVariant } />
 							<XAxis type="number" tick={ { fontSize: 11 } } />
 							<YAxis type="category" dataKey="type" tick={ { fontSize: 11 } } width={ 80 } />
@@ -180,7 +234,7 @@ export function SubscriptionAnalyticsPage() {
 						Dunning Funnel
 					</div>
 					<ResponsiveContainer width="100%" height={ 240 }>
-						<BarChart data={ dunningFunnelData }>
+						<BarChart data={ funnelData }>
 							<CartesianGrid strokeDasharray="3 3" stroke={ M3.outlineVariant } />
 							<XAxis dataKey="attempt" tick={ { fontSize: 11 } } />
 							<YAxis tick={ { fontSize: 11 } } />
@@ -196,8 +250,8 @@ export function SubscriptionAnalyticsPage() {
 					</div>
 					<ResponsiveContainer width="100%" height={ 240 }>
 						<PieChart>
-							<Pie data={ churnByReasonData } dataKey="count" nameKey="label" outerRadius={ 90 } label>
-								{ churnByReasonData.map( ( _, i ) => (
+							<Pie data={ reasonData } dataKey="count" nameKey="label" outerRadius={ 90 } label>
+								{ reasonData.map( ( _, i ) => (
 									<Cell key={ i } fill={ [ M3.primary, M3.secondary, M3.info, M3.warning, M3.onSurfaceVariant ][ i % 5 ] } />
 								) ) }
 							</Pie>
