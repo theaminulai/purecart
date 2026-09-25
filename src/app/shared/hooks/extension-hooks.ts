@@ -21,6 +21,22 @@
 export const SUBSCRIPTION_ACTIONS_FILTER = 'purecart/dashboard/subscriptionActions';
 
 /**
+ * Filter — the row-action menu (⋮) items built for one SaaS account.
+ *
+ * Same contract as SUBSCRIPTION_ACTIONS_FILTER, for the other module whose
+ * rows carry a per-row action menu: a companion plugin or Pro add-on can
+ * add a tenant-management action (open the tenant in the merchant's own
+ * console, force a plan sync, …) without forking the hook that builds it.
+ *
+ * Fired in `modules/saas-accounts/hooks/useSaasAccountActions.tsx`.
+ *
+ * @param {ActionItem[]}      actions The default action list for this row.
+ * @param {SaasAccountRecord} account The SaaS account the menu is being built for.
+ * @return {ActionItem[]} The (optionally modified) action list to render.
+ */
+export const SAAS_ACCOUNT_ACTIONS_FILTER = 'purecart/dashboard/saasAccountActions';
+
+/**
  * Action — fired after a subscription is successfully patched via the
  * generic update path (pause/resume/cancel-via-patch, etc. each have their
  * own dedicated thunk and don't currently fire this — only the general

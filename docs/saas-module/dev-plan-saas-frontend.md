@@ -288,19 +288,43 @@ src/app/components/SaasAccounts/SaasAccountsPage.tsx  ← tab switcher
 
 | Step | কাজ | অবস্থা |
 |---|---|---|
-| 1 | Types + API module | ⬜ |
-| 2 | Redux slice | ⬜ |
-| 3 | List page (table+filter+KPI) | ⬜ |
-| 4 | Row actions | ⬜ |
-| 5 | Account detail panel | ⬜ |
-| 6 | Settings tab | ⬜ |
-| 7 | Navigation polish + final test | ⬜ |
+| 1 | Types + API module | ✅ কোড হয়েছে |
+| 2 | Redux slice | ✅ কোড হয়েছে |
+| 3 | List page (table+filter+KPI) | ✅ কোড হয়েছে |
+| 4 | Row actions | ✅ কোড হয়েছে |
+| 5 | Account detail panel | ✅ কোড হয়েছে |
+| 6 | Settings tab | ✅ Settings → SaaS ট্যাব দিয়ে হয়ে গেছে (নিচের নোট দেখো) |
+| 7 | Navigation polish + final test | ⬜ ব্রাউজার টেস্ট বাকি |
+
+`npm run build` পাস, নতুন কোডে `tsc` এরর নেই। প্রতিটা Step-এর Manual Test checklist এখনো ব্রাউজারে চালানো বাকি।
+
+---
+
+## As-Built — plan থেকে যেসব জায়গায় সরে আসা হয়েছে (এবং কেন)
+
+এই plan লেখার পরে `src/app/` টাইপ-ফার্স্ট থেকে module-first কাঠামোয় রিফ্যাক্টর হয়েছে (`src/DEVELOPMENT_GUIDELINES.md` দেখো), তাই plan-এর ফাইল-পাথগুলো আর প্রযোজ্য না। যা আসলে বানানো হয়েছে:
+
+```
+src/app/modules/saas-accounts/
+├── types.ts, constants.ts, api.ts, index.ts
+├── hooks/useSaasAccountActions.tsx
+├── store/saas-accounts.slice.ts, saas-accounts.selectors.ts
+└── components/  SaasAccountsPage · SaasAccountsPageSkeleton · SaasAccountsKpiStrip
+                 SaasAccountsFilterBar · SaasAccountsTable · SaasAccountDetailPanel
+```
+সাথে `app/store/store.ts`-এ `saasAccounts` reducer, `app/router/AppRoutes.tsx`-এ Suspense boundary, আর `shared/hooks/extension-hooks.ts`-এ `SAAS_ACCOUNT_ACTIONS_FILTER`।
+
+1. **Pagination/filter ক্লায়েন্ট-সাইড নয়, সার্ভার-সাইড।** plan-এ Subscriptions-এর সাথে consistency-র জন্য client-side ধরা হয়েছিল; কিন্তু তারপরে বানানো Licenses/Downloads/Updates তিনটাই server-driven slice ব্যবহার করে — এখন সেটাই প্রচলিত কনভেনশন, আর `GET /saas-accounts` আগে থেকেই `search`/`status`/`plan`/`product_id`/`page`/`per_page` নেয়। (ফলে Appendix-এর "Server-side pagination — future" আইটেমটা এখানে আর বাকি নেই।)
+2. **`USE_DUMMY_DATA` dummy-path নেই।** রিফ্যাক্টরে `api/client.ts`-এর ওই টগলটাই চলে গেছে — এখন `shared/api/client.ts` শুধু `@wordpress/api-fetch` র‍্যাপ করে, কোনো মডিউলে dummy branch নেই। তাই Step 1/7-এর dummy-data চেকগুলো আর প্রযোজ্য না।
+3. **আলাদা Settings ট্যাব বানানো হয়নি।** plan লেখার পরে Settings পেজে "SaaS" ট্যাব (`modules/settings/components/SettingsSaas.tsx`) যোগ হয়েছে, যা ঠিক একই `GET/POST /saas-accounts/settings` endpoint-এ wire করা — webhook URL, read-only secret, দুটো JWT expiry, সবই আছে। একই endpoint-এর বিরুদ্ধে দ্বিতীয় ফর্ম বানানো ডুপ্লিকেশন হতো (GUIDELINES §18), তাই ফিল্টার বারে "SaaS Settings" বোতাম দিয়ে ওই ট্যাবে পাঠানো হয়েছে।
+4. **Rotate key-এর কপি বদলানো হয়েছে।** plan-এ লেখা ছিল rotate-এর পরে "নতুন key কাস্টমারকে email করা হয়েছে" দেখাতে — কিন্তু `ApiKeyManager::rotate()` শুধু `purecart_api_key_rotated` action ফায়ার করে আর প্লাগইনের কোথাও ওটা listen করা হয় না, কোনো email যায় না। তাই UI এখন সত্যিটাই বলে: পুরনো key সাথে সাথে অকেজো, নতুন key অ্যাডমিন UI-তে কখনো দেখানো হয় না, ডেলিভারি merchant-এর নিজের integration-এর কাজ।
+5. **`cancelled` account-এও Activate দেখানো হয়।** plan-এ শুধু active→Suspend, suspended→Activate ছিল; backend-এর activate route যেকোনো non-active row নেয় (একই state হলে 409 দেয়, যেটা error toast হয়ে দেখায়), তাই মেনু তা-ই প্রতিফলিত করে।
 
 ---
 
 ## Appendix — এই plan-এ যা নেই (future)
 
-- Server-side pagination (এখন client-side, account সংখ্যা বড় হলে backend-এর `page`/`per_page`/`search` param-এ সুইচ করা লাগতে পারে — REST endpoint আগে থেকেই সাপোর্ট করে, দেখো `dev-plan-saas.md` Step 7)
+- ~~Server-side pagination~~ — As-Built নোট ১ দেখো, এটা এখন করা হয়ে গেছে
 - Bulk actions (একসাথে একাধিক account suspend) — Subscriptions-এর `SubscriptionsBulkBar` প্যাটার্নে যোগ করা যায়, কিন্তু এখন scope-এ নেই
 - CSV export
 - Webhook delivery log UI (backend-এও এখনো নেই — `dev-plan-saas.md` Appendix B)

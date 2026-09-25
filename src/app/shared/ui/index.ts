@@ -20,6 +20,7 @@ export { FilterChip } from './FilterChip';
 export { SectionTitle } from './SectionTitle';
 export { KpiCard } from './KpiCard';
 export { ActionDropdown } from './ActionDropdown';
+export { AnchoredMenu } from './AnchoredMenu';
 export type { ActionItem } from './ActionDropdown';
 export { ConfirmDialog } from './ConfirmDialog';
 export type { ConfirmDialogProps } from './ConfirmDialog';
