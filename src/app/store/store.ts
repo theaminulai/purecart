@@ -3,6 +3,8 @@ import { subscriptionsReducer } from '@/modules/subscriptions';
 import { updatesReducer } from '@/modules/updates';
 import { downloadsReducer } from '@/modules/downloads';
 import { licensesReducer } from '@/modules/licenses';
+import { saasAccountsReducer } from '@/modules/saas-accounts';
+import { notificationsReducer } from '@/modules/notifications';
 
 export const store = configureStore( {
 	reducer: {
@@ -10,6 +12,8 @@ export const store = configureStore( {
 		updates: updatesReducer,
 		downloads: downloadsReducer,
 		licenses: licensesReducer,
+		saasAccounts: saasAccountsReducer,
+		notifications: notificationsReducer,
 	},
 } );
 

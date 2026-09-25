@@ -120,10 +120,13 @@ shared/
 ├── api/       client.ts (typed apiFetch wrapper — error normalization + response typing, nothing module-specific)
 ├── ui/          design-system primitives (Button, Card, Dialog, Toast, ComingSoon, ...)
 ├── layout/        Sidebar, TopBar — app chrome, not design-system atoms (see below)
-└── types/           only genuinely cross-cutting types, e.g. the `Page` union used by routing
+├── types/           only genuinely cross-cutting types, e.g. the `Page` union used by routing
+└── wp/                the WordPress page context — `window.purecartAdmin` typing and accessors, declared here once
 ```
 
 **Worked example of the test:** `Sidebar` and `TopBar` know about page navigation, the app's page list, and app-level layout — they don't work "if every module were deleted" in the same self-contained way `Button` or `Card` do. That's why they live in `shared/layout/`, separate from `shared/ui/`, rather than being lumped in with the design-system primitives. A shared UI component must never import a module's types or API — `shared/ui/SubscriptionCard.tsx` would be wrong; that component belongs at `modules/subscriptions/components/`.
+
+**When app chrome needs module UI, the composition root passes it in.** `TopBar` renders a notifications menu it cannot import: the menu is built from subscription/license/SaaS counts, so it lives in `modules/notifications` and `App.tsx` hands it to `TopBar` as a `notificationsSlot` prop. The rule this follows is the dependency direction in §1 — a slot prop keeps `shared/ → modules/` from ever existing, where a direct import would invert it for the whole chrome layer.
 
 ---
 

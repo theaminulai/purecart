@@ -2,19 +2,20 @@
  * TopBar UI component.
  *
  * Renders the admin panel top navigation bar containing a breadcrumb trail,
- * page title, help and notification icon buttons, and a user avatar chip.
+ * page title, a contextual help menu, a caller-supplied notifications slot,
+ * and the account menu.
  * Breadcrumbs are derived from PAGE_PARENT — child pages show their parent
  * as a clickable crumb; root pages show only "PureCart".
  *
  * @file
  * @since 1.0.0
  */
-import { ChevronRight, HelpCircle, Bell } from 'lucide-react';
-import { __ } from '@wordpress/i18n';
+import { ChevronRight } from 'lucide-react';
 import { M3 } from '@/theme';
 import { PAGE_TITLES, PAGE_PARENT } from '../nav-schema';
 import type { Page } from '@/shared/types/page';
-import { IconButton } from '@/shared/ui/IconButton';
+import { AccountMenu } from './AccountMenu';
+import { HelpMenu } from './HelpMenu';
 
 /**
  * Fixed-height top bar with breadcrumb navigation and utility actions.
@@ -25,6 +26,7 @@ import { IconButton } from '@/shared/ui/IconButton';
  * @param {Page}     props.page       The currently active page identifier used to build breadcrumbs and title.
  * @param {Function} props.onNav      Callback invoked with a target Page when a breadcrumb link is clicked.
  * @param {string}   [props.detailLabel] Overrides the title/final breadcrumb when page is 'subscription-detail' - lets the header show "SUB-003 · SaaS Starter" instead of the generic static title.
+ * @param {React.ReactNode} [props.notificationsSlot] The notifications menu, injected by the composition root - shared/ chrome may not import a module (DEVELOPMENT_GUIDELINES.md §1), and the notification feed is built from module data.
  *
  * @return {JSX.Element} The header top bar element.
  */
@@ -32,10 +34,12 @@ export function TopBar( {
 	page,
 	onNav,
 	detailLabel,
+	notificationsSlot,
 }: {
 	page: Page;
 	onNav: ( p: Page ) => void;
 	detailLabel?: string;
+	notificationsSlot?: React.ReactNode;
 } ) {
 	// Build breadcrumb segments: root → optional parent → current page
 	const crumbs: Array< { label: string; page?: Page } > = [
@@ -114,18 +118,9 @@ export function TopBar( {
 
 			{ /* Actions */ }
 			<div className="flex items-center gap-1">
-				<IconButton icon={ HelpCircle } title={ __( 'Help', 'purecart' ) } />
-				<IconButton icon={ Bell } title={ __( 'Notifications', 'purecart' ) } />
-				<div
-					className="flex items-center justify-center w-9 h-9 rounded-full text-sm font-medium ml-1 cursor-pointer"
-					style={ {
-						backgroundColor: M3.primaryContainer,
-						color: M3.onPrimaryContainer,
-						fontFamily: 'Roboto, sans-serif',
-					} }
-				>
-					AD
-				</div>
+				<HelpMenu page={ page } />
+				{ notificationsSlot }
+				<AccountMenu onNav={ onNav } />
 			</div>
 		</header>
 	);

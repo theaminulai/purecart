@@ -39,8 +39,10 @@ import {
 	UpdatesPageSkeleton,
 	UpdateAnalyticsPage,
 } from '@/modules/updates';
+// SaaS Accounts
+import { SaasAccountsPage, SaasAccountsPageSkeleton } from '@/modules/saas-accounts';
+
 // Module stubs
-import { SaasAccountsPage } from '@/modules/saas-accounts';
 import { AffiliatesPage } from '@/modules/affiliates';
 import { AbandonedCartPage } from '@/modules/abandoned-cart';
 import { SecurityPage } from '@/modules/security';
@@ -173,7 +175,14 @@ export function AppRoutes() {
 			{ /* SaaS Accounts */ }
 			<Route
 				path={ PAGE_PATHS[ 'saas-accounts' ] }
-				element={ <SaasAccountsPage /> }
+				element={
+					<Suspense
+						key="saas-accounts"
+						fallback={ <SaasAccountsPageSkeleton /> }
+					>
+						<SaasAccountsPage />
+					</Suspense>
+				}
 			/>
 
 			{ /* Affiliates */ }
