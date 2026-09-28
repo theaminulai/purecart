@@ -5,6 +5,7 @@
  * page and routes them through the React HashRouter instead of forcing
  * a full page reload.
  *
+ * @since 1.0.0
  * @param {Object.<string, string>} slugToPath Map of WP page slugs
  *   (e.g. "purecart-orders") to SPA routes (e.g. "/orders").
  *   Injected via wp_localize_script as window.purecartMenuMap.
@@ -12,8 +13,24 @@
 ( function ( slugToPath ) {
 	'use strict';
 
+	/**
+	 * Regular expression that extracts the `page` query parameter value
+	 * from a sidebar link's `href` attribute.
+	 *
+	 * @since 1.0.0
+	 * @type {RegExp}
+	 */
 	var PAGE_SLUG_PATTERN = /[?&]page=(purecart-[\w-]+)/;
 
+	/**
+	 * Attaches click handlers to every PureCart sidebar link.
+	 *
+	 * Runs once on DOMContentLoaded (or immediately when the DOM is
+	 * already interactive/complete).
+	 *
+	 * @since 1.0.0
+	 * @return {void}
+	 */
 	function init() {
 		var menuLinks = document.querySelectorAll( '#adminmenu a[href]' );
 
@@ -30,8 +47,13 @@
 	/**
 	 * Resolves the SPA route for a sidebar link, if any.
 	 *
-	 * @param {HTMLAnchorElement} link
-	 * @return {string|null}
+	 * Extracts the `page` query parameter from the link's `href` and looks
+	 * it up in the `slugToPath` map. Returns `null` when the link does not
+	 * belong to a PureCart page or has no matching route.
+	 *
+	 * @since 1.0.0
+	 * @param {HTMLAnchorElement} link The sidebar anchor element.
+	 * @return {string|null} The matching SPA route, or null.
 	 */
 	function getRouteForLink( link ) {
 		var match = ( link.getAttribute( 'href' ) || '' ).match( PAGE_SLUG_PATTERN );
@@ -42,11 +64,18 @@
 	}
 
 	/**
-	 * Navigates the SPA instead of letting the browser reload the page.
+	 * Navigates the SPA to a route without reloading the page.
 	 *
-	 * @param {MouseEvent}         event
-	 * @param {HTMLAnchorElement}  link
-	 * @param {string}             route
+	 * Prevents the default anchor navigation, updates `window.location.hash`
+	 * (which HashRouter reacts to), and then restores the `?page=` URL in the
+	 * address bar via `history.replaceState` so refreshes and WP menu
+	 * highlighting continue to work.
+	 *
+	 * @since 1.0.0
+	 * @param {MouseEvent}        event The click event.
+	 * @param {HTMLAnchorElement} link  The sidebar anchor that was clicked.
+	 * @param {string}            route The SPA route to navigate to.
+	 * @return {void}
 	 */
 	function handleMenuClick( event, link, route ) {
 		event.preventDefault();
@@ -63,10 +92,16 @@
 	}
 
 	/**
-	 * Mirrors WordPress's own "current page" sidebar highlighting, since we
-	 * bypassed the normal page load that would otherwise set it.
+	 * Updates the WP admin sidebar's active-item highlighting after a
+	 * client-side navigation.
 	 *
-	 * @param {HTMLAnchorElement} link
+	 * Removes the `current` and `wp-has-current-submenu` classes from all
+	 * existing active items, then applies them to the item that was just
+	 * clicked, mirroring WordPress's own page-load behaviour.
+	 *
+	 * @since 1.0.0
+	 * @param {HTMLAnchorElement} link The sidebar anchor that was clicked.
+	 * @return {void}
 	 */
 	function setActiveMenuItem( link ) {
 		document

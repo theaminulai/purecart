@@ -52,30 +52,49 @@ defined( 'ABSPATH' ) || exit;
  */
 class SubscriptionReport {
 
-	/** Statuses whose recurring revenue counts toward MRR. */
+	/**
+	 * Statuses whose recurring revenue counts toward MRR.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const MRR_STATUSES = array( 'active' );
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Subscription log repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
-	/** @var RevenueRepository */
+	/**
+	 * Revenue repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var RevenueRepository
+	 */
 	private RevenueRepository $revenue;
 
 	/**
+	 * Instantiates the repository dependencies used throughout this class.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->subscriptions = new SubscriptionRepository();
 		$this->logs          = new SubscriptionLogRepository();
 		$this->revenue       = new RevenueRepository();
 	}
-
-	// -----------------------------------------------------------------------
-	// Summary
-	// -----------------------------------------------------------------------
 
 	/**
 	 * The full dashboard summary.
@@ -137,10 +156,6 @@ class SubscriptionReport {
 			'churn_by_reason'       => $this->churn_by_reason( $period_start, $period_end ),
 		);
 	}
-
-	// -----------------------------------------------------------------------
-	// Individual metrics
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Monthly Recurring Revenue: every active subscription's recurring amount
@@ -397,16 +412,14 @@ class SubscriptionReport {
 	}
 
 	/**
+	 * Returns the average customer lifetime in months, from site settings.
+	 *
 	 * @since 1.0.0
 	 * @return int
 	 */
 	private function avg_lifetime_months(): int {
 		return max( 1, (int) Settings::get( OptionKeys::SUB_AVG_LIFETIME_MONTHS, 24 ) );
 	}
-
-	// -----------------------------------------------------------------------
-	// CSV export
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Column headers for the subscriptions CSV export.

@@ -28,27 +28,36 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Product type registration, data tab, and meta save for subscription products.
  *
- * Only the core billing fields + delivery type are implemented here (Step 3
- * scope). Deferred to the steps that actually consume them: stepped pricing UI
- * (RenewalEngine, Step 6), retention config (RetentionFlow, Step 9), split
- * payment fields (SplitPaymentManager, Step 11), Subscribe & Save / downgrade
- * product picker (also Step 9). Adding empty settings for those now would be
- * dead UI with nothing behind it.
+ * Implements the core billing fields and delivery type. Additional settings for
+ * stepped pricing (RenewalEngine), retention config (RetentionFlow), split
+ * payment fields (SplitPaymentManager), and Subscribe & Save / downgrade product
+ * picker are registered in the classes that consume them, not here.
  *
  * @since 1.0.0
  */
 class SubscriptionProduct {
 
-	/** The WooCommerce product type slug. */
+	/**
+	 * The WooCommerce product type slug.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const TYPE = 'purecart_subscription';
 
-	/** Delivery types handled directly by DeliveryManager, not the registry. */
+	/**
+	 * Delivery types handled directly by DeliveryManager, not the registry.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const COMPANION_TYPES = array( 'software', 'saas' );
 
 	/**
-	 * Register product type + data tab hooks.
+	 * Registers product type, data tab, storefront, and cart integration hooks.
 	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		add_filter( 'product_type_selector', array( $this, 'add_type' ) );
@@ -582,10 +591,6 @@ class SubscriptionProduct {
 		<?php
 	}
 
-	// -----------------------------------------------------------------------
-	// Storefront display
-	// -----------------------------------------------------------------------
-
 	/**
 	 * Human-readable billing cycle, e.g. "every 3 months" / "monthly".
 	 *
@@ -693,10 +698,6 @@ class SubscriptionProduct {
 
 		echo '<div class="purecart-subscription-terms"><small>' . esc_html( implode( ' ', $lines ) ) . '</small></div>';
 	}
-
-	// -----------------------------------------------------------------------
-	// Cart/checkout integration (Step 14 gap-fill — feature doc § 4/§ 20)
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Set each subscription cart item's price to the correct *initial*
@@ -842,6 +843,8 @@ class SubscriptionProduct {
 	}
 
 	/**
+	 * Returns true when the current cart contains at least one subscription product.
+	 *
 	 * @since 1.0.0
 	 * @return bool
 	 */

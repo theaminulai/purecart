@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Issues access + refresh JWTs for an activated license+domain pair.
  *
@@ -35,7 +35,12 @@ class LicenseTokenIssuer {
 			return null;
 		}
 
-		// Filter: purecart_jwt_refresh_expire — refresh token TTL in seconds. Since 1.0.0.
+		/**
+		 * Filters the refresh token TTL in seconds.
+		 *
+		 * @since 1.0.0
+		 * @param int $ttl Refresh token time-to-live in seconds. Default 30 days.
+		 */
 		$refresh_ttl = (int) apply_filters( 'purecart_jwt_refresh_expire', 30 * DAY_IN_SECONDS );
 
 		$now         = time();
@@ -71,6 +76,15 @@ class LicenseTokenIssuer {
 			array( '%d', '%s', '%s', '%s', '%s', '%s' )
 		);
 
+		/**
+		 * Fires after a new access and refresh token pair has been issued for a license activation.
+		 *
+		 * @since 1.0.0
+		 * @param string $access_jti  JWT ID of the issued access token.
+		 * @param string $refresh_jti JWT ID of the issued refresh token.
+		 * @param int    $license_id  License row ID.
+		 * @param string $domain      The activated domain.
+		 */
 		do_action( 'purecart_jwt_token_issued', $access['jti'], $refresh_jti, $license->id, $domain );
 
 		return array(
@@ -126,7 +140,12 @@ class LicenseTokenIssuer {
 	private function build_access_token( object $license, string $domain, string $environment ): array {
 		global $wpdb;
 
-		// Filter: purecart_jwt_expire — access token TTL in seconds. Since 1.0.0.
+		/**
+		 * Filters the access token TTL in seconds.
+		 *
+		 * @since 1.0.0
+		 * @param int $ttl Access token time-to-live in seconds. Default 7 days.
+		 */
 		$access_ttl = (int) apply_filters( 'purecart_jwt_expire', 7 * DAY_IN_SECONDS );
 
 		$now        = time();

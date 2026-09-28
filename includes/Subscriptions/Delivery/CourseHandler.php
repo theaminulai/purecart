@@ -14,24 +14,27 @@ use PureCart\Subscriptions\DeliveryHandlerInterface;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Stub for now (subscription-final-dev-plan.md § 9 Step 3) — satisfies the
- * registry contract so "Learning / Course" is selectable as a delivery type
- * today. Real LMS enrollment calls depend on the `purecart_sub_lms_plugin`
- * setting and are added once the linked-entities repository (Step 4) exists.
+ * Stub implementation of the Learning/Course delivery type.
+ *
+ * Satisfies the registry contract so "Learning / Course" is selectable as a
+ * delivery type. Real LMS enrollment calls depend on the `purecart_sub_lms_plugin`
+ * setting and require linked-entity support to track enrolled course IDs.
  *
  * @since 1.0.0
  */
 class CourseHandler implements DeliveryHandlerInterface {
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return void
 	 */
 	public function activate( array $subscription ): void {
-		// TODO(Step 4+): enroll $subscription['user_id'] into the product's configured course IDs.
+		// TODO: enroll $subscription['user_id'] into the product's configured course IDs.
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return void
 	 */
@@ -40,6 +43,7 @@ class CourseHandler implements DeliveryHandlerInterface {
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return void
 	 */
@@ -48,6 +52,7 @@ class CourseHandler implements DeliveryHandlerInterface {
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return array<string, mixed>
 	 */
@@ -56,6 +61,7 @@ class CourseHandler implements DeliveryHandlerInterface {
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $data Linked-entity data to validate.
 	 * @return bool|\WP_Error
 	 */

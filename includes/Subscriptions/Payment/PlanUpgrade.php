@@ -21,32 +21,64 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Feature doc § 3 / RND-subscriptions.md § 8:
+ * Proration modes for subscription plan switches:
  *
- *   prorate_immediately -> charge/credit the price difference prorated for
- *                          the days left in the cycle, reset the cycle from today
- *   apply_at_renewal    -> no charge today; takes effect at the next renewal (default)
- *   no_proration        -> switch immediately at full new price; first charge
- *                          at that price is whenever the next renewal was already due
+ *   prorate_immediately → charges/credits the prorated price difference for the
+ *                         days remaining in the current cycle, then resets the cycle.
+ *   apply_at_renewal    → no charge today; new price takes effect at the next
+ *                         renewal (default).
+ *   no_proration        → switches immediately at the full new price; the first
+ *                         charge at that price occurs at the next renewal date.
  *
- * Worked example (feature doc § 3): upgrade $19/mo -> $49/mo with 15 days left
- * in a 30-day cycle -> charge = ($49-$19) x 15/30 = $15, charged immediately.
+ * Example: upgrade $19/mo → $49/mo with 15 days left in a 30-day cycle:
+ *   charge = ($49 − $19) × 15/30 = $15, charged immediately.
  *
- * `apply_at_renewal` is implemented by reusing the exact pending_switch_product/
- * pending_switch_type mechanism RetentionFlow's downgrade offer already uses
- * (Step 9) — RenewalEngine::maybe_apply_pending_switch() applies it, unchanged.
+ * The `apply_at_renewal` mode reuses the `pending_switch_product`/`pending_switch_type`
+ * mechanism from RetentionFlow's downgrade offer; RenewalEngine::maybe_apply_pending_switch()
+ * applies the switch at renewal time without any changes to this class.
  *
  * @since 1.0.0
  */
 class PlanUpgrade {
 
+	/**
+	 * Proration mode: charge/credit the prorated difference immediately and reset the cycle.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const MODE_PRORATE_IMMEDIATELY = 'prorate_immediately';
+
+	/**
+	 * Proration mode: schedule the switch for the next renewal date with no charge today.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const MODE_APPLY_AT_RENEWAL    = 'apply_at_renewal';
+
+	/**
+	 * Proration mode: switch immediately at the full new price, no proration charge.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const MODE_NO_PRORATION        = 'no_proration';
 
+	/**
+	 * Allowed proration mode values.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const VALID_MODES = array( self::MODE_PRORATE_IMMEDIATELY, self::MODE_APPLY_AT_RENEWAL, self::MODE_NO_PRORATION );
 
-	/** Approximate days per billing period, matching the feature doc's own worked example (30-day month). */
+	/**
+	 * Approximate days per billing period, matching the feature doc's own worked example (30-day month).
+	 *
+	 * @since 1.0.0
+	 * @var array<string, int>
+	 */
 	private const DAYS_PER_PERIOD = array(
 		'day'   => 1,
 		'week'  => 7,
@@ -54,13 +86,28 @@ class PlanUpgrade {
 		'year'  => 365,
 	);
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository for reading and updating subscription rows.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Log repository for recording plan-switch events.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
-	/** @var RenewalEngine */
+	/**
+	 * Shared RenewalEngine instance used to execute immediate proration charges.
+	 *
+	 * @since 1.0.0
+	 * @var RenewalEngine
+	 */
 	private RenewalEngine $renewal_engine;
 
 	/**
@@ -250,6 +297,8 @@ class PlanUpgrade {
 	}
 
 	/**
+	 * Returns the number of days remaining until the subscription's next payment date.
+	 *
 	 * @since 1.0.0
 	 * @param object $subscription Subscription row.
 	 * @return float Days left until next_payment_at (0 if already due/past or unset).
@@ -265,6 +314,8 @@ class PlanUpgrade {
 	}
 
 	/**
+	 * Returns the approximate length of the subscription's current billing cycle in days.
+	 *
 	 * @since 1.0.0
 	 * @param object $subscription Subscription row.
 	 * @return float Approximate length of the current billing cycle, in days.

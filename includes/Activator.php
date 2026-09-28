@@ -34,17 +34,33 @@ defined( 'ABSPATH' ) || exit;
  */
 class Activator {
 
-	/** DB version option key. */
+	/**
+	 * WordPress option key that stores the currently installed DB schema version.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const DB_VERSION_KEY = 'purecart_db_version';
 
 	/**
-	 * Current DB schema version.
-	 * 1.5.0 — adds wp_purecart_product_versions.is_rollback (emergency rollback tracking).
-	 * 1.6.0 — adds wp_purecart_downloads.status and wp_purecart_download_logs.status (admin token/log management).
+	 * Current DB schema version. Increment this constant whenever the schema changes.
+	 *
+	 * Changelog:
+	 * - 1.5.0: adds `wp_purecart_product_versions.is_rollback` for emergency rollback tracking.
+	 * - 1.6.0: adds `wp_purecart_downloads.status` and `wp_purecart_download_logs.status`
+	 *           for admin token and log management.
+	 *
+	 * @since 1.0.0
+	 * @var string
 	 */
 	private const DB_VERSION = '1.6.0';
 
-	/** Action Scheduler group for all plugin jobs. */
+	/**
+	 * Action Scheduler group name used for all PureCart background jobs.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const AS_GROUP = 'purecart';
 
 	/**
@@ -103,7 +119,16 @@ class Activator {
 		( new SaasTokens() )->create();
 	}
 
-	/** Schedule recurring Action Scheduler jobs. */
+	/**
+	 * Schedules recurring Action Scheduler background jobs.
+	 *
+	 * Called once during activation. Each job is guarded by an
+	 * `as_next_scheduled_action()` check so re-activating the plugin does not
+	 * create duplicate schedules.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	private static function schedule_jobs(): void {
 		if ( false === as_next_scheduled_action( 'purecart_check_expired_licenses', array(), self::AS_GROUP ) ) {
 			as_schedule_recurring_action(

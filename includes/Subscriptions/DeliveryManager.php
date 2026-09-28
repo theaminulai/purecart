@@ -19,31 +19,43 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * `software` and `saas` are handled directly here (companion-module pattern,
- * subscription-final-dev-plan.md § 3) since Licensing/SaaS are sibling modules
- * with their own tables and richer domain logic. Every other delivery_type goes
- * through DeliveryHandlerRegistry.
+ * Dispatches subscription activation, renewal, and deactivation across all
+ * registered delivery types.
  *
- * Correction vs. the doc: § 3 says this calls into `PureCart\Licensing\LicenseActivator`
- * for `software` — checked against the real class and that's wrong. `LicenseActivator`
- * only does per-domain activate/deactivate for a license the customer already owns.
- * The class that actually creates a new license row (what "activate a software
- * subscription" means) is `PureCart\Licensing\LicenseGenerator::create()`, used below.
+ * The `software` and `saas` types are handled directly here because Licensing
+ * and SaaS are sibling modules with their own tables and richer domain logic.
+ * All other delivery types are delegated to DeliveryHandlerRegistry.
  *
- * Not yet wired into anything — SubscriptionManager (Step 5) will call these
- * methods and persist the returned linked IDs via SubscriptionRepository (Step 4).
+ * Note: `software` activation creates a new license row via
+ * `LicenseGenerator::create()`, not `LicenseActivator` — the latter handles
+ * per-domain activate/deactivate for an existing license only.
  *
  * @since 1.0.0
  */
 class DeliveryManager {
 
-	/** Deactivation reason: non-payment suspension — access stops now, restorable. */
+	/**
+	 * Deactivation reason: non-payment suspension — access stops now, restorable.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const REASON_SUSPENDED = 'suspended';
 
-	/** Deactivation reason: cancellation — access runs to the end of the paid-for period. */
+	/**
+	 * Deactivation reason: cancellation — access runs to the end of the paid-for period.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const REASON_CANCELLED = 'cancelled';
 
-	/** Deactivation reason: fixed term reached its end. */
+	/**
+	 * Deactivation reason: fixed term reached its end.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const REASON_EXPIRED = 'expired';
 
 	/**
@@ -107,11 +119,10 @@ class DeliveryManager {
 		}
 
 		if ( 'software' === $type ) {
-			// Step 16: restore a license that a suspension put on hold. Only
-			// lifts `suspended` — a `revoked` license is a deliberate admin
-			// action and an `expired` one needs its date extended (which
-			// renew() does), so neither should be silently flipped to active
-			// just because a payment came through.
+			// Restore a license that a suspension put on hold. Only lifts
+			// `suspended` — `revoked` is a deliberate admin action and `expired`
+			// needs a date extension (which renew() handles), so neither is
+			// silently flipped to active on payment alone.
 			if ( ! empty( $subscription['license_id'] ) ) {
 				$licenses = new LicenseGenerator();
 				$license  = $licenses->get_by_id( (int) $subscription['license_id'] );
@@ -187,8 +198,8 @@ class DeliveryManager {
 				return;
 			}
 
-			// Step 16: push the license's expiry out by exactly the billing
-			// period that was just paid for, so the key keeps validating.
+			// Extend the license's expiry by exactly the billing period just
+			// paid for, so the key keeps validating through the new cycle.
 			$licenses->extend_expiry(
 				$license_id,
 				max( 1, (int) ( $subscription['billing_interval'] ?? 1 ) ),
@@ -198,8 +209,8 @@ class DeliveryManager {
 		}
 
 		if ( 'saas' === $type ) {
-			// Step 16: a renewal after a failed-payment suspension must put the
-			// account back. activate() is idempotent, so calling it for an
+			// A renewal after a failed-payment suspension must restore the SaaS
+			// account. activate() is idempotent, so calling it for an
 			// already-active account is harmless.
 			if ( ! empty( $subscription['saas_account_id'] ) ) {
 				( new AccountProvisioner() )->activate( (int) $subscription['saas_account_id'] );
@@ -214,17 +225,13 @@ class DeliveryManager {
 	}
 
 	/**
-	 * Subscription becomes suspended/cancelled/expired.
+	 * Deactivates delivery when a subscription is suspended, cancelled, or expired.
 	 *
-	 * Gap found during Step 16: this method previously took no reason, and all
-	 * six of its call sites (cancel, pending-cancel finalization, expire,
-	 * dunning suspend, dunning hard-cancel, webhook) invoked it identically.
-	 * That made this step's own requirement impossible to express — "suspend →
-	 * license suspended" but "cancel → license valid until the natural expiry
-	 * date the customer already paid for" are opposite outcomes, and nothing
-	 * here could tell the two apart. `$reason` fixes that; it defaults to
-	 * `cancelled`, the more conservative of the two (access is left running to
-	 * its paid-for end rather than cut off early).
+	 * The `$reason` parameter controls how strictly access is cut. For a
+	 * suspension (non-payment), access stops immediately. For a cancellation,
+	 * the license or SaaS account stays active until the paid-for period
+	 * naturally ends. Defaults to `cancelled` — the more conservative behavior
+	 * (access kept running) — to avoid accidental early cut-off.
 	 *
 	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
@@ -275,19 +282,12 @@ class DeliveryManager {
 	}
 
 	/**
-	 * Whether a SaaS account should be suspended right now for this reason.
+	 * Returns true when a SaaS account should be suspended immediately for the
+	 * given deactivation reason.
 	 *
-	 * `purecart_sub_cancel_saas_immediately` is named by this step's checklist
-	 * ("suspend/cancel → SaaS suspended per `cancel_saas_immediately` setting")
-	 * but appears in no Configuration Options table in any doc and existed
-	 * nowhere in the codebase — introduced here, matching how
-	 * `purecart_sub_resubscribe_window_days` (Step 5) and
-	 * `purecart_sub_trial_reminder_days` (Step 13) were handled.
-	 *
-	 * Default false: a cancellation leaves the SaaS account running until the
-	 * paid-for period ends, mirroring the license rule above. A suspension for
-	 * non-payment always cuts access immediately regardless — that money never
-	 * arrived, so there is no paid-for period to honour.
+	 * A cancellation leaves the SaaS account running until the paid-for period
+	 * ends (controlled by `purecart_sub_cancel_saas_immediately`). A suspension
+	 * or expiry always cuts access immediately — no paid-for period remains.
 	 *
 	 * @since 1.0.0
 	 * @param string $reason Deactivation reason.

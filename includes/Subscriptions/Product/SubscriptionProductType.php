@@ -32,6 +32,8 @@ defined( 'ABSPATH' ) || exit;
 class SubscriptionProductType extends \WC_Product_Simple {
 
 	/**
+	 * Returns the custom product type slug so WooCommerce type-detection works correctly.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

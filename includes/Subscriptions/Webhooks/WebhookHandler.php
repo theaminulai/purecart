@@ -44,21 +44,44 @@ defined( 'ABSPATH' ) || exit;
  */
 class WebhookHandler {
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Subscription log repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
-	/** @var PaymentRepository */
+	/**
+	 * Payment repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var PaymentRepository
+	 */
 	private PaymentRepository $payments;
 
-	/** @var RenewalEngine */
+	/**
+	 * Renewal engine instance for recording external and failed renewals.
+	 *
+	 * @since 1.0.0
+	 * @var RenewalEngine
+	 */
 	private RenewalEngine $renewal_engine;
 
 	/**
+	 * Initializes repository dependencies and stores the shared renewal engine.
+	 *
 	 * @since 1.0.0
 	 * @param RenewalEngine $renewal_engine Shared instance from Module.
+	 * @return void
 	 */
 	public function __construct( RenewalEngine $renewal_engine ) {
 		$this->subscriptions  = new SubscriptionRepository();
@@ -131,6 +154,8 @@ class WebhookHandler {
 	}
 
 	/**
+	 * Returns true when the event ID has already been logged for this subscription.
+	 *
 	 * @since 1.0.0
 	 * @param int    $subscription_id Subscription row ID.
 	 * @param string $event_id        Gateway event ID.
@@ -207,6 +232,8 @@ class WebhookHandler {
 	}
 
 	/**
+	 * Marks a subscription as past-due following a gateway-reported payment failure.
+	 *
 	 * @since 1.0.0
 	 * @param int                  $subscription_id Subscription row ID.
 	 * @param array<string, mixed> $payload         Decoded payload.
@@ -245,6 +272,8 @@ class WebhookHandler {
 	}
 
 	/**
+	 * Transitions a subscription to pending-reauth and fires the reauth-required action.
+	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
 	 * @return void
@@ -277,6 +306,8 @@ class WebhookHandler {
 	}
 
 	/**
+	 * Suspends a subscription and deactivates its delivery following a gateway-reported suspension.
+	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
 	 * @return void

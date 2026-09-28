@@ -22,9 +22,11 @@ defined( 'ABSPATH' ) || exit;
 class SubscriptionRevenue extends PureCartStore {
 
 	/**
+	 * Returns the CREATE TABLE SQL for the recognized-revenue ledger.
+	 *
 	 * @since 1.0.0
-	 * @param string $charset
-	 * @return string
+	 * @param string $charset Character set collation string from $wpdb->get_charset_collate().
+	 * @return string CREATE TABLE SQL statement ready for dbDelta().
 	 */
 	protected function schema( string $charset ): string {
 		global $wpdb;

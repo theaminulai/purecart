@@ -22,47 +22,51 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Grace-period flow (feature doc § 7):
+ * Grace-period recovery flow:
  *
- *   Day 0:    Charge fails -> 'past_due' (RenewalEngine, already done before
- *             this class ever runs). Retries scheduled per purecart_sub_retry_intervals.
- *   Day N:    Retry. Success -> back to 'active'. Failure -> next scheduled retry.
- *   Day X:    purecart_sub_active_grace_days exhausted -> 'suspended'.
- *   Day X+N:  Retries continue during suspended grace.
- *   Day X+Y:  purecart_sub_suspended_grace_days exhausted -> 'cancelled'.
+ *   Day 0:    Charge fails → 'past_due'. Retries scheduled per purecart_sub_retry_intervals.
+ *   Day N:    Retry. Success → back to 'active'. Failure → next scheduled retry.
+ *   Day X:    purecart_sub_active_grace_days exhausted → 'suspended'.
+ *   Day X+N:  Retries continue during the suspended grace period.
+ *   Day X+Y:  purecart_sub_suspended_grace_days exhausted → 'cancelled'.
  *
- * Deliberately reuses the *existing* `purecart_process_dunning` Action
- * Scheduler job (already scheduled every 12h by \PureCart\Activator — see
- * its schedule_jobs(), currently only consumed by a no-op stub in
- * \PureCart\Commerce\OrderHandler::run_dunning()) for the grace-period scan,
- * instead of registering a second recurring job. Per-subscription retry
- * timing still needs its own single-action schedule, since retries land on
- * subscription-specific days, not a fixed site-wide interval.
+ * Reuses the existing `purecart_process_dunning` Action Scheduler job
+ * (scheduled every 12h by Activator) for the grace-period scan rather than
+ * registering a separate recurring job. Per-subscription retries still use
+ * their own single-action schedules because each retry lands on a different day.
  *
  * @since 1.0.0
  */
 class DunningManager {
 
-	/** Action Scheduler group for all Subscriptions module jobs. */
+	/**
+	 * Action Scheduler group for all Subscriptions module jobs.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const AS_GROUP = 'purecart';
 
-	/** Per-subscription single-action job: retry one charge attempt. */
+	/**
+	 * Per-subscription single-action job hook name: retry one charge attempt.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const RETRY_HOOK = 'purecart_dunning_retry';
 
 	/**
-	 * Gateway decline reasons that will never succeed no matter how many
-	 * times retried — matching any of these skips retry scheduling entirely
-	 * (checklist: "Hard-decline reason codes skip retry scheduling entirely").
-	 * Grace-period suspension/cancellation still proceeds on schedule; only
-	 * the *automatic retry attempts* are skipped, since the customer may
-	 * still fix it themselves (new card) before the grace period runs out.
+	 * Gateway decline reasons that will never succeed regardless of retries.
 	 *
-	 * Matched as a case-insensitive substring against whatever decline
-	 * reason a gateway integration provides via the
-	 * `purecart_renewal_decline_reason` filter (RenewalEngine, Step 6) —
-	 * without a real gateway wired up, this reason is always the generic
-	 * fallback ('gateway_declined'), which correctly falls through to "soft"
-	 * (keep retrying) until a real integration supplies actual codes.
+	 * Matching any of these reason codes skips retry scheduling entirely.
+	 * Grace-period suspension/cancellation still proceeds on schedule; only
+	 * the automatic retry attempts are skipped, since the customer may still
+	 * resolve the issue (e.g. supply a new card) before the grace period ends.
+	 *
+	 * Matched case-insensitively against whatever decline reason a gateway
+	 * integration provides via `purecart_renewal_decline_reason`. Without a
+	 * real gateway, the reason is always the generic 'gateway_declined' fallback,
+	 * which falls through to "soft" (keep retrying).
 	 *
 	 * @var string[]
 	 */
@@ -80,13 +84,28 @@ class DunningManager {
 		'invalid_payment_token',
 	);
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository for reading and updating subscription rows.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Log repository for recording dunning events.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
-	/** @var RenewalEngine */
+	/**
+	 * Shared RenewalEngine instance used to execute retry charges.
+	 *
+	 * @since 1.0.0
+	 * @var RenewalEngine
+	 */
 	private RenewalEngine $renewal_engine;
 
 	/**
@@ -106,9 +125,7 @@ class DunningManager {
 		add_action( 'purecart_process_dunning', array( $this, 'check_grace_periods' ) );
 	}
 
-	// -----------------------------------------------------------------------
-	// Retry scheduling
-	// -----------------------------------------------------------------------
+	/* Retry scheduling */
 
 	/**
 	 * Fired by RenewalEngine::mark_failed() right after a renewal charge fails.
@@ -133,6 +150,8 @@ class DunningManager {
 	}
 
 	/**
+	 * Returns whether the given decline reason matches a hard-decline code that will never succeed on retry.
+	 *
 	 * @since 1.0.0
 	 * @param string $reason Decline reason string.
 	 * @return bool
@@ -203,9 +222,7 @@ class DunningManager {
 		$this->schedule_next_retry( $subscription_id, $attempt_index + 1 );
 	}
 
-	// -----------------------------------------------------------------------
-	// Grace-period scan
-	// -----------------------------------------------------------------------
+	/* Grace-period scan */
 
 	/**
 	 * Hooked to the existing `purecart_process_dunning` job (every 12h). Twice
@@ -268,6 +285,8 @@ class DunningManager {
 	}
 
 	/**
+	 * Transitions a past-due subscription to suspended, deactivates delivery, and fires status hooks.
+	 *
 	 * @since 1.0.0
 	 * @param object $subscription Subscription row.
 	 * @return void
@@ -298,6 +317,8 @@ class DunningManager {
 	}
 
 	/**
+	 * Terminally cancels a suspended subscription once its grace period has run out.
+	 *
 	 * @since 1.0.0
 	 * @param object $subscription Subscription row.
 	 * @return void
@@ -331,19 +352,15 @@ class DunningManager {
 		do_action( 'purecart_subscription_status_changed', (int) $subscription->id, 'suspended', 'cancelled' );
 	}
 
-	// -----------------------------------------------------------------------
-	// No-login card-update magic link
-	// -----------------------------------------------------------------------
+	/* No-login card-update magic link */
 
 	/**
-	 * Generate a signed, time-limited (14 days) token that lets a customer
-	 * update their card without logging in.
+	 * Generates a signed, time-limited (14 days) token for a no-login card update.
 	 *
-	 * The actual no-login landing page (a mini "add payment method" flow) is
-	 * Customer Portal / Step 12 territory — this class only owns the token
-	 * primitives: generate, verify, and what happens once a new card is saved.
-	 * `hash_equals()` is used on the verify side for timing-safe comparison,
-	 * matching this module's nonce/token-verification discipline elsewhere.
+	 * This class owns only the token primitives: generate, verify, and handle
+	 * the card-saved callback. The actual no-login landing page is a separate
+	 * concern. `hash_equals()` is used during verification for timing-safe
+	 * comparison, consistent with the module's token-verification discipline.
 	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.

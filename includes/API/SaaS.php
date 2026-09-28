@@ -29,16 +29,33 @@ defined( 'ABSPATH' ) || exit;
  */
 class SaaS extends PureCartApi {
 
-	/** @var AccountProvisioner */
+	/**
+	 * Account provisioning and lifecycle management.
+	 *
+	 * @since 1.0.0
+	 * @var AccountProvisioner
+	 */
 	private AccountProvisioner $accounts;
 
-	/** @var ApiKeyManager */
+	/**
+	 * API key generation and rotation.
+	 *
+	 * @since 1.0.0
+	 * @var ApiKeyManager
+	 */
 	private ApiKeyManager $keys;
 
-	/** @var JwtIssuer */
+	/**
+	 * JWT issuance and refresh for customer-facing token endpoints.
+	 *
+	 * @since 1.0.0
+	 * @var JwtIssuer
+	 */
 	private JwtIssuer $jwt;
 
 	/**
+	 * Builds the domain service dependencies this controller adapts to REST.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -47,11 +64,9 @@ class SaaS extends PureCartApi {
 		$this->jwt      = new JwtIssuer();
 	}
 
-	// -----------------------------------------------------------------------
-	// Route registration
-	// -----------------------------------------------------------------------
-
 	/**
+	 * Registers all /saas-accounts/* and /saas/* routes.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -225,21 +240,15 @@ class SaaS extends PureCartApi {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// Permission callbacks
-	// -----------------------------------------------------------------------
-
 	/**
+	 * Restricts a route to users with the manage_woocommerce capability.
+	 *
 	 * @since 1.0.0
 	 * @return bool
 	 */
 	public function permission_admin(): bool {
 		return current_user_can( 'manage_woocommerce' );
 	}
-
-	// -----------------------------------------------------------------------
-	// Admin: list / detail / stats
-	// -----------------------------------------------------------------------
 
 	/**
 	 * GET /saas-accounts
@@ -300,10 +309,6 @@ class SaaS extends PureCartApi {
 	public function stats(): \WP_REST_Response {
 		return rest_ensure_response( $this->accounts->stats() );
 	}
-
-	// -----------------------------------------------------------------------
-	// Admin: row actions
-	// -----------------------------------------------------------------------
 
 	/**
 	 * POST /saas-accounts/{id}/suspend
@@ -380,10 +385,6 @@ class SaaS extends PureCartApi {
 		return rest_ensure_response( $this->prepare_account( $updated ) );
 	}
 
-	// -----------------------------------------------------------------------
-	// Admin: settings
-	// -----------------------------------------------------------------------
-
 	/**
 	 * GET /saas-accounts/settings
 	 *
@@ -429,10 +430,6 @@ class SaaS extends PureCartApi {
 
 		return $this->get_settings();
 	}
-
-	// -----------------------------------------------------------------------
-	// Customer-facing: JWT login
-	// -----------------------------------------------------------------------
 
 	/**
 	 * POST /saas/token
@@ -495,10 +492,6 @@ class SaaS extends PureCartApi {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// Response shaping
-	// -----------------------------------------------------------------------
-
 	/**
 	 * Shape one DB row into the REST/frontend contract — see Appendix A of
 	 * docs/saas-module/dev-plan-saas.md for the shipped shape.
@@ -552,6 +545,8 @@ class SaaS extends PureCartApi {
 	}
 
 	/**
+	 * Masks all but the last eight characters of an API key for display.
+	 *
 	 * @since  1.0.0
 	 * @param  string $key Full API key.
 	 * @return string

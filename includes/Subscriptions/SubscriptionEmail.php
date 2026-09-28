@@ -57,13 +57,25 @@ defined( 'ABSPATH' ) || exit;
  */
 class SubscriptionEmail {
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository for finding subscriptions during reminder scans.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Log repository for deduplicating reminder sends.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
 	/**
+	 * Registers all subscription email classes with WooCommerce and schedules reminder scans.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -76,6 +88,8 @@ class SubscriptionEmail {
 	}
 
 	/**
+	 * Adds all subscription email instances to WooCommerce's email class map.
+	 *
 	 * @since 1.0.0
 	 * @param array<string, \WC_Email> $email_classes Existing registered WooCommerce emails.
 	 * @return array<string, \WC_Email>
@@ -89,6 +103,8 @@ class SubscriptionEmail {
 	}
 
 	/**
+	 * Returns new instances of every subscription WC_Email subclass.
+	 *
 	 * @since 1.0.0
 	 * @return \WC_Email[]
 	 */
@@ -115,11 +131,11 @@ class SubscriptionEmail {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// Reminder scans (hourly, piggybacked on RenewalEngine's scan)
-	// -----------------------------------------------------------------------
+	/* Reminder scans (hourly, piggybacked on RenewalEngine's scan) */
 
 	/**
+	 * Runs all time-based reminder scans: renewal notices, trial-ending warnings, and card-expiry alerts.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -140,6 +156,8 @@ class SubscriptionEmail {
 	}
 
 	/**
+	 * Scans active and trialing subscriptions and fires renewal reminder hooks at each configured threshold.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -167,6 +185,8 @@ class SubscriptionEmail {
 	}
 
 	/**
+	 * Fires the trial-ending-soon hook for trialing subscriptions nearing their trial end date.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -228,11 +248,11 @@ class SubscriptionEmail {
 		}
 	}
 
-	// -----------------------------------------------------------------------
-	// Grace-period warning (piggybacked on DunningManager's existing 12h job)
-	// -----------------------------------------------------------------------
+	/* Grace-period warning (piggybacked on DunningManager's existing 12h job) */
 
 	/**
+	 * Fires the suspended-grace-ending hook for suspended subscriptions approaching the end of their grace period.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -269,9 +289,7 @@ class SubscriptionEmail {
 		}
 	}
 
-	// -----------------------------------------------------------------------
-	// Shared helpers
-	// -----------------------------------------------------------------------
+	/* Shared helpers */
 
 	/**
 	 * Fire $hook for $subscription_id, but only once per unique $dedup_key —
@@ -296,6 +314,8 @@ class SubscriptionEmail {
 	}
 
 	/**
+	 * Checks whether a reminder with the given dedup key has already been logged for this subscription.
+	 *
 	 * @since 1.0.0
 	 * @param int    $subscription_id Subscription row ID.
 	 * @param string $dedup_key       Unique key identifying this specific reminder instance.

@@ -1,8 +1,9 @@
 <?php
 /**
- * "Trial Converted" email — feature doc § 22 MVP set.
+ * WooCommerce email confirming that the customer's trial subscription has converted to paid.
  *
  * @package PureCart\Subscriptions\Emails
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -22,7 +23,10 @@ defined( 'ABSPATH' ) || exit;
 class TrialConvertedEmail extends AbstractSubscriptionEmail {
 
 	/**
+	 * Initializes the email ID, title, and description.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->id          = 'purecart_trial_converted';
@@ -33,6 +37,8 @@ class TrialConvertedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the action hooks that fire this email.
+	 *
 	 * @since 1.0.0
 	 * @return string[]
 	 */
@@ -41,7 +47,12 @@ class TrialConvertedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Sends only when this is the first renewal on a subscription that had a trial.
+	 *
 	 * @since 1.0.0
+	 * @param mixed $arg2 Unused.
+	 * @param mixed $arg3 Unused.
+	 * @param mixed $arg4 Unused.
 	 * @return bool
 	 */
 	protected function should_send( $arg2 = null, $arg3 = null, $arg4 = null ): bool {
@@ -51,6 +62,8 @@ class TrialConvertedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -59,6 +72,8 @@ class TrialConvertedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -67,6 +82,8 @@ class TrialConvertedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the email body message.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

@@ -29,6 +29,7 @@ class Dashboard {
 	/**
 	 * My Account endpoint slugs registered by this class.
 	 *
+	 * @since 1.0.0
 	 * @var string[]
 	 */
 	private array $slugs = array( 'purecart-licenses', 'purecart-updates', 'purecart-api-keys' );
@@ -80,8 +81,9 @@ class Dashboard {
 	}
 
 	/**
-	 * Return the slug => label map for PureCart My Account tabs.
+	 * Returns the slug => label map for PureCart My Account tabs.
 	 *
+	 * @since 1.0.0
 	 * @return array<string,string>
 	 */
 	private function get_tabs(): array {
@@ -91,7 +93,6 @@ class Dashboard {
 			'purecart-api-keys' => __( 'API Keys', 'purecart' ),
 		);
 	}
-
 
 	/**
 	 * Register PureCart endpoints on the WooCommerce My Account page.
@@ -205,7 +206,6 @@ class Dashboard {
 			load_template( $template );
 		}
 	}
-
 
 	/**
 	 * Render the My Licenses tab content.

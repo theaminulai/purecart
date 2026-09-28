@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Licensing module bootstrap.
  *
@@ -29,6 +29,8 @@ defined( 'ABSPATH' ) || exit;
 class Module {
 
 	/**
+	 * Instantiates the hook-registering classes and registers the admin REST API routes.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {

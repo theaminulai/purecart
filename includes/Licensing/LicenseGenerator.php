@@ -3,6 +3,7 @@
  * Generates and stores license keys.
  *
  * @package PureCart\Licensing
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -12,12 +13,22 @@ namespace PureCart\Licensing;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * CRUD for the purecart_licenses table.
+ * Creates and manages license key records in the `purecart_licenses` table.
+ *
+ * Handles key generation, status transitions (active, expired, revoked,
+ * suspended), expiry extension for subscription renewals, and admin
+ * dashboard queries.
+ *
+ * @since 1.0.0
  */
 class LicenseGenerator {
 
 	/**
-	 * Generate and store a new license key for a completed order line item.
+	 * Generates and stores a new license key for a completed order line item.
+	 *
+	 * Reads license settings from the product meta (plan type, activation limit,
+	 * duration), inserts a record into `purecart_licenses`, and fires the
+	 * `purecart_license_created` action.
 	 *
 	 * @since  1.0.0
 	 * @param  int $order_id   WooCommerce order ID.
@@ -73,13 +84,19 @@ class LicenseGenerator {
 			)
 		);
 
+		/**
+		 * Fires after a new license record has been created.
+		 *
+		 * @since 1.0.0
+		 * @param object $license The newly inserted license row.
+		 */
 		do_action( 'purecart_license_created', $license );
 
 		return $license;
 	}
 
 	/**
-	 * Look up a license by its key string.
+	 * Looks up a license by its key string.
 	 *
 	 * @since  1.0.0
 	 * @param  string $license_key The license key to look up.
@@ -98,7 +115,7 @@ class LicenseGenerator {
 	}
 
 	/**
-	 * Retrieve all licenses for a given user, ordered newest first.
+	 * Retrieves all licenses for a given user, ordered newest first.
 	 *
 	 * @since  1.0.0
 	 * @param  int $user_id WordPress user ID.
@@ -121,7 +138,7 @@ class LicenseGenerator {
 	}
 
 	/**
-	 * Look up a license by its primary key.
+	 * Looks up a license by its primary key.
 	 *
 	 * @since  1.0.0
 	 * @param  int $license_id License row ID.
@@ -139,20 +156,21 @@ class LicenseGenerator {
 		) ?: null;
 	}
 
-	// -----------------------------------------------------------------------
-	// License record lifecycle
-	// -----------------------------------------------------------------------
-	//
-	// Added for the Subscriptions module's Step 16 integration. Before this,
-	// this module could only ever *create* a license — nothing anywhere could
-	// extend, suspend, or restore one, so a subscription renewal had no way to
-	// push back the license's expiry date and a suspension had no way to stop
-	// the key working. Deliberately added here, in the module that owns the
-	// `purecart_licenses` table, rather than having Subscriptions write to
-	// another module's table directly.
-	// -----------------------------------------------------------------------
+	/*
+	 * Lifecycle mutation methods (extend_expiry, set_status, etc.) are
+	 * intentionally kept here — in the class that owns the `purecart_licenses`
+	 * table — rather than in the Subscriptions module. This prevents cross-module
+	 * direct table writes and keeps the license record lifecycle in one place.
+	 */
 
-	/** Statuses the license `status` ENUM accepts (Activator.php). */
+	/**
+	 * Valid values for the `status` ENUM column in `purecart_licenses`.
+	 *
+	 * Matches the ENUM definition in Activator::create_tables().
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const STATUSES = array( 'active', 'expired', 'revoked', 'suspended' );
 
 	/**
@@ -204,6 +222,13 @@ class LicenseGenerator {
 		);
 
 		if ( false !== $updated ) {
+			/**
+			 * Fires after a license's expiry date has been extended.
+			 *
+			 * @since 1.0.0
+			 * @param int    $license_id License row ID.
+			 * @param string $new_expiry New expiry date in MySQL datetime format.
+			 */
 			do_action( 'purecart_license_expiry_extended', $license_id, $new_expiry );
 		}
 
@@ -238,20 +263,22 @@ class LicenseGenerator {
 		);
 
 		if ( false !== $updated ) {
+			/**
+			 * Fires after a license's status has been changed.
+			 *
+			 * @since 1.0.0
+			 * @param int    $license_id License row ID.
+			 * @param string $status     The new status value.
+			 */
 			do_action( 'purecart_license_status_changed', $license_id, $status );
 		}
 
 		return false !== $updated;
 	}
 
-	// -----------------------------------------------------------------------
-	// Admin dashboard support
-	// -----------------------------------------------------------------------
-
 	/**
-	 * Every license, newest first, with the product name and customer
-	 * name/email joined in — the admin Licenses list needs both and this is
-	 * the one place that lookup happens, so API\Licenses stays a thin adapter.
+	 * Retrieves all license records with joined product and customer details,
+	 * ordered newest first.
 	 *
 	 * @since 1.0.0
 	 * @return array<int, object>
@@ -270,7 +297,7 @@ class LicenseGenerator {
 	}
 
 	/**
-	 * Counts behind the Licenses list's KPI strip.
+	 * Returns counts for the admin Licenses list KPI strip.
 	 *
 	 * @since 1.0.0
 	 * @return array{total: int, active: int, expiring_30d: int, revoked: int}
@@ -305,7 +332,7 @@ class LicenseGenerator {
 	}
 
 	/**
-	 * Same product/customer join as find_all(), for one license.
+	 * Retrieves a single license record with joined product and customer details.
 	 *
 	 * @since 1.0.0
 	 * @param int $license_id License row ID.
@@ -328,8 +355,9 @@ class LicenseGenerator {
 	}
 
 	/**
-	 * Issue a fresh license for the same order/user/product as an existing
-	 * one — the "Duplicate License" row action.
+	 * Issues a fresh license for the same order/user/product as an existing record.
+	 *
+	 * Used by the admin "Duplicate License" row action.
 	 *
 	 * @since 1.0.0
 	 * @param int $license_id License row ID to copy.
@@ -344,7 +372,16 @@ class LicenseGenerator {
 		return $this->create( (int) $source->order_id, (int) $source->user_id, (int) $source->product_id );
 	}
 
-	/** Generate a formatted license key: XXXXXX-XXXXXX-XXXXXX-XXXXXX */
+	/**
+	 * Generates a random, formatted license key.
+	 *
+	 * Produces a four-segment uppercase hexadecimal string in the format
+	 * `XXXXXX-XXXXXX-XXXXXX-XXXXXX`, using cryptographically secure random
+	 * bytes via `random_bytes()`.
+	 *
+	 * @since 1.0.0
+	 * @return string The generated license key.
+	 */
 	private function generate_key(): string {
 		$segments = array();
 		for ( $i = 0; $i < 4; $i++ ) {

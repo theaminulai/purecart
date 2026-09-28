@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Merges PureCart's own token-based downloads into WooCommerce's native
  * My Account → Downloads list.
@@ -29,6 +29,8 @@ defined( 'ABSPATH' ) || exit;
  * My Account Downloads tab and a Thank You/order page's own downloads
  * section) then renders every row — native and PureCart's — through the
  * exact same table, with no PureCart-specific template of its own needed.
+ *
+ * @since 1.0.0
  */
 class AccountDownloadsMerger {
 

@@ -23,13 +23,25 @@ defined( 'ABSPATH' ) || exit;
  */
 class UpdateReport {
 
-	/** @var PackageRepository */
+	/**
+	 * Package repository used to fetch version rows and latest packages.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
-	/** @var AdoptionRepository */
+	/**
+	 * Adoption repository used to fetch version distribution data.
+	 *
+	 * @since 1.0.0
+	 * @var AdoptionRepository
+	 */
 	private AdoptionRepository $adoption;
 
 	/**
+	 * Initialises the report builder with its required repositories.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {

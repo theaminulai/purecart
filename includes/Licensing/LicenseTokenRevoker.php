@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Revokes all outstanding JWTs for a license.
  *
@@ -43,6 +43,12 @@ class LicenseTokenRevoker {
 			array( '%d', '%d' )
 		);
 
+		/**
+		 * Fires after all outstanding JWT tokens for a license have been marked as revoked.
+		 *
+		 * @since 1.0.0
+		 * @param int $license_id License row ID whose tokens were revoked.
+		 */
 		do_action( 'purecart_jwt_tokens_revoked', $license_id );
 	}
 }

@@ -35,14 +35,27 @@ defined( 'ABSPATH' ) || exit;
  */
 class SubscriptionExport {
 
-	/** admin-post.php action name. */
+	/**
+	 * admin-post.php action name.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const ACTION = 'purecart_export_subscriptions';
 
-	/** Nonce action. */
+	/**
+	 * Nonce action used to sign and verify the download URL.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const NONCE_ACTION = 'purecart_export_subscriptions';
 
 	/**
+	 * Registers the admin-post handler for the CSV download action.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		add_action( 'admin_post_' . self::ACTION, array( $this, 'handle_download' ) );

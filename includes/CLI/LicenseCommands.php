@@ -130,6 +130,14 @@ class LicenseCommands {
 
 				wc_add_order_item_meta( $item->get_id(), '_purecart_license_id', $license->id );
 
+				/**
+				 * Fires after a license key has been retroactively generated for a past order item.
+				 *
+				 * @since 1.0.0
+				 * @param int $license_id The newly created license ID.
+				 * @param int $order_id   The WooCommerce order ID.
+				 * @param int $product_id The WooCommerce product ID.
+				 */
 				do_action( 'purecart_license_past_order_generated', $license->id, $order_id, $product->get_id() );
 
 				++$generated;

@@ -1,8 +1,9 @@
 <?php
 /**
- * "Overdue Notice" email — feature doc § 22 MVP set.
+ * WooCommerce email notifying the customer of an overdue subscription balance.
  *
  * @package PureCart\Subscriptions\Emails
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -12,16 +13,18 @@ namespace PureCart\Subscriptions\Emails;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Fires on `purecart_dunning_retry_failed` — RND's "Day N: Retry ... Failure
- * -> Send overdue reminder email." A hook added in Step 13 (DunningManager
- * previously only logged this).
+ * Fires on `purecart_dunning_retry_failed` after all configured retry attempts
+ * have been exhausted. Sends a final overdue notice to the customer.
  *
  * @since 1.0.0
  */
 class OverdueNoticeEmail extends AbstractSubscriptionEmail {
 
 	/**
+	 * Initializes the email ID, title, and description.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->id          = 'purecart_overdue_notice';
@@ -32,6 +35,8 @@ class OverdueNoticeEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the action hooks that fire this email.
+	 *
 	 * @since 1.0.0
 	 * @return string[]
 	 */
@@ -40,6 +45,8 @@ class OverdueNoticeEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -48,6 +55,8 @@ class OverdueNoticeEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -56,6 +65,8 @@ class OverdueNoticeEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the email body message.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

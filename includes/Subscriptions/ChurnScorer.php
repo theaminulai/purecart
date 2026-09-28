@@ -19,38 +19,64 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Score deltas and bands from feature doc § 9:
+ * Churn risk score deltas and bands:
  *
  *   Increases: payment_failed (+20 first failure, +10/retry) ·
- *              customer_initiated_cancel (+30) · skip_next_cycle (+5) · pause (+10)
+ *              cancellation (+30) · skip_next_cycle (+5) · pause (+10)
  *   Decreases: payment_success (-15, floor 0) · every 12 renewals (-5)
  *   Bands:     0-25 Low · 26-50 Medium · 51-75 High · 76-100 Critical
  *
- * LTV formula ([RND]'s projected version, canonical for MVP — [nym-RND]'s
- * paid-history blend is a v2 refinement, not implemented here):
+ * LTV formula:
  *   monthly_equivalent = billing_amount normalized to a monthly rate
- *   ltv = monthly_equivalent x purecart_sub_avg_lifetime_months (default 24)
+ *   ltv = monthly_equivalent × purecart_sub_avg_lifetime_months (default 24)
  *
- * Simplification, disclosed rather than hidden: the doc's delta list
- * specifically says "customer_initiated_cancel" — but no hook in this
- * codebase yet carries *who* triggered a cancellation (Step 12's REST layer,
- * not built yet, is what will know customer vs. admin). Until that exists,
- * the +30 delta applies to any cancellation this class observes, regardless
- * of actor. Revisit once Step 12 threads actor context through.
+ * Note: the +30 cancellation delta currently applies to any cancellation
+ * regardless of who triggered it (customer vs. admin), because no hook in
+ * this codebase yet carries actor context. A future refinement can split this
+ * once cancellation actor is threaded through.
  *
  * @since 1.0.0
  */
 class ChurnScorer {
 
-	/** Band upper boundaries — checklist requires these exact numbers. */
+	/**
+	 * Upper boundary of the low churn risk band — checklist requires these exact numbers.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	private const BAND_LOW    = 25;
+
+	/**
+	 * Upper boundary of the medium churn risk band.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	private const BAND_MEDIUM = 50;
+
+	/**
+	 * Upper boundary of the high churn risk band.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	private const BAND_HIGH   = 75;
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository for reading and updating subscription rows.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Log repository for recording churn score change entries.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
 	/**
@@ -66,25 +92,20 @@ class ChurnScorer {
 		add_action( 'purecart_subscription_status_changed', array( $this, 'on_status_changed' ), 10, 3 );
 		add_action( 'purecart_subscription_skipped', array( $this, 'on_skipped' ) );
 
-		// Forward-looking — no code fires this yet. PlanUpgrade (Step 10) will
-		// need to call `do_action( 'purecart_subscription_plan_changed', $subscription_id )`
-		// after updating recurring_amount, so LTV recalculates ("LTV recalculates
-		// on plan change" is this step's own checklist item, but the feature it
-		// depends on doesn't exist until Step 10 — the listener is ready now so
-		// nothing has to touch ChurnScorer again once PlanUpgrade lands).
+		// The purecart_subscription_plan_changed action is fired by PlanUpgrade
+		// after updating recurring_amount. This listener is registered now so
+		// LTV recalculates on plan change without requiring any future changes
+		// to this class.
 		add_action( 'purecart_subscription_plan_changed', array( $this, 'on_plan_changed' ) );
 	}
 
-	// -----------------------------------------------------------------------
-	// Event handlers
-	// -----------------------------------------------------------------------
+	/* Event handlers */
 
 	/**
-	 * Seed the initial LTV projection when a subscription first activates —
-	 * the RND flow diagram includes `customer_ltv` in the very first INSERT,
-	 * but that logic didn't exist yet when SubscriptionManager (Step 5) was
-	 * built. Filled here rather than back in Step 5, since this is where the
-	 * LTV formula now actually lives.
+	 * Seeds the initial LTV projection when a subscription first activates.
+	 *
+	 * Sets `customer_ltv` on the subscription record. Placed here rather than
+	 * in SubscriptionManager because this is where the LTV formula lives.
 	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
@@ -98,6 +119,8 @@ class ChurnScorer {
 	}
 
 	/**
+	 * Decrements the churn score on a successful renewal and recalculates LTV.
+	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
 	 * @return void
@@ -122,6 +145,8 @@ class ChurnScorer {
 	}
 
 	/**
+	 * Increments the churn score on a failed payment, with a larger delta for first failures.
+	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
 	 * @return void
@@ -141,6 +166,8 @@ class ChurnScorer {
 	}
 
 	/**
+	 * Adjusts the churn score when a subscription is paused or cancelled.
+	 *
 	 * @since 1.0.0
 	 * @param int         $subscription_id Subscription row ID.
 	 * @param string|null $old_status      Status before the transition.
@@ -167,6 +194,8 @@ class ChurnScorer {
 	}
 
 	/**
+	 * Increments the churn score slightly when a customer skips a billing cycle.
+	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
 	 * @return void
@@ -179,6 +208,8 @@ class ChurnScorer {
 	}
 
 	/**
+	 * Recalculates the LTV projection when a subscription's plan changes.
+	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
 	 * @return void
@@ -190,9 +221,7 @@ class ChurnScorer {
 		}
 	}
 
-	// -----------------------------------------------------------------------
-	// Scoring
-	// -----------------------------------------------------------------------
+	/* Scoring */
 
 	/**
 	 * Apply a score delta, clamped to [0, 100], and log the change.
@@ -221,9 +250,10 @@ class ChurnScorer {
 	}
 
 	/**
-	 * Map a churn risk score to its band. Boundaries (25/50/75) are exact
-	 * per this step's checklist — must match whatever color-codes the same
-	 * bands in the admin list (Frontend Phase 1/4, not built yet).
+	 * Maps a churn risk score to its named band.
+	 *
+	 * Band boundaries (25 / 50 / 75) mirror the values used by the admin
+	 * Subscriptions list to color-code the churn column.
 	 *
 	 * @since 1.0.0
 	 * @param int $score Churn risk score, 0-100.
@@ -242,9 +272,7 @@ class ChurnScorer {
 		return 'critical';
 	}
 
-	// -----------------------------------------------------------------------
-	// LTV
-	// -----------------------------------------------------------------------
+	/* LTV */
 
 	/**
 	 * Recalculate and persist the projected customer LTV.
@@ -267,14 +295,10 @@ class ChurnScorer {
 	}
 
 	/**
-	 * Normalize a recurring amount to its monthly-equivalent rate.
+	 * Normalizes a recurring billing amount to its monthly-equivalent rate.
 	 *
-	 * Public static as of Step 15: SubscriptionReport's MRR figure is defined
-	 * (feature doc § 8) as "sum of normalized monthly-equivalent recurring
-	 * revenue across active subs" — the exact same normalization this class
-	 * already does for LTV. Shared rather than reimplemented so MRR and LTV
-	 * can never drift apart, same reasoning as BillingClock's extraction in
-	 * Step 6.
+	 * Shared between LTV projection and MRR reporting so both figures use
+	 * exactly the same normalization logic and can never drift apart.
 	 *
 	 * @since 1.0.0
 	 * @param float  $amount   Recurring amount per billing_interval.

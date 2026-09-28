@@ -29,6 +29,8 @@ defined( 'ABSPATH' ) || exit;
 class AdoptionRepository {
 
 	/**
+	 * Returns the activations table name.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

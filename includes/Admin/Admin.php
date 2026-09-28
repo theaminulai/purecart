@@ -221,12 +221,18 @@ class Admin {
 	}
 
 	/**
-	 * Intercept WP sidebar link clicks so the React SPA navigates without a
-	 * full page reload. Each purecart-* link maps to a HashRouter path; the
-	 * router script prevents the default anchor navigation, pushes the hash
-	 * change (which HashRouter picks up via the native hashchange event),
-	 * then fixes the browser URL with replaceState so the correct ?page= is
-	 * preserved for refreshes and WP menu highlighting.
+	 * Registers and enqueues the menu-router script with its slug-to-path map.
+	 *
+	 * Intercepts WordPress sidebar link clicks so the React SPA navigates
+	 * without a full page reload. Each `purecart-*` admin slug maps to a
+	 * HashRouter path; the router script prevents the default anchor
+	 * navigation, pushes the hash change (which HashRouter picks up via the
+	 * native `hashchange` event), then restores the correct `?page=` parameter
+	 * with `replaceState` so browser refreshes and WP menu highlighting work
+	 * as expected.
+	 *
+	 * @since 1.0.0
+	 * @return void
 	 */
 	private function enqueue_menu_router(): void {
 		$asset_router_file = PURECART_PATH . 'build/admin/menu-router/menu-router.asset.php';
@@ -261,10 +267,6 @@ class Admin {
 
 		wp_enqueue_script( 'purecart-menu-router' );
 	}
-	// ─────────────────────────────────────────────────────────────────────────────
-	// Plugin row action links
-	// ─────────────────────────────────────────────────────────────────────────────
-
 	/**
 	 * Add Settings and Licenses quick links to the plugin row on the Plugins screen.
 	 *

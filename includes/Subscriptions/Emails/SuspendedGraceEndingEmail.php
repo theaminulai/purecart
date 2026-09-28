@@ -1,8 +1,9 @@
 <?php
 /**
- * "Suspended Grace Ending" email — feature doc § 22 MVP set.
+ * WooCommerce email notifying the customer that their suspension grace period is nearly over.
  *
  * @package PureCart\Subscriptions\Emails
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -12,16 +13,19 @@ namespace PureCart\Subscriptions\Emails;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Fired by `SubscriptionEmail::send_grace_reminders()`'s scan (Step 13), a
- * few days before `purecart_sub_suspended_grace_days` runs out and
- * DunningManager hard-cancels the subscription.
+ * Fired by `SubscriptionEmail::send_grace_reminders()`, which scans for
+ * suspended subscriptions approaching the end of `purecart_sub_suspended_grace_days`
+ * before DunningManager hard-cancels the subscription.
  *
  * @since 1.0.0
  */
 class SuspendedGraceEndingEmail extends AbstractSubscriptionEmail {
 
 	/**
+	 * Initializes the email ID, title, and description.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->id          = 'purecart_suspended_grace_ending';
@@ -32,6 +36,8 @@ class SuspendedGraceEndingEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the action hooks that fire this email.
+	 *
 	 * @since 1.0.0
 	 * @return string[]
 	 */
@@ -40,6 +46,8 @@ class SuspendedGraceEndingEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -48,6 +56,8 @@ class SuspendedGraceEndingEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -56,6 +66,8 @@ class SuspendedGraceEndingEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the email body message.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

@@ -1,8 +1,9 @@
 <?php
 /**
- * "Renewal Reminder" email — feature doc § 22 MVP set.
+ * WooCommerce email reminding the customer of an upcoming subscription renewal.
  *
  * @package PureCart\Subscriptions\Emails
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -12,15 +13,19 @@ namespace PureCart\Subscriptions\Emails;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Fired by `SubscriptionEmail::send_reminders()`'s scan (Step 13), per
- * `purecart_sub_renewal_reminder_days` (e.g. [7, 3, 1] days before due).
+ * Fired by `SubscriptionEmail::send_reminders()`, which scans for subscriptions
+ * approaching their next payment date per the `purecart_sub_renewal_reminder_days`
+ * setting (e.g., [7, 3, 1] days before due).
  *
  * @since 1.0.0
  */
 class RenewalReminderEmail extends AbstractSubscriptionEmail {
 
 	/**
+	 * Initializes the email ID, title, and description.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->id          = 'purecart_renewal_reminder';
@@ -31,6 +36,8 @@ class RenewalReminderEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the action hooks that fire this email.
+	 *
 	 * @since 1.0.0
 	 * @return string[]
 	 */
@@ -39,6 +46,8 @@ class RenewalReminderEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -47,6 +56,8 @@ class RenewalReminderEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -55,6 +66,8 @@ class RenewalReminderEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the email body message.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

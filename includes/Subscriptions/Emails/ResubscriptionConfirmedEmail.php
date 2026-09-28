@@ -1,8 +1,9 @@
 <?php
 /**
- * "Resubscription Confirmed" email — feature doc § 22 MVP set.
+ * WooCommerce email confirming to the customer that their resubscription was successful.
  *
  * @package PureCart\Subscriptions\Emails
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -12,12 +13,17 @@ namespace PureCart\Subscriptions\Emails;
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Confirms to the customer that their resubscription was successful.
+ *
  * @since 1.0.0
  */
 class ResubscriptionConfirmedEmail extends AbstractSubscriptionEmail {
 
 	/**
+	 * Initializes the email ID, title, and description.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->id          = 'purecart_resubscription_confirmed';
@@ -28,6 +34,8 @@ class ResubscriptionConfirmedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the action hooks that fire this email.
+	 *
 	 * @since 1.0.0
 	 * @return string[]
 	 */
@@ -36,6 +44,8 @@ class ResubscriptionConfirmedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -44,6 +54,8 @@ class ResubscriptionConfirmedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -52,6 +64,8 @@ class ResubscriptionConfirmedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the email body message.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

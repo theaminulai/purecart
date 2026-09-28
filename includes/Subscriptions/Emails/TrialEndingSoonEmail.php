@@ -1,8 +1,9 @@
 <?php
 /**
- * "Trial Ending Soon" email — feature doc § 22 MVP set.
+ * WooCommerce email notifying the customer that their trial period is ending soon.
  *
  * @package PureCart\Subscriptions\Emails
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -12,16 +13,19 @@ namespace PureCart\Subscriptions\Emails;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Fired by `SubscriptionEmail::send_reminders()`'s scan (Step 13) — no
- * lifecycle-transition hook exists for "N days before a future date", this
- * needs a scan, not an event.
+ * Fired by `SubscriptionEmail::send_reminders()`, which scans for trial
+ * subscriptions approaching their end date. No lifecycle-transition hook
+ * exists for a future-date threshold, so a scan is necessary.
  *
  * @since 1.0.0
  */
 class TrialEndingSoonEmail extends AbstractSubscriptionEmail {
 
 	/**
+	 * Initializes the email ID, title, and description.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->id          = 'purecart_trial_ending_soon';
@@ -32,6 +36,8 @@ class TrialEndingSoonEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the action hooks that fire this email.
+	 *
 	 * @since 1.0.0
 	 * @return string[]
 	 */
@@ -40,6 +46,8 @@ class TrialEndingSoonEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -48,6 +56,8 @@ class TrialEndingSoonEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -56,6 +66,8 @@ class TrialEndingSoonEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the email body message.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

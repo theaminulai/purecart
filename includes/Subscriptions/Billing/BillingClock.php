@@ -2,14 +2,14 @@
 /**
  * Shared, timezone-safe date math for billing-cycle calculations.
  *
- * Extracted out of SubscriptionManager during Step 6 so RenewalEngine doesn't
- * duplicate this logic — duplicating it would risk re-introducing the exact
- * strtotime()/gmdate()-vs-current_time('mysql') timezone-mixing bug found and
- * fixed here (see git history / conversation: resume() and resubscribe() both
- * silently drifted subscription dates by the gap between PHP's server default
- * timezone and the site's configured timezone).
+ * Centralises date arithmetic so that RenewalEngine and SubscriptionManager
+ * do not duplicate this logic. Duplication previously caused subtle date drift:
+ * mixing strtotime()/gmdate() with current_time('mysql') shifted subscription
+ * dates by the gap between PHP's server default timezone and the WordPress site
+ * timezone. All billing-cycle date math MUST go through this class.
  *
  * @package PureCart\Subscriptions
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -19,6 +19,8 @@ namespace PureCart\Subscriptions\Billing;
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Provides timezone-safe date arithmetic helpers for subscription billing cycles.
+ *
  * @since 1.0.0
  */
 class BillingClock {

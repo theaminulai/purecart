@@ -17,7 +17,7 @@ $packages_repo = new PackageRepository();
 $delivery      = new UpdateDelivery();
 $user_id       = get_current_user_id();
 
-// Query customer licensed products
+// Build the list of update-enabled products the current customer has purchased.
 $products = array();
 if ( function_exists( 'wc_get_orders' ) ) {
 	$orders = wc_get_orders( array(
@@ -47,7 +47,7 @@ if ( function_exists( 'wc_get_orders' ) ) {
 	}
 }
 
-// If admin and no personal orders placed yet, display all store releases for preview
+// Admins with no personal purchases see all active releases for preview purposes.
 if ( empty( $products ) && current_user_can( 'manage_woocommerce' ) ) {
 	global $wpdb;
 	$table = $wpdb->prefix . 'purecart_product_versions';

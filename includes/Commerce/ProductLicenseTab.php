@@ -27,7 +27,8 @@ class ProductLicenseTab {
 	/**
 	 * Product type slugs this tab is visible on.
 	 *
-	 * @var string[]
+	 * @since 1.0.0
+	 * @var   string[]
 	 */
 	private const TYPES = array(
 		ProductTypes::TYPE_PLUGIN,

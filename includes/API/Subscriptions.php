@@ -25,57 +25,109 @@ use PureCart\Subscriptions\Billing\BillingClock;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Registers its own routes on `rest_api_init` via PureCartApi::register(),
- * called explicitly from Subscriptions\Module rather than auto-wired in the
- * constructor — same explicit-call pattern as PureCartStore::create().
+ * Registers and handles REST routes for the Subscriptions module.
  *
- * Scope: implements REST endpoints for functionality that actually exists
- * (Steps 1-11). Deliberately NOT registered, because the underlying feature
- * doesn't exist yet in this module:
- *   - request-reauth (no SCA/3DS flow built anywhere — WebhookHandler already
- *     handles the *inbound* invoice.payment_action_required case, but there's
- *     no outbound "send a reauth email" to trigger, since Step 13 emails
- *     don't exist)
- *   - usage (feature doc § 13, explicitly Phase 2)
- *   - revenue-goals CRUD, report/summary, report/export (Step 15 — SubscriptionReport)
- *   - membership/downloads/courses/service-specific endpoints (Step 14/16 —
- *     those delivery handlers are still Step 3's stubs)
+ * Routes are registered on `rest_api_init` via PureCartApi::register(), called
+ * explicitly from Subscriptions\Module. The following features are intentionally
+ * not yet exposed over REST because their underlying implementations are not
+ * complete:
+ *   - Request-reauth: inbound SCA/3DS is handled by WebhookHandler, but
+ *     no outbound reauth email or card-update landing page is available yet.
+ *   - Usage reporting and metered billing.
+ *   - Revenue-goals CRUD and aggregated report/export endpoints.
+ *   - Delivery-handler-specific endpoints (membership, downloads, courses,
+ *     service) — those handlers currently expose no dedicated routes.
  *
  * @since 1.0.0
  */
 class Subscriptions extends PureCartApi {
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription record persistence.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Subscription event log persistence.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
-	/** @var PaymentRepository */
+	/**
+	 * Payment record persistence.
+	 *
+	 * @since 1.0.0
+	 * @var PaymentRepository
+	 */
 	private PaymentRepository $payments;
 
-	/** @var SubscriptionManager */
+	/**
+	 * Subscription lifecycle operations (pause, resume, cancel, etc.).
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionManager
+	 */
 	private SubscriptionManager $manager;
 
-	/** @var RetentionFlow */
+	/**
+	 * Cancellation retention flow: reasons and counter-offers.
+	 *
+	 * @since 1.0.0
+	 * @var RetentionFlow
+	 */
 	private RetentionFlow $retention;
 
-	/** @var RenewalEngine */
+	/**
+	 * Renewal scheduling and processing.
+	 *
+	 * @since 1.0.0
+	 * @var RenewalEngine
+	 */
 	private RenewalEngine $renewal_engine;
 
-	/** @var DunningManager */
+	/**
+	 * Payment retry and dunning management.
+	 *
+	 * @since 1.0.0
+	 * @var DunningManager
+	 */
 	private DunningManager $dunning;
 
-	/** @var PlanUpgrade */
+	/**
+	 * Plan upgrade and product-switch processing.
+	 *
+	 * @since 1.0.0
+	 * @var PlanUpgrade
+	 */
 	private PlanUpgrade $plan_upgrade;
 
-	/** @var WebhookHandler */
+	/**
+	 * Inbound webhook event handling.
+	 *
+	 * @since 1.0.0
+	 * @var WebhookHandler
+	 */
 	private WebhookHandler $webhooks;
 
-	/** @var SubscriptionReport */
+	/**
+	 * Subscription aggregate reporting and CSV export.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionReport
+	 */
 	private SubscriptionReport $report;
 
-	/** CSV body waiting to be emitted by serve_pending_csv(). @var string|null */
+	/**
+	 * CSV body staged for emission via the rest_pre_serve_request filter.
+	 *
+	 * @since 1.0.0
+	 * @var string|null
+	 */
 	private ?string $pending_csv = null;
 
 	/**
@@ -111,11 +163,9 @@ class Subscriptions extends PureCartApi {
 		$this->report = new SubscriptionReport();
 	}
 
-	// -----------------------------------------------------------------------
-	// Route registration
-	// -----------------------------------------------------------------------
-
 	/**
+	 * Registers all /subscriptions/* and /reports/subscriptions/* routes.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -334,9 +384,8 @@ class Subscriptions extends PureCartApi {
 			)
 		);
 
-		// Reporting (Step 15). Both are site-wide aggregate data over every
-		// customer's subscriptions, so both are strictly admin-only — there is
-		// deliberately no owner-scoped variant of these.
+		// Reporting endpoints — site-wide aggregate data over every customer's
+		// subscriptions; strictly admin-only with no owner-scoped variant.
 		register_rest_route(
 			$ns,
 			'/reports/subscriptions/summary',
@@ -368,11 +417,9 @@ class Subscriptions extends PureCartApi {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// Permission callbacks
-	// -----------------------------------------------------------------------
-
 	/**
+	 * Restricts a route to users with the manage_woocommerce capability.
+	 *
 	 * @since 1.0.0
 	 * @return bool
 	 */
@@ -419,10 +466,6 @@ class Subscriptions extends PureCartApi {
 
 		return is_user_logged_in() && get_current_user_id() === (int) $subscription->user_id;
 	}
-
-	// -----------------------------------------------------------------------
-	// Read endpoints
-	// -----------------------------------------------------------------------
 
 	/**
 	 * GET /subscriptions — admin list, optionally filtered by status, product, cycle, type, payment_type, churn_risk, search, and paginated.
@@ -629,6 +672,8 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
+	 * Shapes a subscription DB row into the camelCase REST contract the SPA expects.
+	 *
 	 * @since 1.0.0
 	 * @param object $subscription Subscription row.
 	 * @return array<string, mixed>
@@ -701,6 +746,8 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
+	 * Returns a standardized 404 WP_Error for a missing subscription.
+	 *
 	 * @since 1.0.0
 	 * @return \WP_Error
 	 */
@@ -708,11 +755,9 @@ class Subscriptions extends PureCartApi {
 		return new \WP_Error( 'purecart_not_found', __( 'Subscription not found.', 'purecart' ), array( 'status' => 404 ) );
 	}
 
-	// -----------------------------------------------------------------------
-	// Lifecycle actions (owner or admin)
-	// -----------------------------------------------------------------------
-
 	/**
+	 * Handles POST /subscriptions/{id}/pause — pauses the subscription.
+	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request.
 	 * @return \WP_REST_Response|\WP_Error
@@ -735,6 +780,8 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
+	 * Handles POST /subscriptions/{id}/resume — resumes a paused subscription.
+	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request.
 	 * @return \WP_REST_Response|\WP_Error
@@ -746,6 +793,8 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
+	 * Handles POST /subscriptions/{id}/cancel — cancels the subscription.
+	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request.
 	 * @return \WP_REST_Response|\WP_Error
@@ -759,6 +808,8 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
+	 * Handles POST /subscriptions/{id}/skip — skips the next renewal cycle.
+	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request.
 	 * @return \WP_REST_Response|\WP_Error
@@ -770,6 +821,8 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
+	 * Handles POST /subscriptions/{id}/early-renewal — triggers a renewal before the scheduled date.
+	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request.
 	 * @return \WP_REST_Response|\WP_Error
@@ -781,6 +834,8 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
+	 * Handles POST /subscriptions/{id}/resubscribe — re-creates a cancelled subscription.
+	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request.
 	 * @return \WP_REST_Response|\WP_Error
@@ -796,6 +851,8 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
+	 * Handles POST /subscriptions/{id}/upgrade — changes the subscription's plan, cycle, or product.
+	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request.
 	 * @return \WP_REST_Response|\WP_Error
@@ -874,10 +931,12 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
+	 * Wraps a boolean action outcome as a REST response or WP_Error.
+	 *
 	 * @since 1.0.0
 	 * @param bool   $success   Whether the action succeeded.
 	 * @param int    $id        Subscription row ID.
-	 * @param string $error_msg Message to use if it failed.
+	 * @param string $error_msg Message to use if the action failed.
 	 * @return \WP_REST_Response|\WP_Error
 	 */
 	private function action_result( bool $success, int $id, string $error_msg ): \WP_REST_Response|\WP_Error {
@@ -887,10 +946,6 @@ class Subscriptions extends PureCartApi {
 
 		return rest_ensure_response( $this->prepare_subscription( $this->subscriptions->find( $id ) ) );
 	}
-
-	// -----------------------------------------------------------------------
-	// Admin-only actions
-	// -----------------------------------------------------------------------
 
 	/**
 	 * POST /subscriptions/{id}/renew — manual admin-triggered renewal.
@@ -930,12 +985,11 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
-	 * POST /subscriptions/{id}/send-card-update.
+	 * Handles POST /subscriptions/{id}/send-card-update.
 	 *
-	 * Returns the generated magic-link token/URL directly in the response for
-	 * now — Step 13 (emails) doesn't exist yet to actually send it, and no
-	 * no-login landing page exists yet to consume it either (Customer Portal /
-	 * Frontend Phase 6). This is the backend primitive both of those will use.
+	 * Returns the generated magic-link token and URL in the response body.
+	 * This is the backend primitive that future email notification and
+	 * no-login card-update landing pages will consume.
 	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request.
@@ -1013,10 +1067,6 @@ class Subscriptions extends PureCartApi {
 		return rest_ensure_response( $this->prepare_subscription( $this->subscriptions->find( $id ) ) );
 	}
 
-	// -----------------------------------------------------------------------
-	// Retention flow (cancellation)
-	// -----------------------------------------------------------------------
-
 	/**
 	 * GET /subscriptions/{id}/cancellation/reasons — Public.
 	 *
@@ -1062,11 +1112,9 @@ class Subscriptions extends PureCartApi {
 		return is_wp_error( $result ) ? $result : rest_ensure_response( $this->prepare_subscription( $this->subscriptions->find( $id ) ) );
 	}
 
-	// -----------------------------------------------------------------------
-	// Server / webhook endpoints (HMAC-verified, not capability-gated)
-	// -----------------------------------------------------------------------
-
 	/**
+	 * Handles POST /subscriptions/{id}/external-renewal — records a renewal processed by an external payment system.
+	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request.
 	 * @return \WP_REST_Response|\WP_Error
@@ -1092,6 +1140,8 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
+	 * Handles POST /subscriptions/{id}/webhook-event — dispatches an inbound gateway webhook event.
+	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request.
 	 * @return \WP_REST_Response|\WP_Error

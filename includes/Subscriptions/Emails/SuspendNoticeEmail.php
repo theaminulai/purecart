@@ -1,8 +1,9 @@
 <?php
 /**
- * "Suspend Notice" email — feature doc § 22 MVP set.
+ * WooCommerce email notifying the customer that their subscription access has been suspended.
  *
  * @package PureCart\Subscriptions\Emails
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -12,12 +13,18 @@ namespace PureCart\Subscriptions\Emails;
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Notifies the customer when their subscription access is suspended after the
+ * active grace period is exhausted.
+ *
  * @since 1.0.0
  */
 class SuspendNoticeEmail extends AbstractSubscriptionEmail {
 
 	/**
+	 * Initializes the email ID, title, and description.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->id          = 'purecart_suspend_notice';
@@ -28,6 +35,8 @@ class SuspendNoticeEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the action hooks that fire this email.
+	 *
 	 * @since 1.0.0
 	 * @return string[]
 	 */
@@ -36,6 +45,8 @@ class SuspendNoticeEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -44,6 +55,8 @@ class SuspendNoticeEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -52,6 +65,8 @@ class SuspendNoticeEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the email body message.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

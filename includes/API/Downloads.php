@@ -31,10 +31,20 @@ defined( 'ABSPATH' ) || exit;
  */
 class Downloads extends PureCartApi {
 
-	/** Admin-facing log/token queries. @var DownloadLogRepository */
+	/**
+	 * Admin-facing log/token queries.
+	 *
+	 * @since 1.0.0
+	 * @var DownloadLogRepository
+	 */
 	private DownloadLogRepository $repository;
 
-	/** Token lifecycle writes (revoke/regenerate). @var TokenManager */
+	/**
+	 * Token lifecycle writes (revoke/regenerate).
+	 *
+	 * @since 1.0.0
+	 * @var TokenManager
+	 */
 	private TokenManager $tokens;
 
 	/**
@@ -56,10 +66,6 @@ class Downloads extends PureCartApi {
 	public function permission_admin(): bool {
 		return current_user_can( 'manage_woocommerce' );
 	}
-
-	// -----------------------------------------------------------------------
-	// Route registration
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Registers every /downloads/* route.
@@ -155,10 +161,6 @@ class Downloads extends PureCartApi {
 			)
 		);
 	}
-
-	// -----------------------------------------------------------------------
-	// Read endpoints
-	// -----------------------------------------------------------------------
 
 	/**
 	 * GET /downloads/log — admin log with the KPI strip's counts, optionally
@@ -287,10 +289,6 @@ class Downloads extends PureCartApi {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// Action endpoints
-	// -----------------------------------------------------------------------
-
 	/**
 	 * POST /downloads/token/{id}/revoke
 	 *
@@ -364,10 +362,6 @@ class Downloads extends PureCartApi {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// Settings
-	// -----------------------------------------------------------------------
-
 	/**
 	 * GET /downloads/settings
 	 *
@@ -407,10 +401,6 @@ class Downloads extends PureCartApi {
 			)
 		);
 	}
-
-	// -----------------------------------------------------------------------
-	// Shaping
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Snake_case log row (joined with token/product/customer columns) to the

@@ -1,9 +1,9 @@
 <?php
 /**
- * "Payment Reauthorization" email — outside the MVP-16 but explicitly
- * required by Step 13's own checklist (see CardExpiringSoonEmail's docblock).
+ * WooCommerce email prompting the customer to reauthorize their payment method.
  *
  * @package PureCart\Subscriptions\Emails
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -13,17 +13,19 @@ namespace PureCart\Subscriptions\Emails;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Fires on `purecart_subscription_reauth_required` — already dispatched by
- * WebhookHandler (Step 12) when a gateway reports
- * `invoice.payment_action_required` (SCA/3DS challenge needed). No separate
- * scan needed here; this is purely event-driven.
+ * Fires on `purecart_subscription_reauth_required`, dispatched by
+ * WebhookHandler when a gateway reports `invoice.payment_action_required`
+ * (an SCA/3DS challenge is required). Purely event-driven; no scan needed.
  *
  * @since 1.0.0
  */
 class PaymentReauthorizationEmail extends AbstractSubscriptionEmail {
 
 	/**
+	 * Initializes the email ID, title, and description.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->id          = 'purecart_payment_reauthorization';
@@ -34,6 +36,8 @@ class PaymentReauthorizationEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the action hooks that fire this email.
+	 *
 	 * @since 1.0.0
 	 * @return string[]
 	 */
@@ -42,6 +46,8 @@ class PaymentReauthorizationEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -50,6 +56,8 @@ class PaymentReauthorizationEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -58,6 +66,8 @@ class PaymentReauthorizationEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the email body message.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

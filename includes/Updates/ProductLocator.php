@@ -22,13 +22,28 @@ defined( 'ABSPATH' ) || exit;
  */
 class ProductLocator {
 
-	/** Product meta holding the update slug. */
+	/**
+	 * Product meta holding the update slug.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const SLUG_META = '_purecart_plugin_slug';
 
-	/** Product meta holding the product kind (wp-plugin, wp-theme, software, ...). */
+	/**
+	 * Product meta holding the product kind (wp-plugin, wp-theme, software, ...).
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const TYPE_META = '_purecart_product_type';
 
-	/** Product types that get WordPress-specific response fields. */
+	/**
+	 * Product types that get WordPress-specific response fields.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const WP_TYPES = array( 'wp-plugin', 'wp-theme' );
 
 	/**

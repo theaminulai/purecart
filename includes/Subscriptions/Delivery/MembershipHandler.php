@@ -14,40 +14,44 @@ use PureCart\Subscriptions\DeliveryHandlerInterface;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Stub for now (subscription-final-dev-plan.md § 9 Step 3) — satisfies the
- * registry contract so "Membership" is selectable as a delivery type today.
- * Real role assignment/removal is RoleManager's job (Step 14); this handler
- * will call into it once that class exists.
+ * Stub implementation of the Membership delivery type.
+ *
+ * Satisfies the registry contract so "Membership" is selectable as a delivery
+ * type. Real WP role assignment and removal delegates to RoleManager.
  *
  * @since 1.0.0
  */
 class MembershipHandler implements DeliveryHandlerInterface {
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return void
 	 */
 	public function activate( array $subscription ): void {
-		// TODO(Step 14 – RoleManager): assign the tier's WP role to $subscription['user_id'].
+		// TODO: assign the membership tier's WP role to $subscription['user_id'] via RoleManager.
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return void
 	 */
 	public function renew( array $subscription ): void {
-		// TODO(Step 14): re-sync role in case the membership tier changed since last cycle.
+		// TODO: re-sync role in case the membership tier changed since last cycle.
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return void
 	 */
 	public function deactivate( array $subscription ): void {
-		// TODO(Step 14): remove the role after purecart_sub_membership_grace_days elapses.
+		// TODO: remove the role after purecart_sub_membership_grace_days elapses.
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return array<string, mixed>
 	 */
@@ -56,6 +60,7 @@ class MembershipHandler implements DeliveryHandlerInterface {
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $data Linked-entity data to validate.
 	 * @return bool|\WP_Error
 	 */
