@@ -21,40 +21,71 @@ use PureCart\Subscriptions\SubscriptionManager;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Scope note: this class creates the renewal WC_Order and drives the charge
- * through whatever WooCommerce payment gateway the customer's saved token
- * belongs to (`WC_Payment_Gateway::process_payment()`, the same mechanism WC
- * checkout itself uses) — it does not implement a specific gateway's API.
- * That's the correct boundary per subscription-final-dev-plan.md's 16-step
- * plan: no step is titled "Stripe/PayPal integration"; RenewalEngine's job
- * ends at invoking the gateway's own off-session charge path. On failure,
- * this only sets `past_due` and logs — the actual grace-period/retry-interval
- * schedule is DunningManager's job (Step 7), deliberately not duplicated here.
+ * Creates the renewal WC_Order and drives the charge through the customer's
+ * saved payment token via `WC_Payment_Gateway::process_payment()` — the same
+ * off-session charge path WooCommerce checkout uses.
+ *
+ * This class is intentionally gateway-agnostic: it ends at invoking the
+ * gateway's charge path. On failure, it records `past_due` and logs; the
+ * grace-period/retry-interval schedule belongs to DunningManager.
  *
  * @since 1.0.0
  */
 class RenewalEngine {
 
-	/** Action Scheduler group for all Subscriptions module jobs. */
+	/**
+	 * Action Scheduler group for all Subscriptions module jobs.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const AS_GROUP = 'purecart';
 
-	/** Recurring job: scans for due subscriptions and queues a process job for each. */
+	/**
+	 * Recurring job: scans for due subscriptions and queues a process job for each.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const SCAN_HOOK = 'purecart_scan_due_renewals';
 
-	/** Per-subscription job: actually attempts the renewal. */
+	/**
+	 * Per-subscription job: actually attempts the renewal.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const PROCESS_HOOK = 'purecart_process_renewal';
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Subscription log repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
-	/** @var PaymentRepository */
+	/**
+	 * Payment repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var PaymentRepository
+	 */
 	private PaymentRepository $payments;
 
 	/**
+	 * Registers Action Scheduler callbacks and schedules the recurring scan.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->subscriptions = new SubscriptionRepository();
@@ -78,10 +109,6 @@ class RenewalEngine {
 			as_schedule_recurring_action( time(), HOUR_IN_SECONDS, self::SCAN_HOOK, array(), self::AS_GROUP );
 		}
 	}
-
-	// -----------------------------------------------------------------------
-	// Scan
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Hourly Action Scheduler job: find every trialing/active subscription
@@ -128,10 +155,6 @@ class RenewalEngine {
 			$manager->resume( (int) $subscription->id );
 		}
 	}
-
-	// -----------------------------------------------------------------------
-	// Process
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Attempt to renew one subscription. Every early-return below is a
@@ -399,10 +422,6 @@ class RenewalEngine {
 
 		return $this->subscriptions->find( (int) $subscription->id ) ?? $subscription;
 	}
-
-	// -----------------------------------------------------------------------
-	// Charging
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Build the renewal order and attempt the charge via the customer's
@@ -798,10 +817,6 @@ class RenewalEngine {
 		do_action( 'purecart_subscription_payment_failed', (int) $subscription->id, $order->get_id(), $reason );
 	}
 
-	// -----------------------------------------------------------------------
-	// Early renewal (customer-initiated, before the due date)
-	// -----------------------------------------------------------------------
-
 	/**
 	 * Renew a subscription immediately, before its next_payment_at is due —
 	 * feature doc § 5 ("Early renewal"), Step 12's REST endpoint for it.
@@ -880,10 +895,6 @@ class RenewalEngine {
 
 		return true;
 	}
-
-	// -----------------------------------------------------------------------
-	// External (gateway-scheduled) renewals
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Record a renewal that a gateway billed and scheduled on its own side

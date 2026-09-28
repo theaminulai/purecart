@@ -25,6 +25,7 @@ class DeliveryHandlerRegistry {
 	/**
 	 * Cached handler map, keyed by delivery_type.
 	 *
+	 * @since 1.0.0
 	 * @var array<string, DeliveryHandlerInterface>|null
 	 */
 	private static ?array $handlers = null;

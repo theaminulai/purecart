@@ -43,19 +43,48 @@ defined( 'ABSPATH' ) || exit;
  */
 class SubscriptionCoupon {
 
-	/** Coupon meta value: discounts only the sign-up fee portion, initial order only. */
+	/**
+	 * Coupon meta value: discounts only the sign-up fee portion, initial order only.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const SCOPE_SIGNUP_FEE = 'signup_fee';
 
-	/** Coupon meta value: discounts the recurring amount for N renewals (or forever). */
+	/**
+	 * Coupon meta value: discounts the recurring amount for N renewals (or forever).
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const SCOPE_RECURRING_FEE = 'recurring_fee';
 
-	/** Sentinel stored in `discount_renewals_remaining` for "forever" — that column has no separate boolean for it (Schema.php, Step 1/9) and adding one for a single coupon feature wasn't judged worth a schema change. SMALLINT UNSIGNED max is 65535, so this is nowhere near overflowing. */
+	/**
+	 * Sentinel stored in `discount_renewals_remaining` to represent "applies forever".
+	 *
+	 * That column has no separate boolean for it (Schema.php, Step 1/9) and adding one
+	 * for a single coupon feature wasn't judged worth a schema change.
+	 * SMALLINT UNSIGNED max is 65535, so this is nowhere near overflowing.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	private const FOREVER_SENTINEL = 32000;
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository for reading and updating subscription rows.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Log repository for recording coupon-application events.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
 	/**
@@ -71,11 +100,11 @@ class SubscriptionCoupon {
 		add_action( 'purecart_subscription_activated', array( $this, 'apply_recurring_coupon_from_order' ) );
 	}
 
-	// -----------------------------------------------------------------------
-	// Coupon edit screen — scope + cycles fields
-	// -----------------------------------------------------------------------
+	/* Coupon edit screen — scope + cycles fields */
 
 	/**
+	 * Renders the PureCart subscription scope and renewal-cycles fields on the coupon edit screen.
+	 *
 	 * @since 1.0.0
 	 * @param int        $coupon_id Coupon post ID.
 	 * @param \WC_Coupon $coupon    Coupon object.
@@ -118,6 +147,8 @@ class SubscriptionCoupon {
 	}
 
 	/**
+	 * Saves the subscription scope and cycles meta when the coupon edit screen is saved.
+	 *
 	 * @since 1.0.0
 	 * @param int        $post_id Coupon post ID.
 	 * @param \WC_Coupon $coupon  Coupon object.
@@ -147,11 +178,11 @@ class SubscriptionCoupon {
 		}
 	}
 
-	// -----------------------------------------------------------------------
-	// Sign-up-fee scope — cap the coupon's own discount at checkout
-	// -----------------------------------------------------------------------
+	/* Sign-up-fee scope — cap the coupon's own discount at checkout */
 
 	/**
+	 * Caps a sign-up-fee-scoped coupon's discount at the item's sign-up fee, returning 0 for non-subscription items.
+	 *
 	 * @since 1.0.0
 	 * @param float      $discount           Discount computed so far by WC's native percent/fixed logic.
 	 * @param float      $discounting_amount Price being discounted.
@@ -179,6 +210,8 @@ class SubscriptionCoupon {
 	}
 
 	/**
+	 * Extracts the WC_Product from a cart item array or order item object.
+	 *
 	 * @since 1.0.0
 	 * @param mixed $item Cart item array or order item object.
 	 * @return \WC_Product|null
@@ -196,9 +229,7 @@ class SubscriptionCoupon {
 		return null;
 	}
 
-	// -----------------------------------------------------------------------
-	// Recurring-fee scope — carry the discount forward onto future renewals
-	// -----------------------------------------------------------------------
+	/* Recurring-fee scope — carry the discount forward onto future renewals */
 
 	/**
 	 * On a brand-new subscription, check whether its originating order used a
@@ -284,6 +315,8 @@ class SubscriptionCoupon {
 	}
 
 	/**
+	 * Returns the number of renewal cycles the coupon applies for, substituting the forever sentinel for "0 = forever".
+	 *
 	 * @since 1.0.0
 	 * @param \WC_Coupon $coupon The coupon.
 	 * @return int

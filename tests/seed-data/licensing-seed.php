@@ -8,13 +8,16 @@
  * plan that bypasses the limit entirely.
  *
  * @package PureCart\Tests
+ * @since   1.0.0
  */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Seed purecart_licenses / purecart_license_activations / purecart_license_tokens.
+ * Seeds rows into purecart_licenses, purecart_license_activations, and
+ * purecart_license_tokens covering the key lifecycle branches.
  *
+ * @since 1.0.0
  * @return array<string, int> license_key => license_id.
  */
 function purecart_seed_licensing(): array {

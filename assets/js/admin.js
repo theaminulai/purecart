@@ -1,5 +1,13 @@
 /**
  * PureCart for WooCommerce — Admin JS
+ *
+ * Handles license key reveal/copy interactions, manual license activation
+ * via AJAX, and license type field visibility toggling on WooCommerce
+ * product edit screens.
+ *
+ * Depends on: jQuery, purecartAdmin (localised via wp_localize_script).
+ *
+ * @since 1.0.0
  */
 ( function ( $ ) {
     'use strict';
@@ -61,6 +69,16 @@
         } );
     } );
 
+    /**
+     * Copies a text string to the clipboard and shows a flash notification.
+     *
+     * Uses the Clipboard API when available, falling back to a temporary
+     * textarea element and `document.execCommand( 'copy' )` for older browsers.
+     *
+     * @since 1.0.0
+     * @param {string} text The text to copy.
+     * @return {void}
+     */
     function purecartCopyText( text ) {
         if ( navigator.clipboard ) {
             navigator.clipboard.writeText( text ).then( function () {
@@ -74,6 +92,16 @@
         }
     }
 
+    /**
+     * Briefly displays a floating notification message on screen.
+     *
+     * Appends a `.purecart-flash` element to the document body, then fades
+     * it out and removes it after 1.5 seconds.
+     *
+     * @since 1.0.0
+     * @param {string} msg The message text to display.
+     * @return {void}
+     */
     function purecartFlash( msg ) {
         var $notice = $( '<div class="purecart-flash">' + msg + '</div>' );
         $( 'body' ).append( $notice );

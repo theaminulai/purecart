@@ -2,9 +2,6 @@
 /**
  * All reads/writes for wp_purecart_subscription_payments.
  *
- * New vs. the original [dev-plan] class list — needed for § 2's per-charge-attempt
- * ledger table, per subscription-final-dev-plan.md § 9 Step 4.
- *
  * @package PureCart\Subscriptions
  */
 
@@ -120,8 +117,10 @@ class PaymentRepository {
 	}
 
 	/**
-	 * Find a payment row by its gateway transaction ID. This is the
-	 * idempotency lookup used by WebhookHandler (Step 12).
+	 * Finds a payment row by its gateway transaction ID.
+	 *
+	 * Used as an idempotency check by WebhookHandler to prevent duplicate
+	 * event processing.
 	 *
 	 * @since 1.0.0
 	 * @param string $transaction_id Gateway transaction/charge ID.
@@ -137,8 +136,9 @@ class PaymentRepository {
 	}
 
 	/**
-	 * Mark a payment as refunded (feature doc § 21, Refund Policy) — used by
-	 * WebhookHandler (Step 12) when a gateway reports a refund event.
+	 * Marks a payment as refunded.
+	 *
+	 * Called by WebhookHandler when a gateway reports a refund event.
 	 *
 	 * @since 1.0.0
 	 * @param int    $payment_id      Payment row ID.

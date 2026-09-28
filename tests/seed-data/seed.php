@@ -14,6 +14,7 @@
  * of duplicating them.
  *
  * @package PureCart\Tests
+ * @since   1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,11 +23,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 1 );
 }
 
-// ---------------------------------------------------------------------
-// Adjust these to WooCommerce products / WP users that already exist on
-// the site you're testing against — this script only writes PureCart's
-// own rows, it does not create products or users.
-// ---------------------------------------------------------------------
+/*
+ * Adjust these to WooCommerce products / WP users that already exist on
+ * the site you're testing against — this script only writes PureCart's
+ * own rows; it does not create products or users.
+ */
 define( 'PURECART_SEED_PRODUCT_PLUGIN', 501 );   // WP plugin — licensed, has updates (Updates + Licensing).
 define( 'PURECART_SEED_PRODUCT_THEME', 502 );    // WP theme — licensed (Licensing).
 define( 'PURECART_SEED_PRODUCT_SOFTWARE', 503 ); // Non-WP desktop/CLI software (Downloads).

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Validates a refresh token and issues a new access token.
  *
@@ -104,6 +104,14 @@ class LicenseTokenRefresher {
 			return new \WP_Error( 'invalid_refresh_token', __( 'Refresh token is invalid or has expired.', 'purecart' ), array( 'status' => 401 ) );
 		}
 
+		/**
+		 * Fires after a new access token has been issued via a refresh token exchange.
+		 *
+		 * @since 1.0.0
+		 * @param string $new_jti    JWT ID of the newly issued access token.
+		 * @param string $old_jti    JWT ID of the consumed refresh token.
+		 * @param int    $license_id License row ID.
+		 */
 		do_action( 'purecart_jwt_token_refreshed', $issued['jti'], $jti, (int) $row->license_id );
 
 		return array(

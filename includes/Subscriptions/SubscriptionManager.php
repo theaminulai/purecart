@@ -20,38 +20,57 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Correction vs. subscription-final-dev-plan.md § 4: the doc lists
- * `woocommerce_payment_complete` / `woocommerce_order_status_processing` as the
- * checkout-to-subscription trigger. Checked against the real codebase —
- * `PureCart\Commerce\OrderHandler::on_order_complete()` (which does the
- * equivalent job for Licensing/SaaS) hooks `woocommerce_order_status_completed`
- * instead. Followed that existing convention here for consistency, rather than
- * introducing a second, different completion trigger.
+ * Manages the full subscription lifecycle.
  *
- * Every public lifecycle method here takes clean, already-validated arguments
- * (`int $subscription_id`, not a request array) — same layering as the
- * repositories. Nonce verification, capability checks, and "does this
- * subscription belong to the current user" ownership checks are the calling
- * layer's job (Step 12's RestController, Step 6's customer portal), not this
- * class's. This class never reads $_POST/$_GET directly.
+ * Handles creation from a completed WooCommerce order, and every subsequent
+ * state transition: pause, resume, skip, cancel (immediate or
+ * pending_cancel), expiry, and resubscription. Each public method accepts
+ * clean, validated arguments — security checks (nonce verification,
+ * capability checks, ownership) are the responsibility of the calling
+ * layer (REST controllers, customer portal), not this class.
  *
  * @since 1.0.0
  */
 class SubscriptionManager {
 
-	/** Statuses from which a subscription can still be paused. */
+	/**
+	 * Subscription statuses from which a pause is permitted.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const PAUSABLE_STATUSES = array( 'active', 'trialing' );
 
-	/** Statuses that count as "already ended" — cancel/resubscribe are no-ops from here without a fresh purchase. */
+	/**
+	 * Subscription statuses that represent a fully ended subscription.
+	 *
+	 * Cancel and resubscribe operations are no-ops for subscriptions already
+	 * in one of these statuses without a fresh purchase.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const ENDED_STATUSES = array( 'cancelled', 'expired' );
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository for reading and writing subscription rows.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Log repository for appending subscription event entries.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
 	/**
+	 * Instantiates the repositories and registers WordPress action hooks.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -62,14 +81,12 @@ class SubscriptionManager {
 		add_action( 'purecart_finalize_pending_cancellation', array( $this, 'finalize_pending_cancellation' ) );
 	}
 
-	// -----------------------------------------------------------------------
-	// Create from order
-	// -----------------------------------------------------------------------
-
 	/**
-	 * Create a subscription record for every subscription-type line item on
-	 * a completed order. Safe to call more than once for the same order —
-	 * each item is guarded independently via find_by_order_and_product().
+	 * Creates a subscription record for every subscription-type line item on
+	 * a completed order.
+	 *
+	 * Safe to call more than once for the same order — each item is guarded
+	 * independently by find_by_order_and_product() to prevent duplicates.
 	 *
 	 * @since 1.0.0
 	 * @param int $order_id WooCommerce order ID.
@@ -149,17 +166,16 @@ class SubscriptionManager {
 		$default_next_payment_at = $trial_eligible ? $trial_ends_at : $this->add_interval( $now, $interval, $period );
 
 		/**
-		 * The subscription's first `next_payment_at`. Default is the trial end
-		 * date (if trialing) or now + one billing interval. Step 14's
-		 * RenewalSync hooks this to align it to a fixed calendar day instead,
-		 * when `purecart_sub_renewal_sync` is enabled — the same
-		 * override-a-default-via-filter pattern as `purecart_should_activate_delivery`
-		 * (Step 11) and `purecart_renewal_amount` (Step 9).
+		 * Filters the subscription's first `next_payment_at` date.
+		 *
+		 * The default is the trial end date (when trialing) or now + one billing
+		 * interval. RenewalSync hooks this filter to align the date to a fixed
+		 * calendar day when the `purecart_sub_renewal_sync` setting is enabled.
 		 *
 		 * @since 1.0.0
-		 * @param string $default_next_payment_at Trial end date, or now + one interval.
+		 * @param string $default_next_payment_at Trial end date, or now + one billing interval.
 		 * @param int    $product_id              Subscription product ID.
-		 * @param string $now                      `current_time('mysql')` at creation time.
+		 * @param string $now                     MySQL datetime string at the moment of creation.
 		 */
 		$next_payment_at = apply_filters( 'purecart_initial_next_payment_at', $default_next_payment_at, $product_id, $now );
 		$max_length_at   = $length > 0 ? $this->add_interval( $now, $length, $length_period ) : null;
@@ -199,14 +215,15 @@ class SubscriptionManager {
 		);
 
 		/**
-		 * Whether to provision delivery access right now. Default true — Step 11's
-		 * SplitPaymentManager returns false here when the product's
-		 * `_purecart_access_timing` is `after_full_payment`, so a split-payment
-		 * subscription doesn't get access until its final installment.
+		 * Filters whether to provision delivery access immediately on subscription creation.
+		 *
+		 * Defaults to true. SplitPaymentManager returns false when the product's
+		 * `_purecart_access_timing` is set to `after_full_payment`, deferring
+		 * access until the final installment is collected.
 		 *
 		 * @since 1.0.0
 		 * @param bool                 $should_activate Whether to activate now. Default true.
-		 * @param array<string, mixed> $activation_data Data that would be passed to DeliveryManager::activate().
+		 * @param array<string, mixed> $activation_data Activation context passed to DeliveryManager::activate().
 		 */
 		if ( apply_filters( 'purecart_should_activate_delivery', true, $activation_data ) ) {
 			$linked = DeliveryManager::activate( $activation_data );
@@ -245,10 +262,6 @@ class SubscriptionManager {
 
 		return (bool) get_user_meta( $user_id, '_purecart_trial_used_' . $product_id, true );
 	}
-
-	// -----------------------------------------------------------------------
-	// Pause / Resume
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Pause billing while keeping access. `next_payment_at` is advanced by
@@ -320,18 +333,16 @@ class SubscriptionManager {
 	}
 
 	/**
-	 * Skip the next renewal — jumps `next_payment_at` one billing interval
-	 * ahead with no charge, per feature doc § 5 ("Skip next renewal").
+	 * Skips the next renewal by advancing `next_payment_at` one billing
+	 * interval with no charge.
 	 *
-	 * Gap found and filled during Step 8: `[RND]`'s class table (§1) lists
-	 * `skip` as one of SubscriptionManager's responsibilities, but Step 5's
-	 * own checklist didn't enumerate a test for it, so it never got built —
-	 * only surfaced now because ChurnScorer's "+5 skip_next_cycle" signal
-	 * needs a real event to hook into.
+	 * Enforces the skip limit configured via the `purecart_sub_skip_limit`
+	 * setting. Fires the `purecart_subscription_skipped` action on success.
 	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
-	 * @return bool
+	 * @return bool True on success, false when the subscription is not skippable
+	 *              or the skip limit has been reached.
 	 */
 	public function skip( int $subscription_id ): bool {
 		$subscription = $this->subscriptions->find( $subscription_id );
@@ -367,10 +378,6 @@ class SubscriptionManager {
 
 		return $updated;
 	}
-
-	// -----------------------------------------------------------------------
-	// Cancel
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Cancel a subscription, either immediately or at the end of the period
@@ -458,18 +465,16 @@ class SubscriptionManager {
 		}
 	}
 
-	// -----------------------------------------------------------------------
-	// Expire
-	// -----------------------------------------------------------------------
-
 	/**
-	 * Mark a fixed-length subscription as expired once it reaches its
-	 * max_length_at. The scan that decides *when* to call this is
-	 * RenewalEngine's job (Step 6) — this method just performs the transition.
+	 * Marks a fixed-length subscription as expired once it reaches its
+	 * `max_length_at` date.
+	 *
+	 * Determines *when* to call this method is RenewalEngine's responsibility.
+	 * This method performs only the status transition and deactivates delivery.
 	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
-	 * @return bool
+	 * @return bool True on success, false when the subscription is already ended.
 	 */
 	public function expire( int $subscription_id ): bool {
 		$subscription = $this->subscriptions->find( $subscription_id );
@@ -487,22 +492,18 @@ class SubscriptionManager {
 		return $updated;
 	}
 
-	// -----------------------------------------------------------------------
-	// Resubscribe
-	// -----------------------------------------------------------------------
-
 	/**
-	 * Resubscribe a cancelled/expired subscription.
+	 * Resubscribes a cancelled or expired subscription.
 	 *
-	 * Two paths (feature doc § 5): within the admin-configured reactivation
-	 * window, the *same* record is reactivated (payment history, event log,
-	 * and LTV stay continuous). After the window, a *new* record is created
-	 * and linked back via `previous_subscription_id`, with the trial
-	 * eligibility check re-run.
+	 * Within the admin-configured reactivation window (`SUB_RESUBSCRIBE_WINDOW_DAYS`,
+	 * default 30 days), the same record is reactivated so that payment history,
+	 * event log, and lifetime value remain continuous. After the window, a new
+	 * record is created and linked back via `previous_subscription_id`, with
+	 * trial eligibility re-evaluated.
 	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
-	 * @return object|null The reactivated (or newly created) row, or null on failure.
+	 * @return object|null The reactivated or newly created subscription row, or null on failure.
 	 */
 	public function resubscribe( int $subscription_id ): ?object {
 		$subscription = $this->subscriptions->find( $subscription_id );
@@ -510,9 +511,6 @@ class SubscriptionManager {
 			return null;
 		}
 
-		// New option, not present in any prior R&D doc's Configuration Options
-		// table — introduced here because the feature doc requires an
-		// "admin-configurable" window but never names the option itself.
 		$window_days = (int) Settings::get( OptionKeys::SUB_RESUBSCRIBE_WINDOW_DAYS, 30 );
 
 		$now           = current_time( 'mysql' );
@@ -576,22 +574,18 @@ class SubscriptionManager {
 			array( 'note' => 'New record linked via previous_subscription_id=' . $subscription->id )
 		);
 		do_action( 'purecart_subscription_activated', (int) $new->id );
-		// New in Step 13 — SubscriptionEmail's "Resubscription Confirmed" listens
-		// here rather than on purecart_subscription_activated, so it doesn't also
-		// fire (incorrectly) for every brand-new, never-cancelled subscription.
+		// Fires separately from purecart_subscription_activated so resubscription
+		// emails are not also sent for every brand-new, never-cancelled subscription.
 		do_action( 'purecart_subscription_resubscribed', (int) $new->id );
 
 		return $this->subscriptions->find( (int) $new->id );
 	}
 
-	// -----------------------------------------------------------------------
-	// Shared helpers
-	// -----------------------------------------------------------------------
-
 	/**
-	 * Log a status transition and fire the standard status-changed hook.
-	 * Every dispatch passes `subscription_id` only (§ 3's "consistent event
-	 * payload" rule) so listeners always load fresh state.
+	 * Logs a status transition and fires the `purecart_subscription_status_changed` hook.
+	 *
+	 * Dispatches the subscription ID only, so listeners always load fresh
+	 * state rather than relying on a snapshot that may already be stale.
 	 *
 	 * @since 1.0.0
 	 * @param int         $subscription_id Subscription row ID.
@@ -616,14 +610,15 @@ class SubscriptionManager {
 	}
 
 	/**
-	 * Return $value if it's one of $allowed, otherwise $default. Used to keep
-	 * product-meta-driven period/unit strings from ever reaching date math
-	 * or the DB with an unexpected value.
+	 * Returns `$value` if it is in `$allowed`, otherwise returns `$default`.
+	 *
+	 * Used to validate product-meta period/unit strings before they reach
+	 * date arithmetic or database queries.
 	 *
 	 * @since 1.0.0
 	 * @param string   $value   Candidate value.
-	 * @param string[] $allowed Allowed values.
-	 * @param string   $default Fallback if $value isn't in $allowed.
+	 * @param string[] $allowed Accepted values.
+	 * @param string   $default Fallback returned when `$value` is not in `$allowed`.
 	 * @return string
 	 */
 	private function one_of( string $value, array $allowed, string $default ): string {
@@ -631,13 +626,13 @@ class SubscriptionManager {
 	}
 
 	/**
-	 * Parse a `current_time('mysql')`-style datetime string, timezone-safe.
-	 * Thin delegation to BillingClock — see that class for why this can't
-	 * just be `strtotime()`. Extracted there in Step 6 so RenewalEngine
-	 * shares the exact same logic instead of risking a second, subtly
-	 * different copy of the same date math.
+	 * Parses a MySQL datetime string into a timezone-safe DateTimeImmutable.
+	 *
+	 * Delegates to BillingClock::to_dt(), which handles WordPress timezone
+	 * offsets that plain `strtotime()` would misinterpret.
 	 *
 	 * @since 1.0.0
+	 * @see   BillingClock::to_dt()
 	 * @param string $mysql_datetime A `current_time('mysql')`-style datetime string.
 	 * @return \DateTimeImmutable
 	 */
@@ -646,14 +641,17 @@ class SubscriptionManager {
 	}
 
 	/**
-	 * Add a billing interval to a MySQL datetime string. Thin delegation to
-	 * BillingClock — see that class for the month-overflow-clamping logic.
+	 * Adds a billing interval to a MySQL datetime string.
+	 *
+	 * Delegates to BillingClock::add_interval(), which applies month-overflow
+	 * clamping so dates like February 30 resolve correctly.
 	 *
 	 * @since 1.0.0
+	 * @see   BillingClock::add_interval()
 	 * @param string $datetime A `current_time('mysql')`-style datetime string.
 	 * @param int    $count    Number of periods to add.
-	 * @param string $unit     One of 'day', 'week', 'month', 'year'.
-	 * @return string MySQL datetime string.
+	 * @param string $unit     One of 'day', 'week', 'month', or 'year'.
+	 * @return string MySQL datetime string with the interval applied.
 	 */
 	private function add_interval( string $datetime, int $count, string $unit ): string {
 		return BillingClock::add_interval( $datetime, $count, $unit );

@@ -1,8 +1,9 @@
 <?php
 /**
- * "Payment Failed" email — feature doc § 22 MVP set.
+ * WooCommerce email notifying the customer of a failed subscription renewal payment.
  *
  * @package PureCart\Subscriptions\Emails
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -12,12 +13,17 @@ namespace PureCart\Subscriptions\Emails;
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Notifies the customer when a subscription renewal payment fails.
+ *
  * @since 1.0.0
  */
 class PaymentFailedEmail extends AbstractSubscriptionEmail {
 
 	/**
+	 * Initializes the email ID, title, and description.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->id          = 'purecart_payment_failed';
@@ -28,6 +34,8 @@ class PaymentFailedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the action hooks that fire this email.
+	 *
 	 * @since 1.0.0
 	 * @return string[]
 	 */
@@ -36,6 +44,8 @@ class PaymentFailedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -44,6 +54,8 @@ class PaymentFailedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -52,6 +64,8 @@ class PaymentFailedEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the email body message.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

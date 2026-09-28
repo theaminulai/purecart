@@ -24,13 +24,28 @@ defined( 'ABSPATH' ) || exit;
  */
 class ProductUpdatesTab {
 
-	/** admin-post.php action for per-version row actions. */
+	/**
+	 * admin-post.php action for per-version row actions.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const ROW_ACTION = 'purecart_update_version_action';
 
-	/** Transient prefix for one-shot admin notices. */
+	/**
+	 * Transient prefix for one-shot admin notices.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const NOTICE_PREFIX = 'purecart_update_notice_';
 
-	/** Platforms offered in the upload form. */
+	/**
+	 * Platforms offered in the upload form.
+	 *
+	 * @since 1.0.0
+	 * @var array<string, string>
+	 */
 	private const PLATFORMS = array(
 		'all'           => 'All platforms',
 		'darwin-arm64'  => 'macOS (Apple Silicon)',
@@ -41,7 +56,12 @@ class ProductUpdatesTab {
 		'linux-arm64'   => 'Linux (ARM64)',
 	);
 
-	/** Product kinds offered in the settings form. */
+	/**
+	 * Product kinds offered in the settings form.
+	 *
+	 * @since 1.0.0
+	 * @var array<string, string>
+	 */
 	private const PRODUCT_TYPES = array(
 		'wp-plugin' => 'WordPress plugin',
 		'wp-theme'  => 'WordPress theme',
@@ -51,13 +71,25 @@ class ProductUpdatesTab {
 		'other'     => 'Other',
 	);
 
-	/** @var PackageRepository */
+	/**
+	 * Package repository used to fetch and list versions.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
-	/** @var UpdatePackageManager */
+	/**
+	 * Package manager used for upload and lifecycle operations.
+	 *
+	 * @since 1.0.0
+	 * @var UpdatePackageManager
+	 */
 	private UpdatePackageManager $manager;
 
 	/**
+	 * Registers the product data tab and all associated admin hooks.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -107,11 +139,9 @@ class ProductUpdatesTab {
 		return $tabs;
 	}
 
-	// -----------------------------------------------------------------------
-	// Panel
-	// -----------------------------------------------------------------------
-
 	/**
+	 * Renders the Updates panel inside the WooCommerce product data meta box.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -275,6 +305,8 @@ class ProductUpdatesTab {
 	}
 
 	/**
+	 * Renders the version history table for the given product.
+	 *
 	 * @since 1.0.0
 	 * @param int $product_id WooCommerce product ID.
 	 * @return void
@@ -387,10 +419,6 @@ class ProductUpdatesTab {
 		return in_array( $meta, array( 'yes', '1', 1, true ), true ) ? 'yes' : 'no';
 	}
 
-	// -----------------------------------------------------------------------
-	// Save
-	// -----------------------------------------------------------------------
-
 	/**
 	 * Persist the tab's settings and, if one was supplied, the uploaded
 	 * package.
@@ -414,6 +442,8 @@ class ProductUpdatesTab {
 	}
 
 	/**
+	 * Saves the text fields, selects, and checkboxes from the Updates tab.
+	 *
 	 * @since 1.0.0
 	 * @param int $product_id WooCommerce product ID.
 	 * @return void
@@ -445,6 +475,8 @@ class ProductUpdatesTab {
 	}
 
 	/**
+	 * Processes a package file upload if one was submitted with the form.
+	 *
 	 * @since 1.0.0
 	 * @param int $product_id WooCommerce product ID.
 	 * @return void
@@ -486,10 +518,6 @@ class ProductUpdatesTab {
 			)
 		);
 	}
-
-	// -----------------------------------------------------------------------
-	// Row actions
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Handle withdraw / restore / delete from the version history table.
@@ -552,10 +580,6 @@ class ProductUpdatesTab {
 		exit;
 	}
 
-	// -----------------------------------------------------------------------
-	// Notices
-	// -----------------------------------------------------------------------
-
 	/**
 	 * Queue a one-shot notice for the current user.
 	 *
@@ -579,6 +603,8 @@ class ProductUpdatesTab {
 	}
 
 	/**
+	 * Outputs a queued one-shot admin notice for the current user, then deletes it.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */

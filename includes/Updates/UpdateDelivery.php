@@ -31,25 +31,57 @@ defined( 'ABSPATH' ) || exit;
  */
 class UpdateDelivery {
 
-	/** Query var carrying the token. */
+	/**
+	 * Query var carrying the token.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const QUERY_VAR = 'purecart_update_token';
 
-	/** URL prefix for package downloads. */
+	/**
+	 * URL prefix for package downloads.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const URL_PREFIX = 'purecart-update';
 
-	/** Option holding the HMAC secret. */
+	/**
+	 * Option holding the HMAC secret.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const SECRET_OPTION = 'purecart_update_secret';
 
-	/** Transient prefix for spent token IDs. */
+	/**
+	 * Transient prefix for spent token IDs.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const REPLAY_PREFIX = 'purecart_upd_jti_';
 
-	/** Default signed-URL lifetime, in seconds. */
+	/**
+	 * Default signed-URL lifetime, in seconds.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	private const DEFAULT_TTL = 900;
 
-	/** @var PackageRepository */
+	/**
+	 * Package repository used to fetch and update package rows.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
 	/**
+	 * Registers the rewrite rule and download handler hooks.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -59,10 +91,6 @@ class UpdateDelivery {
 		add_filter( 'query_vars', array( $this, 'query_vars' ) );
 		add_action( 'template_redirect', array( $this, 'handle_download' ) );
 	}
-
-	// -----------------------------------------------------------------------
-	// Routing
-	// -----------------------------------------------------------------------
 
 	/**
 	 * The token contains base64url characters plus a `.` separating the
@@ -80,6 +108,8 @@ class UpdateDelivery {
 	}
 
 	/**
+	 * Registers the update token query variable with WordPress.
+	 *
 	 * @since 1.0.0
 	 * @param string[] $vars Existing public query variables.
 	 * @return string[]
@@ -88,10 +118,6 @@ class UpdateDelivery {
 		$vars[] = self::QUERY_VAR;
 		return $vars;
 	}
-
-	// -----------------------------------------------------------------------
-	// Secret
-	// -----------------------------------------------------------------------
 
 	/**
 	 * The HMAC signing secret, generated on first use.
@@ -126,10 +152,6 @@ class UpdateDelivery {
 
 		return $secret;
 	}
-
-	// -----------------------------------------------------------------------
-	// Issuing
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Signed-URL lifetime in seconds.
@@ -187,10 +209,6 @@ class UpdateDelivery {
 		return home_url( '/' . self::URL_PREFIX . '/' . $this->issue_token( $package_id, $license_id ) );
 	}
 
-	// -----------------------------------------------------------------------
-	// Verifying
-	// -----------------------------------------------------------------------
-
 	/**
 	 * Verify a token's signature, expiry and replay status.
 	 *
@@ -242,10 +260,6 @@ class UpdateDelivery {
 
 		return $payload;
 	}
-
-	// -----------------------------------------------------------------------
-	// Serving
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Validate the token and stream the package.
@@ -401,10 +415,6 @@ class UpdateDelivery {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// base64url
-	// -----------------------------------------------------------------------
-
 	/**
 	 * Base64 with the two URL-unsafe characters swapped and padding removed,
 	 * so the token survives being placed in a path segment.
@@ -418,6 +428,8 @@ class UpdateDelivery {
 	}
 
 	/**
+	 * Decodes a base64url-encoded string.
+	 *
 	 * @since 1.0.0
 	 * @param string $data Encoded data.
 	 * @return string

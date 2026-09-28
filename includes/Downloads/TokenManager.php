@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Creates and validates signed, expiring download tokens.
  *
@@ -16,6 +16,8 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Manages the purecart_downloads table.
+ *
+ * @since 1.0.0
  */
 class TokenManager {
 

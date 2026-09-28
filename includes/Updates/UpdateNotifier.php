@@ -25,22 +25,49 @@ defined( 'ABSPATH' ) || exit;
  */
 class UpdateNotifier {
 
-	/** Action Scheduler hook processing one batch. */
+	/**
+	 * Action Scheduler hook processing one notification batch.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const BATCH_HOOK = 'purecart_send_update_notification_batch';
 
-	/** Action Scheduler group shared by the whole plugin. */
+	/**
+	 * Action Scheduler group shared by the whole plugin.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const AS_GROUP = 'purecart';
 
-	/** Licence holders per batch. */
+	/**
+	 * Number of licence holders per notification batch.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	private const BATCH_SIZE = 100;
 
-	/** Product meta gating notifications. */
+	/**
+	 * Product meta gating whether notifications are sent on release.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const NOTIFY_META = '_purecart_update_notify_customers';
 
-	/** @var PackageRepository */
+	/**
+	 * Package repository used to fetch package rows.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
 	/**
+	 * Registers the package-published and batch-processing action hooks.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {

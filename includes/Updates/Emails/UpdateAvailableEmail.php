@@ -26,16 +26,33 @@ defined( 'ABSPATH' ) || exit;
  */
 class UpdateAvailableEmail extends \WC_Email {
 
-	/** @var PackageRepository */
+	/**
+	 * Package repository used to fetch package rows.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
-	/** Package currently being announced, set by trigger(). */
+	/**
+	 * Package currently being announced, set by trigger().
+	 *
+	 * @since 1.0.0
+	 * @var object|null
+	 */
 	private ?object $package = null;
 
-	/** Customer currently being emailed. */
+	/**
+	 * Customer currently being emailed.
+	 *
+	 * @since 1.0.0
+	 * @var \WP_User|null
+	 */
 	private ?\WP_User $customer = null;
 
 	/**
+	 * Registers the email with WooCommerce and attaches the trigger action.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -53,6 +70,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the default email subject template.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -61,6 +80,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the default email heading template.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -69,6 +90,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the default additional content shown below the main email body.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -107,6 +130,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Populates the email placeholder values from the current package and customer.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -157,6 +182,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Builds the main notification body text, including the changelog excerpt.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -174,6 +201,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the HTML version of the email body.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -195,6 +224,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the plain-text version of the email body.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

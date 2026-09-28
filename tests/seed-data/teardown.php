@@ -14,6 +14,7 @@
  * TRUNCATE, so real data in these tables is left alone.
  *
  * @package PureCart\Tests
+ * @since   1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -23,9 +24,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Safe, bounded "IN (...)" list from an array of row IDs already read back
- * from the DB — never from raw user input.
+ * Builds a safe, bounded "IN (...)" list from an array of row IDs already
+ * read back from the database.
  *
+ * Never accepts raw user input — all IDs must originate from a prior DB read.
+ *
+ * @since 1.0.0
  * @param int[] $ids Row IDs.
  * @return string Comma-separated list, or '0' (matches nothing) when empty.
  */
@@ -35,8 +39,9 @@ function purecart_seed_id_list( array $ids ): string {
 }
 
 /**
- * Delete every seeded Licensing-module row.
+ * Deletes every seeded Licensing-module row.
  *
+ * @since 1.0.0
  * @return array<string, int> table => rows deleted.
  */
 function purecart_teardown_licensing(): array {
@@ -63,8 +68,9 @@ function purecart_teardown_licensing(): array {
 }
 
 /**
- * Delete every seeded Secure Downloads-module row.
+ * Deletes every seeded Secure Downloads-module row.
  *
+ * @since 1.0.0
  * @return array<string, int> table => rows deleted.
  */
 function purecart_teardown_downloads(): array {
@@ -88,8 +94,9 @@ function purecart_teardown_downloads(): array {
 }
 
 /**
- * Delete every seeded Plugin Updates-module row.
+ * Deletes every seeded Plugin Updates-module row.
  *
+ * @since 1.0.0
  * @return array<string, int> table => rows deleted.
  */
 function purecart_teardown_updates(): array {
@@ -104,8 +111,9 @@ function purecart_teardown_updates(): array {
 }
 
 /**
- * Delete every seeded Subscriptions-module row.
+ * Deletes every seeded Subscriptions-module row.
  *
+ * @since 1.0.0
  * @return array<string, int> table => rows deleted.
  */
 function purecart_teardown_subscriptions(): array {
@@ -144,8 +152,9 @@ function purecart_teardown_subscriptions(): array {
 }
 
 /**
- * Delete every seeded SaaS Provisioning-module row.
+ * Deletes every seeded SaaS Provisioning-module row.
  *
+ * @since 1.0.0
  * @return array<string, int> table => rows deleted.
  */
 function purecart_teardown_saas(): array {

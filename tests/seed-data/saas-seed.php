@@ -3,13 +3,15 @@
  * Test data for the SaaS Provisioning module: accounts + JWT login tokens.
  *
  * @package PureCart\Tests
+ * @since   1.0.0
  */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Seed purecart_saas_accounts / purecart_saas_tokens.
+ * Seeds rows into purecart_saas_accounts and purecart_saas_tokens.
  *
+ * @since 1.0.0
  * @return array<string, int> scenario label => account id.
  */
 function purecart_seed_saas(): array {

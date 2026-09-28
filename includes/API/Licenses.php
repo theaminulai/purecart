@@ -42,10 +42,20 @@ defined( 'ABSPATH' ) || exit;
  */
 class Licenses extends PureCartApi {
 
-	/** License row CRUD and admin lifecycle operations. @var LicenseGenerator */
+	/**
+	 * License row CRUD and admin lifecycle operations.
+	 *
+	 * @since 1.0.0
+	 * @var LicenseGenerator
+	 */
 	private LicenseGenerator $generator;
 
-	/** Per-domain activation records. @var LicenseActivator */
+	/**
+	 * Per-domain activation records.
+	 *
+	 * @since 1.0.0
+	 * @var LicenseActivator
+	 */
 	private LicenseActivator $activator;
 
 	/**
@@ -67,10 +77,6 @@ class Licenses extends PureCartApi {
 	public function permission_admin(): bool {
 		return current_user_can( 'manage_woocommerce' );
 	}
-
-	// -----------------------------------------------------------------------
-	// Route registration
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Registers every /licenses/* and /reports/licenses/* route.
@@ -311,10 +317,6 @@ class Licenses extends PureCartApi {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// Settings
-	// -----------------------------------------------------------------------
-
 	/**
 	 * GET /licenses/settings
 	 *
@@ -356,10 +358,6 @@ class Licenses extends PureCartApi {
 			)
 		);
 	}
-
-	// -----------------------------------------------------------------------
-	// Customer/plugin-facing endpoints
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Handle POST /purecart/v1/license/activate.
@@ -565,7 +563,21 @@ class Licenses extends PureCartApi {
 		// purecart_license_status_changed already fires from set_status();
 		// purecart_license_revoked is the documented, revoke-specific hook
 		// the JWT token revoker (and any other listener) hangs off of.
+
+		/**
+		 * Fires when a license is revoked.
+		 *
+		 * @since 1.0.0
+		 * @param int $license_id License row ID.
+		 */
 		do_action( 'purecart_license_revoked', (int) $license->id );
+
+		/**
+		 * Fires when a license is revoked via the REST API.
+		 *
+		 * @since 1.0.0
+		 * @param string $license_key The revoked license key.
+		 */
 		do_action( 'purecart_license_revoked_via_api', $key );
 
 		return rest_ensure_response(
@@ -575,10 +587,6 @@ class Licenses extends PureCartApi {
 			)
 		);
 	}
-
-	// -----------------------------------------------------------------------
-	// Admin read endpoints
-	// -----------------------------------------------------------------------
 
 	/**
 	 * GET /licenses — admin list with the KPI strip's counts, optionally
@@ -795,10 +803,6 @@ class Licenses extends PureCartApi {
 		exit;
 	}
 
-	// -----------------------------------------------------------------------
-	// Action endpoints
-	// -----------------------------------------------------------------------
-
 	/**
 	 * POST /licenses/{id}/extend — push expiry forward by N days.
 	 *
@@ -931,10 +935,6 @@ class Licenses extends PureCartApi {
 			)
 		);
 	}
-
-	// -----------------------------------------------------------------------
-	// Shaping
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Shared body for the suspend/reinstate/revoke actions, which all just

@@ -163,6 +163,8 @@ class LicenseGate {
 	}
 
 	/**
+	 * Checks whether a domain has an active activation row for a licence.
+	 *
 	 * @since 1.0.0
 	 * @param int    $license_id License row ID.
 	 * @param string $domain     Normalised domain.
@@ -215,6 +217,8 @@ class LicenseGate {
 	}
 
 	/**
+	 * Looks up a licence row by its key, returning null when none exists.
+	 *
 	 * @since 1.0.0
 	 * @param string $license_key License key.
 	 * @return object|null

@@ -39,13 +39,28 @@ defined( 'ABSPATH' ) || exit;
  */
 class RoleManager {
 
-	/** Statuses that still justify holding the active role. */
+	/**
+	 * Statuses that still justify holding the active role.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const OPEN_STATUSES = array( 'active', 'trialing', 'past_due', 'paused', 'pending_cancel' );
 
-	/** Statuses that end a subscription's role claim entirely. */
+	/**
+	 * Statuses that end a subscription's role claim entirely.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const ENDED_STATUSES = array( 'suspended', 'cancelled', 'expired' );
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository for reading subscription rows by user.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
 	/**
@@ -141,11 +156,11 @@ class RoleManager {
 		$this->add_role( $user_id, self::active_role() );
 	}
 
-	// -----------------------------------------------------------------------
-	// Role helpers
-	// -----------------------------------------------------------------------
+	/* Role helpers */
 
 	/**
+	 * Returns the configured WP role slug to assign during a trial, or empty string if unconfigured.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -154,6 +169,8 @@ class RoleManager {
 	}
 
 	/**
+	 * Returns the configured WP role slug to assign for active subscriptions, or empty string if unconfigured.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -162,6 +179,8 @@ class RoleManager {
 	}
 
 	/**
+	 * Returns the configured WP role slug to grant after cancellation, or empty string if unconfigured.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -170,6 +189,8 @@ class RoleManager {
 	}
 
 	/**
+	 * Adds a role to a WordPress user, silently skipping blank slugs or non-existent users.
+	 *
 	 * @since 1.0.0
 	 * @param int    $user_id WordPress user ID.
 	 * @param string $role    Role slug; a blank string (unconfigured) is a no-op.

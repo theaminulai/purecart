@@ -44,13 +44,25 @@ defined( 'ABSPATH' ) || exit;
  */
 class SplitPaymentManager {
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository for reading and updating subscription rows.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Log repository for recording split-payment completion events.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
 	/**
+	 * Registers hooks for activation gating, split-payment configuration, and completion checks.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -202,6 +214,8 @@ class SplitPaymentManager {
 	}
 
 	/**
+	 * Returns $value if it is in $allowed, or $default otherwise.
+	 *
 	 * @since 1.0.0
 	 * @param string   $value   Candidate value.
 	 * @param string[] $allowed Allowed values.

@@ -29,14 +29,22 @@ class Module {
 	 * activation — an update that adds a rule to an already-active plugin
 	 * would otherwise 404 until someone happened to re-save permalinks.
 	 *
+	 * @since 1.0.0
 	 * @var string
 	 */
 	private const REWRITE_VERSION = '1.0.0';
 
-	/** Option storing the flushed rewrite version. */
+	/**
+	 * Option storing the flushed rewrite version.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const REWRITE_OPTION = 'purecart_updates_rewrite_version';
 
 	/**
+	 * Wires all module components into WordPress and WooCommerce hooks.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {

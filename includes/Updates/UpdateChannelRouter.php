@@ -27,13 +27,28 @@ defined( 'ABSPATH' ) || exit;
  */
 class UpdateChannelRouter {
 
-	/** Option prefix for per-license channel overrides. */
+	/**
+	 * Option prefix for per-license channel overrides.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const LICENSE_OPTION_PREFIX = 'purecart_license_channel_';
 
-	/** Product meta holding the product's default channel. */
+	/**
+	 * Product meta holding the product's default channel.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const PRODUCT_META = '_purecart_update_channel';
 
-	/** Product meta gating whether beta is offered for this product at all. */
+	/**
+	 * Product meta gating whether beta is offered for this product at all.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const BETA_ENABLED_META = '_purecart_beta_channel_enabled';
 
 	/**
@@ -123,10 +138,6 @@ class UpdateChannelRouter {
 		return ( $rank[ $a ] ?? 0 ) <= ( $rank[ $b ] ?? 0 ) ? $a : $b;
 	}
 
-	// -----------------------------------------------------------------------
-	// Per-license override management
-	// -----------------------------------------------------------------------
-
 	/**
 	 * Grant (or clear) a per-license channel override.
 	 *
@@ -158,6 +169,8 @@ class UpdateChannelRouter {
 	}
 
 	/**
+	 * Returns the channel override for a given licence, or '' when none is set.
+	 *
 	 * @since 1.0.0
 	 * @param int $license_id License row ID.
 	 * @return string Channel override, or '' when none is set.

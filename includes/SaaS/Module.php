@@ -27,6 +27,8 @@ defined( 'ABSPATH' ) || exit;
 class Module {
 
 	/**
+	 * Registers WooCommerce email classes and the SaaS REST API routes.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {

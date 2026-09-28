@@ -1,10 +1,9 @@
 <?php
 /**
- * "Card Expiring Soon" email — outside the MVP-16 but explicitly required by
- * Step 13's own checklist ("Card-expiry and reauth emails are wired even
- * though they're outside the MVP-16, since Steps 7-8 depend on them existing").
+ * WooCommerce email notifying the customer that their saved card is expiring soon.
  *
  * @package PureCart\Subscriptions\Emails
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -14,17 +13,19 @@ namespace PureCart\Subscriptions\Emails;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Fired by `SubscriptionEmail::send_card_expiry_warnings()`'s scan (Step 13) —
- * no HealthCheck class exists anywhere in this module (not assigned to any of
- * the 16 backend steps), so this scan lives here rather than waiting on a
- * class that was never scoped to be built.
+ * Fired by `SubscriptionEmail::send_card_expiry_warnings()`. The expiry scan
+ * runs inside SubscriptionEmail rather than a dedicated health-check class
+ * because no separate health-check class is scoped for this module.
  *
  * @since 1.0.0
  */
 class CardExpiringSoonEmail extends AbstractSubscriptionEmail {
 
 	/**
+	 * Initializes the email ID, title, and description.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->id          = 'purecart_card_expiring_soon';
@@ -35,6 +36,8 @@ class CardExpiringSoonEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the action hooks that fire this email.
+	 *
 	 * @since 1.0.0
 	 * @return string[]
 	 */
@@ -43,6 +46,8 @@ class CardExpiringSoonEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -51,6 +56,8 @@ class CardExpiringSoonEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -59,6 +66,8 @@ class CardExpiringSoonEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the email body message.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

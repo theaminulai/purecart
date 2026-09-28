@@ -1,8 +1,9 @@
 <?php
 /**
- * "Payment Retry Scheduled" email — feature doc § 22 MVP set.
+ * WooCommerce email notifying the customer that a failed payment retry has been scheduled.
  *
  * @package PureCart\Subscriptions\Emails
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -12,18 +13,26 @@ namespace PureCart\Subscriptions\Emails;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Fires on `purecart_dunning_retry_scheduled` — a hook added in Step 13
- * (DunningManager previously only logged this, never fired an action for it).
+ * Fires on `purecart_dunning_retry_scheduled`, dispatched by DunningManager
+ * after scheduling the next automatic retry attempt.
  *
  * @since 1.0.0
  */
 class PaymentRetryScheduledEmail extends AbstractSubscriptionEmail {
 
-	/** Retry timestamp passed by the triggering hook. */
+	/**
+	 * Unix timestamp of the next retry, passed by the triggering hook.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	private int $retry_timestamp = 0;
 
 	/**
+	 * Initializes the email ID, title, and description.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->id          = 'purecart_payment_retry_scheduled';
@@ -34,6 +43,8 @@ class PaymentRetryScheduledEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the action hooks that fire this email.
+	 *
 	 * @since 1.0.0
 	 * @return string[]
 	 */
@@ -42,7 +53,12 @@ class PaymentRetryScheduledEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Stores the retry timestamp from the hook and confirms the subscription exists.
+	 *
 	 * @since 1.0.0
+	 * @param mixed $arg2 Unix timestamp of the scheduled retry attempt.
+	 * @param mixed $arg3 Unused.
+	 * @param mixed $arg4 Unused.
 	 * @return bool
 	 */
 	protected function should_send( $arg2 = null, $arg3 = null, $arg4 = null ): bool {
@@ -51,6 +67,8 @@ class PaymentRetryScheduledEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -59,6 +77,8 @@ class PaymentRetryScheduledEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -67,6 +87,8 @@ class PaymentRetryScheduledEmail extends AbstractSubscriptionEmail {
 	}
 
 	/**
+	 * Returns the email body message, including the formatted retry date.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

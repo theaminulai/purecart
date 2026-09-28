@@ -54,13 +54,28 @@ if ( ! class_exists( __NAMESPACE__ . '\PureCartUpdater' ) ) {
 		/** How long an update-check response is cached, in seconds. */
 		private const CACHE_TTL = 12 * HOUR_IN_SECONDS;
 
-		/** @var array<string, mixed> */
+		/**
+		 * Merged configuration for this updater instance.
+		 *
+		 * @since 1.0.0
+		 * @var array<string, mixed>
+		 */
 		private array $config;
 
-		/** @var string Plugin basename (`my-plugin/my-plugin.php`), or '' for themes. */
+		/**
+		 * Plugin basename (`my-plugin/my-plugin.php`), or '' for themes.
+		 *
+		 * @since 1.0.0
+		 * @var string
+		 */
 		private string $basename = '';
 
-		/** @var bool */
+		/**
+		 * Whether this instance manages a theme rather than a plugin.
+		 *
+		 * @since 1.0.0
+		 * @var bool
+		 */
 		private bool $is_theme;
 
 		/**
@@ -106,10 +121,6 @@ if ( ! class_exists( __NAMESPACE__ . '\PureCartUpdater' ) ) {
 
 			add_action( 'upgrader_process_complete', array( $this, 'after_update' ), 10, 2 );
 		}
-
-		// ---------------------------------------------------------------
-		// Update checks
-		// ---------------------------------------------------------------
 
 		/**
 		 * Inject our update into WordPress's plugin update transient.
@@ -188,11 +199,9 @@ if ( ! class_exists( __NAMESPACE__ . '\PureCartUpdater' ) ) {
 			return $transient;
 		}
 
-		// ---------------------------------------------------------------
-		// Detail modals
-		// ---------------------------------------------------------------
-
 		/**
+		 * Populate the "View details" modal for this plugin.
+		 *
 		 * @since 1.0.0
 		 * @param mixed  $result Existing result.
 		 * @param string $action plugins_api action.
@@ -214,6 +223,8 @@ if ( ! class_exists( __NAMESPACE__ . '\PureCartUpdater' ) ) {
 		}
 
 		/**
+		 * Populate the "View details" modal for this theme.
+		 *
 		 * @since 1.0.0
 		 * @param mixed  $result Existing result.
 		 * @param string $action themes_api action.
@@ -250,10 +261,6 @@ if ( ! class_exists( __NAMESPACE__ . '\PureCartUpdater' ) ) {
 
 			return $object;
 		}
-
-		// ---------------------------------------------------------------
-		// Download
-		// ---------------------------------------------------------------
 
 		/**
 		 * Replace the cached package URL with a freshly signed one.
@@ -315,10 +322,6 @@ if ( ! class_exists( __NAMESPACE__ . '\PureCartUpdater' ) ) {
 			return $file;
 		}
 
-		// ---------------------------------------------------------------
-		// Housekeeping
-		// ---------------------------------------------------------------
-
 		/**
 		 * Drop the cached response after an update so the next check reflects
 		 * the newly installed version rather than still offering it.
@@ -376,10 +379,6 @@ if ( ! class_exists( __NAMESPACE__ . '\PureCartUpdater' ) ) {
 			);
 		}
 
-		// ---------------------------------------------------------------
-		// Transport
-		// ---------------------------------------------------------------
-
 		/**
 		 * Cached update-check response.
 		 *
@@ -419,6 +418,8 @@ if ( ! class_exists( __NAMESPACE__ . '\PureCartUpdater' ) ) {
 		}
 
 		/**
+		 * Make a GET request to the store API and return the decoded body.
+		 *
 		 * @since 1.0.0
 		 * @param string               $endpoint Endpoint path under the API namespace.
 		 * @param array<string, mixed> $params   Query parameters.
@@ -450,6 +451,8 @@ if ( ! class_exists( __NAMESPACE__ . '\PureCartUpdater' ) ) {
 		}
 
 		/**
+		 * Returns the host portion of the site's home URL.
+		 *
 		 * @since 1.0.0
 		 * @return string
 		 */
@@ -477,6 +480,8 @@ if ( ! class_exists( __NAMESPACE__ . '\PureCartUpdater' ) ) {
 		}
 
 		/**
+		 * Delete the cached update-check response for this product configuration.
+		 *
 		 * @since 1.0.0
 		 * @return void
 		 */

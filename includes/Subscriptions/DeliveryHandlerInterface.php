@@ -28,6 +28,7 @@ interface DeliveryHandlerInterface {
 	/**
 	 * First charge succeeds, or trial starts.
 	 *
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row as an associative array.
 	 * @return void
 	 */
@@ -36,6 +37,7 @@ interface DeliveryHandlerInterface {
 	/**
 	 * Every successful renewal.
 	 *
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row as an associative array.
 	 * @return void
 	 */
@@ -44,6 +46,7 @@ interface DeliveryHandlerInterface {
 	/**
 	 * Subscription becomes suspended/cancelled/expired.
 	 *
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row as an associative array.
 	 * @return void
 	 */
@@ -52,6 +55,7 @@ interface DeliveryHandlerInterface {
 	/**
 	 * Type-specific data for the admin panel / REST response.
 	 *
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row as an associative array.
 	 * @return array<string, mixed>
 	 */
@@ -60,6 +64,7 @@ interface DeliveryHandlerInterface {
 	/**
 	 * Validate type-specific data before it's persisted.
 	 *
+	 * @since 1.0.0
 	 * @param array<string, mixed> $data Linked-entity data to validate.
 	 * @return bool|\WP_Error
 	 */

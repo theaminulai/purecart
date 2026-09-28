@@ -14,31 +14,29 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Creates and maintains the product version / update manifest table.
  *
- * Extended for the Updates module (RND-auto-updates.md § "Database Tables").
- * The original table predates that module and carried only the columns needed
- * to describe a version; Phase 1 additionally needs to know which platform a
- * package targets, whether it is still being served, and how often it has been
- * downloaded:
+ * Beyond the core version and channel columns, this table tracks additional
+ * metadata required by the Updates module:
  *
  *   platform        per-platform packages (.dmg / .exe / .AppImage share a product)
- *   file_size       shown in the admin version history without stat()-ing each file
- *   release_notes   short non-WP release text, separate from the HTML changelog
+ *   file_size       shown in admin version history without stat()-ing each file
+ *   release_notes   short plain-text summary, separate from the HTML changelog
  *   is_active       pull a bad release without deleting its row or file
- *   is_rollback     marks a row reactivated by an emergency rollback, for the admin history badge
+ *   is_rollback     marks a row reactivated by an emergency rollback (admin badge)
  *   download_count  per-version download analytics
- *   created_by      audit: which admin uploaded this package
+ *   created_by      audit trail: which admin uploaded this package
  *
- * `channel` also gains `nightly`, which the doc specifies but the original
- * ENUM omitted.
+ * The `channel` ENUM includes `nightly` in addition to `stable` and `beta`.
  *
  * @since 1.0.0
  */
 class ProductVersions extends PureCartStore {
 
 	/**
+	 * Returns the CREATE TABLE SQL for the product versions table.
+	 *
 	 * @since 1.0.0
-	 * @param string $charset
-	 * @return string
+	 * @param string $charset Character set collation string from $wpdb->get_charset_collate().
+	 * @return string CREATE TABLE SQL statement ready for dbDelta().
 	 */
 	protected function schema( string $charset ): string {
 		global $wpdb;
@@ -93,6 +91,8 @@ class ProductVersions extends PureCartStore {
 	}
 
 	/**
+	 * Adds `nightly` to the `channel` ENUM definition on pre-nightly installations.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */

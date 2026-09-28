@@ -21,45 +21,91 @@ use PureCart\Updates\UpdateServer;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Correction vs. RND-auto-updates.md, which places the REST endpoint inside
- * `includes/Updates/UpdateServer.php`. This codebase keeps REST controllers in
- * `includes/API/` behind the `PureCartApi` base class (see API\Subscriptions),
- * so the route registration lives here and `Updates\UpdateServer` stays pure
- * business logic. That split is also what lets the update-check pipeline be
- * tested without booting WP_REST_Server.
+ * Registers and handles REST routes for the Updates module.
+ *
+ * Route registration is deliberately in this controller rather than inside
+ * UpdateServer, keeping UpdateServer free of WP_REST_Server dependencies
+ * and making the update-check pipeline independently testable.
  *
  * @since 1.0.0
  */
 class Updates extends PureCartApi {
 
-	/** Option storing the rollback audit trail. */
+	/**
+	 * Option key for the rollback audit trail array.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const ROLLBACK_OPTION = 'purecart_update_rollbacks';
 
-	/** @var UpdateServer */
+	/**
+	 * Update-check and download-dispatch logic.
+	 *
+	 * @since 1.0.0
+	 * @var UpdateServer
+	 */
 	private UpdateServer $server;
 
-	/** @var UpdateInfo */
+	/**
+	 * Plugin info retrieval.
+	 *
+	 * @since 1.0.0
+	 * @var UpdateInfo
+	 */
 	private UpdateInfo $info;
 
-	/** @var ChangelogManager */
+	/**
+	 * Changelog entry storage and rendering.
+	 *
+	 * @since 1.0.0
+	 * @var ChangelogManager
+	 */
 	private ChangelogManager $changelog;
 
-	/** @var ProductLocator */
+	/**
+	 * Resolves a plugin slug to a product ID.
+	 *
+	 * @since 1.0.0
+	 * @var ProductLocator
+	 */
 	private ProductLocator $locator;
 
-	/** @var UpdateReport */
+	/**
+	 * Update adoption and version reporting.
+	 *
+	 * @since 1.0.0
+	 * @var UpdateReport
+	 */
 	private UpdateReport $report;
 
-	/** @var UpdateDelivery */
+	/**
+	 * Update package download URL generation.
+	 *
+	 * @since 1.0.0
+	 * @var UpdateDelivery
+	 */
 	private UpdateDelivery $delivery;
 
-	/** @var UpdatePackageManager */
+	/**
+	 * Package upload and lifecycle management.
+	 *
+	 * @since 1.0.0
+	 * @var UpdatePackageManager
+	 */
 	private UpdatePackageManager $manager;
 
-	/** @var PackageRepository */
+	/**
+	 * Package row CRUD.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
 	/**
+	 * Builds the domain service dependencies this controller adapts to REST.
+	 *
 	 * @since 1.0.0
 	 * @param UpdateDelivery|null $delivery Shared delivery instance from the module bootstrap.
 	 */
@@ -75,6 +121,8 @@ class Updates extends PureCartApi {
 	}
 
 	/**
+	 * Registers all /plugin/* and /updates/* routes.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -238,6 +286,8 @@ class Updates extends PureCartApi {
 	}
 
 	/**
+	 * Restricts a route to users with the manage_woocommerce capability.
+	 *
 	 * @since 1.0.0
 	 * @return bool
 	 */

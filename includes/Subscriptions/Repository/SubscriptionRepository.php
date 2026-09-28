@@ -82,7 +82,12 @@ class SubscriptionRepository {
 		'updated_at'                  => '%s',
 	);
 
-	/** Required columns for a valid new subscription row. */
+	/**
+	 * Required columns for a valid new subscription row.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const REQUIRED_ON_CREATE = array( 'user_id', 'product_id', 'order_id', 'billing_interval', 'billing_period', 'recurring_amount' );
 
 	/**
@@ -375,10 +380,6 @@ class SubscriptionRepository {
 			)
 		) ?: array();
 	}
-
-	// -----------------------------------------------------------------------
-	// Reporting aggregates (Step 15)
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Count of subscriptions per status, as `status => count`.

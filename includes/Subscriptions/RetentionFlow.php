@@ -38,13 +38,25 @@ defined( 'ABSPATH' ) || exit;
  */
 class RetentionFlow {
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository for reading and updating subscription rows.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Log repository for recording retention-flow events.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
 	/**
+	 * Initialises repositories and registers discount-related hooks.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -55,9 +67,7 @@ class RetentionFlow {
 		add_action( 'purecart_subscription_renewed', array( $this, 'decrement_discount' ) );
 	}
 
-	// -----------------------------------------------------------------------
-	// Reasons
-	// -----------------------------------------------------------------------
+	/* Reasons */
 
 	/**
 	 * Admin-configurable cancellation reason list (feature doc § 6, Step 1).
@@ -85,9 +95,7 @@ class RetentionFlow {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// Offers
-	// -----------------------------------------------------------------------
+	/* Offers */
 
 	/**
 	 * The 5 offer types (feature doc § 6) with their default configuration.
@@ -238,6 +246,8 @@ class RetentionFlow {
 	}
 
 	/**
+	 * Checks whether this subscription has already used a discount retention offer.
+	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
 	 * @return bool
@@ -278,6 +288,8 @@ class RetentionFlow {
 	}
 
 	/**
+	 * Reads a product meta value for the subscription's product, returning a default on miss.
+	 *
 	 * @since 1.0.0
 	 * @param object $subscription  Subscription row.
 	 * @param string $meta_key      Product meta key.
@@ -294,9 +306,7 @@ class RetentionFlow {
 		return '' === $value ? $default_value : (string) $value;
 	}
 
-	// -----------------------------------------------------------------------
-	// Acceptance
-	// -----------------------------------------------------------------------
+	/* Acceptance */
 
 	/**
 	 * Accept a retention offer — applies it and aborts the cancellation.
@@ -349,6 +359,8 @@ class RetentionFlow {
 	}
 
 	/**
+	 * Applies the accepted offer to the subscription, returning true on success.
+	 *
 	 * @since 1.0.0
 	 * @param object               $subscription Subscription row.
 	 * @param array<string, mixed> $offer        Offer config from get_offer_definitions().
@@ -405,11 +417,11 @@ class RetentionFlow {
 		}
 	}
 
-	// -----------------------------------------------------------------------
-	// Active discount (applied via filter on every renewal while it lasts)
-	// -----------------------------------------------------------------------
+	/* Active discount (applied via filter on every renewal while it lasts) */
 
 	/**
+	 * Reduces the renewal amount by the active retention discount, if one is set.
+	 *
 	 * @since 1.0.0
 	 * @param float  $amount       Amount computed so far.
 	 * @param object $subscription Subscription row.

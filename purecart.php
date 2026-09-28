@@ -13,7 +13,13 @@
  * WC requires at least: 9.8
  * WC tested up to:      10.8.1
  *
+ * Plugin bootstrap file. Defines constants, loads the autoloader, declares
+ * WooCommerce HPOS compatibility, and registers activation/deactivation hooks.
+ * The plugin is initialised on the `plugins_loaded` hook (priority 11) so that
+ * WooCommerce is guaranteed to be available.
+ *
  * @package PureCart
+ * @since   1.0.0
  */
 
 declare( strict_types=1 );
@@ -90,8 +96,12 @@ register_activation_hook( PURECART_FILE, array( \PureCart\Activator::class, 'act
 register_deactivation_hook( PURECART_FILE, array( \PureCart\Activator::class, 'deactivate' ) );
 
 /**
- * Global helper — returns the plugin singleton.
+ * Returns the plugin singleton instance.
  *
+ * Convenience wrapper around Plugin::instance() for use in templates and
+ * third-party code that does not depend on the PureCart namespace.
+ *
+ * @since 1.0.0
  * @return \PureCart\Plugin
  */
 function purecart_plugin(): \PureCart\Plugin {

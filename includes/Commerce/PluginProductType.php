@@ -32,6 +32,8 @@ defined( 'ABSPATH' ) || exit;
 class PluginProductType extends \WC_Product_Simple {
 
 	/**
+	 * Returns the WooCommerce product type slug for Plugin products.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

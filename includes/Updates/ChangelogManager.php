@@ -22,13 +22,25 @@ defined( 'ABSPATH' ) || exit;
  */
 class ChangelogManager {
 
-	/** How many versions the combined changelog covers by default. */
+	/**
+	 * How many versions the combined changelog covers by default.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	private const DEFAULT_LIMIT = 20;
 
-	/** @var PackageRepository */
+	/**
+	 * Package repository used to fetch version rows.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
 	/**
+	 * Initialises the changelog manager with a package repository.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {

@@ -39,14 +39,27 @@ defined( 'ABSPATH' ) || exit;
  */
 class RevenueRepository {
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var PaymentRepository */
+	/**
+	 * Payment repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var PaymentRepository
+	 */
 	private PaymentRepository $payments;
 
 	/**
+	 * Instantiates repository dependencies and registers the renewal-revenue hook.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->subscriptions = new SubscriptionRepository();
@@ -56,6 +69,8 @@ class RevenueRepository {
 	}
 
 	/**
+	 * Returns the fully-qualified revenue table name.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

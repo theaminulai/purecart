@@ -2,10 +2,9 @@
 /**
  * Subscriptions module bootstrap.
  *
- * Wires the Subscriptions module into the plugin's existing init flow
- * (\PureCart\Plugin::init(), same pattern as ProductTypes/OrderHandler/RestApi)
- * and gates the whole module behind a single enable/disable option, per
- * subscription-final-dev-plan.md § 9 Step 2.
+ * Wires the Subscriptions module into the plugin init flow (same pattern as
+ * ProductTypes/OrderHandler/RestApi) and gates the whole module behind a
+ * single enable/disable option.
  *
  * @package PureCart\Subscriptions
  */
@@ -41,6 +40,8 @@ defined( 'ABSPATH' ) || exit;
 class Module {
 
 	/**
+	 * Wires all Subscriptions module classes into the WordPress hook system.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
