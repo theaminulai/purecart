@@ -11,7 +11,6 @@
       "Bash(npm run lint:js*)",
       "Bash(npm run lint:css*)",
       "Bash(npm run lint:fix*)",
-      "Bash(npx tsc*)",
       "Bash(git status*)",
       "Bash(git diff*)",
       "Bash(git log*)",
