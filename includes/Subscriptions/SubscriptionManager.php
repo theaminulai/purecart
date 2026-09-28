@@ -9,6 +9,11 @@ declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
+use PureCart\Subscriptions\Repository\SubscriptionLogRepository;
+use PureCart\Subscriptions\Billing\BillingClock;
+use PureCart\Subscriptions\Product\SubscriptionProduct;
+
 use PureCart\Settings\OptionKeys;
 use PureCart\Settings\Settings;
 

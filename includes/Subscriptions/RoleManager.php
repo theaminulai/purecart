@@ -10,6 +10,8 @@ declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
+
 use PureCart\Settings\OptionKeys;
 use PureCart\Settings\Settings;
 

@@ -8,7 +8,7 @@
 
 declare( strict_types=1 );
 
-namespace PureCart\Subscriptions;
+namespace PureCart\Subscriptions\Reports;
 
 defined( 'ABSPATH' ) || exit;
 

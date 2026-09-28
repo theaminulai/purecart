@@ -9,7 +9,14 @@
 
 declare( strict_types=1 );
 
-namespace PureCart\Subscriptions;
+namespace PureCart\Subscriptions\Renewal;
+
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
+use PureCart\Subscriptions\Repository\SubscriptionLogRepository;
+use PureCart\Subscriptions\Payment\PaymentRepository;
+use PureCart\Subscriptions\Billing\BillingClock;
+use PureCart\Subscriptions\DeliveryManager;
+use PureCart\Subscriptions\SubscriptionManager;
 
 defined( 'ABSPATH' ) || exit;
 

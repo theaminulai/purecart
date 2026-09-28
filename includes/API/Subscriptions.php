@@ -9,18 +9,18 @@ declare( strict_types=1 );
 
 namespace PureCart\API;
 
-use PureCart\Subscriptions\SubscriptionRepository;
-use PureCart\Subscriptions\SubscriptionLogRepository;
-use PureCart\Subscriptions\PaymentRepository;
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
+use PureCart\Subscriptions\Repository\SubscriptionLogRepository;
+use PureCart\Subscriptions\Payment\PaymentRepository;
 use PureCart\Subscriptions\SubscriptionManager;
-use PureCart\Subscriptions\SubscriptionReport;
+use PureCart\Subscriptions\Reports\SubscriptionReport;
 use PureCart\Subscriptions\RetentionFlow;
-use PureCart\Subscriptions\RenewalEngine;
-use PureCart\Subscriptions\DunningManager;
-use PureCart\Subscriptions\PlanUpgrade;
-use PureCart\Subscriptions\WebhookHandler;
+use PureCart\Subscriptions\Renewal\RenewalEngine;
+use PureCart\Subscriptions\Payment\DunningManager;
+use PureCart\Subscriptions\Payment\PlanUpgrade;
+use PureCart\Subscriptions\Webhooks\WebhookHandler;
 use PureCart\Subscriptions\ChurnScorer;
-use PureCart\Subscriptions\BillingClock;
+use PureCart\Subscriptions\Billing\BillingClock;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -443,13 +443,13 @@ class Subscriptions extends PureCartApi {
 		$per_page     = (int) ( $request->get_param( 'per_page' ) ?? 20 );
 
 		$result = $this->subscriptions->find_all(
-			status:       ! empty( $status ) ? $status : null,
-			product:      ! empty( $product ) ? $product : null,
-			cycle:        ! empty( $cycle ) ? $cycle : null,
-			type:         ! empty( $type ) ? $type : null,
+			status: ! empty( $status ) ? $status : null,
+			product: ! empty( $product ) ? $product : null,
+			cycle: ! empty( $cycle ) ? $cycle : null,
+			type: ! empty( $type ) ? $type : null,
 			payment_type: ! empty( $payment_type ) ? $payment_type : null,
-			churn_risk:   ! empty( $churn_risk ) ? $churn_risk : null,
-			search:       ! empty( $search ) ? (string) $search : null,
+			churn_risk: ! empty( $churn_risk ) ? $churn_risk : null,
+			search: ! empty( $search ) ? (string) $search : null,
 			page:         $page,
 			per_page:     $per_page
 		);

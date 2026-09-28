@@ -187,7 +187,7 @@ class LicenseGenerator {
 
 		$now        = current_time( 'mysql' );
 		$anchor     = strtotime( (string) $license->expires_at ) > strtotime( $now ) ? (string) $license->expires_at : $now;
-		$new_expiry = \PureCart\Subscriptions\BillingClock::add_interval( $anchor, max( 1, $count ), $period );
+		$new_expiry = \PureCart\Subscriptions\Billing\BillingClock::add_interval( $anchor, max( 1, $count ), $period );
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Custom table UPDATE; no WP API available.
 		$updated = $wpdb->update(

@@ -10,7 +10,7 @@
 
 declare( strict_types=1 );
 
-namespace PureCart\Subscriptions;
+namespace PureCart\Subscriptions\Repository;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -484,133 +484,133 @@ class SubscriptionRepository {
 	 * @return array<int, object>
 	 */
 	public function find_all(
-	array|string|null $status = null,
-	array|string|null $product = null,
-	array|string|null $cycle = null,
-	array|string|null $type = null,
-	array|string|null $payment_type = null,
-	array|string|null $churn_risk = null,
-	?string $search = null,
-	int $page = 1,
-	int $per_page = 20
-): array {
-	global $wpdb;
+		array|string|null $status = null,
+		array|string|null $product = null,
+		array|string|null $cycle = null,
+		array|string|null $type = null,
+		array|string|null $payment_type = null,
+		array|string|null $churn_risk = null,
+		?string $search = null,
+		int $page = 1,
+		int $per_page = 20
+	): array {
+		global $wpdb;
 
-	$page = max( 1, $page );
+		$page = max( 1, $page );
 
-	$where  = array();
-	$params = array();
+		$where  = array();
+		$params = array();
 
-	$add_in_filter = static function ( string $column, array|string|null $values ) use ( &$where, &$params ): void {
-		if ( null === $values ) {
-			return;
+		$add_in_filter = static function ( string $column, array|string|null $values ) use ( &$where, &$params ): void {
+			if ( null === $values ) {
+				return;
+			}
+
+			// Allow passing a single scalar or an array.
+			$values = is_array( $values ) ? $values : array( $values );
+
+			// Remove empty/null values and normalize indexes.
+			$values = array_values(
+				array_filter(
+					$values,
+					static fn( $v ) => null !== $v && '' !== trim( (string) $v )
+				)
+			);
+
+			if ( empty( $values ) ) {
+				return;
+			}
+
+			$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
+			$where[]      = "{$column} IN ({$placeholders})";
+
+			foreach ( $values as $value ) {
+				$params[] = (string) $value;
+			}
+		};
+
+		/*
+		* Filters (single or multiple values supported).
+		*/
+		$add_in_filter( 'status', $status );
+		$add_in_filter( 'product', $product );
+		$add_in_filter( 'cycle', $cycle );
+		$add_in_filter( 'type', $type );
+		$add_in_filter( 'payment_type', $payment_type );
+		$add_in_filter( 'churn_risk', $churn_risk );
+
+		/*
+		* Search.
+		*/
+		if ( null !== $search && '' !== trim( $search ) ) {
+			$search = '%' . $wpdb->esc_like( trim( $search ) ) . '%';
+
+			$where[]  = '(product LIKE %s OR id LIKE %s)';
+			$params[] = $search;
+			$params[] = $search;
 		}
 
-		// Allow passing a single scalar or an array.
-		$values = is_array( $values ) ? $values : array( $values );
+		/*
+		* Build WHERE clause.
+		*/
+		$where_sql = '';
 
-		// Remove empty/null values and normalize indexes.
-		$values = array_values(
-			array_filter(
-				$values,
-				static fn( $v ) => null !== $v && '' !== trim( (string) $v )
-			)
-		);
-
-		if ( empty( $values ) ) {
-			return;
+		if ( ! empty( $where ) ) {
+			$where_sql = ' WHERE ' . implode( ' AND ', $where );
 		}
 
-		$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-		$where[]      = "{$column} IN ({$placeholders})";
+		/*
+		* Count total matching records.
+		*/
+		$count_query = "SELECT COUNT(*) FROM {$this->table()}{$where_sql}";
 
-		foreach ( $values as $value ) {
-			$params[] = (string) $value;
+		if ( ! empty( $params ) ) {
+			$total = (int) $wpdb->get_var(
+				$wpdb->prepare( $count_query, ...$params )
+			);
+		} else {
+			$total = (int) $wpdb->get_var( $count_query );
 		}
-	};
 
-	/*
-	 * Filters (single or multiple values supported).
-	 */
-	$add_in_filter( 'status', $status );
-	$add_in_filter( 'product', $product );
-	$add_in_filter( 'cycle', $cycle );
-	$add_in_filter( 'type', $type );
-	$add_in_filter( 'payment_type', $payment_type );
-	$add_in_filter( 'churn_risk', $churn_risk );
-
-	/*
-	 * Search.
-	 */
-	if ( null !== $search && '' !== trim( $search ) ) {
-		$search = '%' . $wpdb->esc_like( trim( $search ) ) . '%';
-
-		$where[]  = '(product LIKE %s OR id LIKE %s)';
-		$params[] = $search;
-		$params[] = $search;
-	}
-
-	/*
-	 * Build WHERE clause.
-	 */
-	$where_sql = '';
-
-	if ( ! empty( $where ) ) {
-		$where_sql = ' WHERE ' . implode( ' AND ', $where );
-	}
-
-	/*
-	 * Count total matching records.
-	 */
-	$count_query = "SELECT COUNT(*) FROM {$this->table()}{$where_sql}";
-
-	if ( ! empty( $params ) ) {
-		$total = (int) $wpdb->get_var(
-			$wpdb->prepare( $count_query, ...$params )
-		);
-	} else {
-		$total = (int) $wpdb->get_var( $count_query );
-	}
-
-	/*
-	 * Get results.
-	 */
-	if ( -1 === $per_page ) {
-		$query = "SELECT *
+		/*
+		* Get results.
+		*/
+		if ( -1 === $per_page ) {
+			$query = "SELECT *
 			FROM {$this->table()}
 			{$where_sql}
 			ORDER BY id ASC";
 
-		$query_params = $params;
-	} else {
-		$per_page = max( 1, $per_page );
-		$offset   = ( $page - 1 ) * $per_page;
+			$query_params = $params;
+		} else {
+			$per_page = max( 1, $per_page );
+			$offset   = ( $page - 1 ) * $per_page;
 
-		$query = "SELECT *
+			$query = "SELECT *
 			FROM {$this->table()}
 			{$where_sql}
 			ORDER BY id ASC
 			LIMIT %d OFFSET %d";
 
-		$query_params   = $params;
-		$query_params[] = $per_page;
-		$query_params[] = $offset;
-	}
+			$query_params   = $params;
+			$query_params[] = $per_page;
+			$query_params[] = $offset;
+		}
 
-	$results = ! empty( $query_params )
+		$results = ! empty( $query_params )
 		? $wpdb->get_results(
 			$wpdb->prepare( $query, ...$query_params )
 		)
 		: $wpdb->get_results( $query );
 
-	$results = $results ?: array();
+		$results = $results ?: array();
 
-	return array(
-		'items'       => $results,
-		'total'       => $total,
-		'page'        => $page,
-		'per_page'    => $per_page,
-		'total_pages' => -1 === $per_page ? 1 : (int) ceil( $total / $per_page ),
-	);
-}
+		return array(
+			'items'       => $results,
+			'total'       => $total,
+			'page'        => $page,
+			'per_page'    => $per_page,
+			'total_pages' => -1 === $per_page ? 1 : (int) ceil( $total / $per_page ),
+		);
+	}
 }

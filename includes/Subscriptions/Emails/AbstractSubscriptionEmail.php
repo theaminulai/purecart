@@ -11,7 +11,7 @@ declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Emails;
 
-use PureCart\Subscriptions\SubscriptionRepository;
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
 
 defined( 'ABSPATH' ) || exit;
 
