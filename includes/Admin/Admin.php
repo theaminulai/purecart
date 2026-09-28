@@ -1,5 +1,4 @@
 <?php
-
 /**
  * WordPress admin integration for PureCart.
  *
@@ -19,7 +18,7 @@ namespace PureCart\Admin;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Admin panel: menus, asset enqueue, product meta boxes, settings.
+ * Admin panel: menus, asset enqueue, settings.
  *
  * @since 1.0.0
  */
@@ -57,8 +56,6 @@ class Admin {
 	public function __construct() {
 		add_action( 'admin_menu', array( $this, 'register_menus' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-		add_action( 'add_meta_boxes', array( $this, 'meta_boxes' ) );
-		add_action( 'save_post_product', array( $this, 'save_product_meta' ) );
 		add_filter( 'plugin_action_links_' . PURECART_BASENAME, array( $this, 'action_links' ) );
 	}
 
@@ -130,32 +127,16 @@ class Admin {
 	}
 
 	/**
-	 * Enqueue admin assets on PureCart and product-edit pages.
+	 * Enqueue admin assets on PureCart pages.
 	 *
-	 * On PureCart admin pages: loads the React build and localizes the current
-	 * React page name so the SPA can navigate on first mount.
-	 * On product edit pages: loads only the legacy admin.css / admin.js pair
-	 * used for the WooCommerce product meta box.
+	 * Loads the React build and localizes the current React page name so the
+	 * SPA can navigate to the correct route on first mount.
 	 *
 	 * @since 1.0.0
 	 * @param string $hook Current admin page hook suffix.
 	 * @return void
 	 */
 	public function enqueue_assets( string $hook ): void {
-		// Product edit pages
-		if ( 'post.php' === $hook || 'post-new.php' === $hook ) {
-			wp_enqueue_style( 'purecart-admin', PURECART_URL . 'assets/css/admin.css', array(), PURECART_VERSION );
-			wp_enqueue_script( 'purecart-admin', PURECART_URL . 'assets/js/admin.js', array( 'jquery' ), PURECART_VERSION, true );
-			wp_localize_script(
-				'purecart-admin',
-				'purecartAdmin',
-				array(
-					'nonce' => wp_create_nonce( 'purecart_admin_nonce' ),
-				)
-			);
-			return;
-		}
-
 		// React SPA pages
 		// All purecart pages share the same hook prefix or top-level hook.
 		if ( strpos( $hook, 'purecart' ) === false ) {
@@ -280,163 +261,6 @@ class Admin {
 
 		wp_enqueue_script( 'purecart-menu-router' );
 	}
-	// ─────────────────────────────────────────────────────────────────────────────
-	// Product meta box (WooCommerce product edit screen)
-	// ─────────────────────────────────────────────────────────────────────────────
-
-	/**
-	 * Register the PureCart product settings meta box.
-	 *
-	 * @since 1.0.0
-	 * @return void
-	 */
-	public function meta_boxes(): void {
-		// 'default' (not 'high') — WooCommerce's own "Product data" box is
-		// also registered at 'high' in this same 'normal' context, and which
-		// of two 'high' boxes renders first depends on add_meta_boxes hook
-		// execution order, not registration order. 'default' always renders
-		// after every 'high' box, so this reliably lands below Product data
-		// instead of racing it.
-		add_meta_box(
-			'purecart_product_settings',
-			__( 'PureCart Settings', 'purecart' ),
-			array( $this, 'render_product_meta_box' ),
-			'product',
-			'normal',
-			'default'
-		);
-	}
-
-	/**
-	 * Render the PureCart product settings meta box.
-	 *
-	 * @since 1.0.0
-	 * @param \WP_Post $post The current product post object.
-	 * @return void
-	 */
-	public function render_product_meta_box( \WP_Post $post ): void {
-		wp_nonce_field( 'purecart_save_product_meta', 'purecart_product_nonce' );
-
-		$product          = wc_get_product( $post->ID );
-		$license_type     = $product ? $product->get_meta( '_purecart_license_type' ) : 'single';
-		$act_limit        = $product ? $product->get_meta( '_purecart_activation_limit' ) : 1;
-		$duration         = $product ? $product->get_meta( '_purecart_license_duration_days' ) : 365;
-		$renewal_behavior = $product ? ( $product->get_meta( '_purecart_renewal_behavior' ) ?: 'extend' ) : 'extend';
-		$plugin_slug      = $product ? $product->get_meta( '_purecart_plugin_slug' ) : '';
-		$saas_plan        = $product ? $product->get_meta( '_purecart_saas_plan' ) : 'starter';
-
-		?>
-		<table class="form-table purecart-meta-table">
-			<tr>
-				<th><label for="purecart_license_type"><?php esc_html_e( 'License Type', 'purecart' ); ?></label></th>
-				<td>
-					<select id="purecart_license_type" name="purecart_license_type">
-						<?php
-						foreach (
-							array(
-								'single'    => __( 'Single Site', 'purecart' ),
-								'multi'     => __( 'Multi Site', 'purecart' ),
-								'unlimited' => __( 'Unlimited Sites', 'purecart' ),
-								'lifetime'  => __( 'Lifetime (No Expiry)', 'purecart' ),
-							) as $val => $label
-						) :
-							?>
-							<option value="<?php echo esc_attr( $val ); ?>" <?php selected( $license_type, $val ); ?>>
-								<?php echo esc_html( $label ); ?>
-							</option>
-						<?php endforeach; ?>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<th><label for="purecart_activation_limit"><?php esc_html_e( 'Activation Limit', 'purecart' ); ?></label></th>
-				<td>
-					<input type="number" id="purecart_activation_limit" name="purecart_activation_limit"
-						value="<?php echo esc_attr( $act_limit ); ?>" min="1" class="small-text">
-					<p class="description"><?php esc_html_e( 'Number of sites the license can be activated on.', 'purecart' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th><label for="purecart_license_duration_days"><?php esc_html_e( 'License Duration (days)', 'purecart' ); ?></label></th>
-				<td>
-					<input type="number" id="purecart_license_duration_days" name="purecart_license_duration_days"
-						value="<?php echo esc_attr( $duration ); ?>" min="1" class="small-text">
-					<p class="description"><?php esc_html_e( 'Set 365 for 1 year. Ignored for "Lifetime" type.', 'purecart' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th><label for="purecart_renewal_behavior"><?php esc_html_e( 'Renewal Behavior', 'purecart' ); ?></label></th>
-				<td>
-					<select id="purecart_renewal_behavior" name="purecart_renewal_behavior">
-						<?php
-						foreach (
-							array(
-								'extend'  => __( 'Extend existing key', 'purecart' ),
-								'new_key' => __( 'Issue a new key', 'purecart' ),
-							) as $val => $label
-						) :
-							?>
-							<option value="<?php echo esc_attr( $val ); ?>" <?php selected( $renewal_behavior, $val ); ?>>
-								<?php echo esc_html( $label ); ?>
-							</option>
-						<?php endforeach; ?>
-					</select>
-					<p class="description"><?php esc_html_e( 'What happens to the license on subscription renewal. "Issue a new key" revokes the old key and generates a fresh one — useful for metered/seat-limited models.', 'purecart' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th><label for="purecart_plugin_slug"><?php esc_html_e( 'Plugin Slug', 'purecart' ); ?></label></th>
-				<td>
-					<input type="text" id="purecart_plugin_slug" name="purecart_plugin_slug"
-						value="<?php echo esc_attr( $plugin_slug ); ?>" class="regular-text">
-					<p class="description"><?php esc_html_e( 'Used for the auto-update API endpoint.', 'purecart' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th><label for="purecart_saas_plan"><?php esc_html_e( 'SaaS Plan', 'purecart' ); ?></label></th>
-				<td>
-					<input type="text" id="purecart_saas_plan" name="purecart_saas_plan"
-						value="<?php echo esc_attr( $saas_plan ); ?>" class="regular-text">
-					<p class="description"><?php esc_html_e( 'Plan identifier sent to your SaaS webhook.', 'purecart' ); ?></p>
-				</td>
-			</tr>
-		</table>
-		<?php
-	}
-
-	/**
-	 * Save PureCart product meta on product save.
-	 *
-	 * @since 1.0.0
-	 * @param int $post_id The ID of the product post being saved.
-	 * @return void
-	 */
-	public function save_product_meta( int $post_id ): void {
-		if (
-			! isset( $_POST['purecart_product_nonce'] )
-			|| ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['purecart_product_nonce'] ) ), 'purecart_save_product_meta' )
-			|| ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
-			|| ! current_user_can( 'edit_post', $post_id )
-		) {
-			return;
-		}
-
-		$fields = array(
-			'_purecart_license_type'          => 'purecart_license_type',
-			'_purecart_activation_limit'      => 'purecart_activation_limit',
-			'_purecart_license_duration_days' => 'purecart_license_duration_days',
-			'_purecart_renewal_behavior'      => 'purecart_renewal_behavior',
-			'_purecart_plugin_slug'           => 'purecart_plugin_slug',
-			'_purecart_saas_plan'             => 'purecart_saas_plan',
-		);
-
-		foreach ( $fields as $meta_key => $post_key ) {
-			if ( isset( $_POST[ $post_key ] ) ) {
-				update_post_meta( $post_id, $meta_key, sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) ) );
-			}
-		}
-	}
-
 	// ─────────────────────────────────────────────────────────────────────────────
 	// Plugin row action links
 	// ─────────────────────────────────────────────────────────────────────────────

@@ -11,8 +11,7 @@ namespace PureCart;
 
 defined( 'ABSPATH' ) || exit;
 
-use PureCart\Commerce\OrderHandler;
-use PureCart\Commerce\ProductTypes;
+use PureCart\Commerce\Module as CommerceModule;
 use PureCart\CustomerDashboard\Dashboard;
 use PureCart\Admin\Admin;
 use PureCart\Downloads\Module as DownloadsModule;
@@ -59,8 +58,7 @@ final class Plugin {
 		// also receive the upgraded schema, not only WP admin page loads.
 		Activator::maybe_upgrade();
 
-		new ProductTypes();
-		new OrderHandler();
+		new CommerceModule();
 		new Dashboard();
 		new DownloadsModule();
 		new LicensingModule();
