@@ -23,110 +23,64 @@ defined( 'ABSPATH' ) || exit;
  */
 class OptionKeys {
 
-	// ─── Subscriptions module ──────────────────────────────────────────────────
+	// Licensing module
 
-	/** Whether the Subscriptions module is enabled (default true). */
-	public const SUB_ENABLED = 'purecart_sub_enabled';
+	public const LICENSE_DELIVERY_STATUS = 'purecart_license_delivery_status';
+	public const LICENSE_JWT_SECRET      = 'purecart_jwt_secret_key';
 
-	/** WP role slug assigned to trial subscribers (default ''). */
-	public const SUB_TRIAL_ROLE = 'purecart_sub_trial_role';
+	// Downloads module
 
-	/** WP role slug assigned to active subscribers (default ''). */
-	public const SUB_ACTIVE_ROLE = 'purecart_sub_active_role';
+	public const DOWNLOAD_EXPIRY_SECONDS = 'purecart_download_expiry_seconds';
+	public const DOWNLOAD_MAX_COUNT      = 'purecart_download_max_count';
 
-	/** WP role slug assigned after a subscription ends (default ''). */
+	// SaaS Provisioning module
+
+	public const SAAS_WEBHOOK_URL        = 'purecart_saas_webhook_url';
+	public const SAAS_WEBHOOK_SECRET     = 'purecart_saas_webhook_secret';
+	public const SAAS_JWT_SECRET         = 'purecart_saas_jwt_secret';
+	public const SAAS_JWT_EXPIRY_SECONDS = 'purecart_saas_jwt_expiry_seconds';
+	public const SAAS_JWT_REFRESH_SECONDS = 'purecart_saas_jwt_refresh_seconds';
+
+	// Subscriptions — General
+
+	public const SUB_ENABLED                  = 'purecart_sub_enabled';
+	public const SUB_ONE_TRIAL_PER_CUSTOMER   = 'purecart_sub_one_trial_per_customer';
+	public const SUB_ALLOW_MULTIPLE_SUBSCRIPTIONS = 'purecart_sub_allow_multiple_subscriptions';
+	public const SUB_SKIP_LIMIT               = 'purecart_sub_skip_limit';
+	public const SUB_RESUBSCRIBE_WINDOW_DAYS  = 'purecart_sub_resubscribe_window_days';
+	public const SUB_PRORATION_MODE           = 'purecart_sub_proration_mode';
+	public const SUB_AVG_LIFETIME_MONTHS      = 'purecart_sub_avg_lifetime_months';
+	public const SUB_CANCEL_SAAS_IMMEDIATELY  = 'purecart_sub_cancel_saas_immediately';
+
+	// Subscriptions — Roles
+
+	public const SUB_TRIAL_ROLE     = 'purecart_sub_trial_role';
+	public const SUB_ACTIVE_ROLE    = 'purecart_sub_active_role';
 	public const SUB_CANCELLED_ROLE = 'purecart_sub_cancelled_role';
 
-	/** Whether each customer may only trial a product once (default true). */
-	public const SUB_ONE_TRIAL_PER_CUSTOMER = 'purecart_sub_one_trial_per_customer';
+	// Subscriptions — Billing & Dunning
 
-	/** Max skips per subscription lifetime; 0 = unlimited (default 1). */
-	public const SUB_SKIP_LIMIT = 'purecart_sub_skip_limit';
-
-	/** Days after cancellation/expiry during which resubscribing reuses the same record (default 30). */
-	public const SUB_RESUBSCRIBE_WINDOW_DAYS = 'purecart_sub_resubscribe_window_days';
-
-	/** Retry interval list in days, e.g. [1, 3, 5] (default [1, 3, 5]). */
-	public const SUB_RETRY_INTERVALS = 'purecart_sub_retry_intervals';
-
-	/** Maximum automatic dunning retry attempts (default 3). */
-	public const SUB_RETRY_ATTEMPTS = 'purecart_sub_retry_attempts';
-
-	/** Days past_due before moving to suspended (default 7). */
-	public const SUB_ACTIVE_GRACE_DAYS = 'purecart_sub_active_grace_days';
-
-	/** Days suspended before hard-cancellation (default 7). */
+	public const SUB_RETRY_INTERVALS      = 'purecart_sub_retry_intervals';
+	public const SUB_RETRY_ATTEMPTS       = 'purecart_sub_retry_attempts';
+	public const SUB_ACTIVE_GRACE_DAYS    = 'purecart_sub_active_grace_days';
 	public const SUB_SUSPENDED_GRACE_DAYS = 'purecart_sub_suspended_grace_days';
+	public const SUB_RENEWAL_SYNC         = 'purecart_sub_renewal_sync';
+	public const SUB_RENEWAL_SYNC_DATE    = 'purecart_sub_renewal_sync_date';
 
-	/** Average subscription lifetime in months, for LTV projection (default 24). */
-	public const SUB_AVG_LIFETIME_MONTHS = 'purecart_sub_avg_lifetime_months';
+	// Subscriptions — Retention
 
-	/** Default proration mode for plan upgrades/downgrades (default 'apply_at_renewal'). */
-	public const SUB_PRORATION_MODE = 'purecart_sub_proration_mode';
-
-	/** Retention offer: discount percentage (default 20). */
 	public const SUB_RETENTION_DISCOUNT_PERCENT = 'purecart_sub_retention_discount_percent';
+	public const SUB_RETENTION_DISCOUNT_CYCLES  = 'purecart_sub_retention_discount_cycles';
+	public const SUB_RETENTION_PAUSE_DAYS       = 'purecart_sub_retention_pause_days';
+	public const SUB_RETENTION_CONTACT_URL      = 'purecart_sub_retention_contact_url';
 
-	/** Retention offer: number of discounted renewal cycles (default 3). */
-	public const SUB_RETENTION_DISCOUNT_CYCLES = 'purecart_sub_retention_discount_cycles';
+	// Subscriptions — Notifications
 
-	/** Retention offer: pause duration in days (default 30). */
-	public const SUB_RETENTION_PAUSE_DAYS = 'purecart_sub_retention_pause_days';
-
-	/** Retention offer: contact-us URL shown to customers who pick "contact support" (default ''). */
-	public const SUB_RETENTION_CONTACT_URL = 'purecart_sub_retention_contact_url';
-
-	/** Whether renewal sync (align billing date to a fixed day-of-month) is enabled (default false). */
-	public const SUB_RENEWAL_SYNC = 'purecart_sub_renewal_sync';
-
-	/** Day-of-month (1-28) to sync billing dates to when SUB_RENEWAL_SYNC is on (default 1). */
-	public const SUB_RENEWAL_SYNC_DATE = 'purecart_sub_renewal_sync_date';
-
-	/** Days before next_payment_at to send renewal reminder emails, e.g. [7, 3, 1] (default [7, 3, 1]). */
-	public const SUB_RENEWAL_REMINDER_DAYS = 'purecart_sub_renewal_reminder_days';
-
-	/** Days before trial end to send the "trial ending soon" email (default 3). */
-	public const SUB_TRIAL_REMINDER_DAYS = 'purecart_sub_trial_reminder_days';
-
-	/** Days before card expiry to send the "card expiring soon" email (default 30). */
+	public const SUB_RENEWAL_REMINDER_DAYS  = 'purecart_sub_renewal_reminder_days';
+	public const SUB_TRIAL_REMINDER_DAYS    = 'purecart_sub_trial_reminder_days';
 	public const SUB_CARD_EXPIRY_WARNING_DAYS = 'purecart_sub_card_expiry_warning_days';
 
-	/** Whether cancelling a SaaS subscription suspends the SaaS account immediately (default false). */
-	public const SUB_CANCEL_SAAS_IMMEDIATELY = 'purecart_sub_cancel_saas_immediately';
+	// Subscriptions — Webhooks
 
-	/** Whether a customer may hold more than one active subscription at a time (default true). */
-	public const SUB_ALLOW_MULTIPLE_SUBSCRIPTIONS = 'purecart_sub_allow_multiple_subscriptions';
-
-	// ─── Downloads module ───────────────────────────────────────────────────────
-
-	/** Download link lifetime in seconds (default DAY_IN_SECONDS). */
-	public const DOWNLOAD_EXPIRY_SECONDS = 'purecart_download_expiry_seconds';
-
-	/** Max downloads per token; 0 = unlimited (default 3). */
-	public const DOWNLOAD_MAX_COUNT = 'purecart_download_max_count';
-
-	// ─── Licensing module ──────────────────────────────────────────────────────
-
-	/** Order status that triggers license/download/SaaS provisioning: 'completed' | 'processing' | 'both' (default 'completed'). */
-	public const LICENSE_DELIVERY_STATUS = 'purecart_license_delivery_status';
-
-	/** HS256 secret used to sign license JWTs. Auto-generated on first use if unset and PURECART_JWT_SECRET_KEY isn't defined. */
-	public const LICENSE_JWT_SECRET = 'purecart_jwt_secret_key';
-
-	// ─── SaaS Provisioning module ──────────────────────────────────────────────
-
-	/** URL of the merchant's SaaS platform provisioning endpoint (default ''). */
-	public const SAAS_WEBHOOK_URL = 'purecart_saas_webhook_url';
-
-	/** HMAC-SHA256 secret used to sign outbound SaaS webhooks. Auto-generated on first send if unset. */
-	public const SAAS_WEBHOOK_SECRET = 'purecart_saas_webhook_secret';
-
-	/** HS256 secret used to sign SaaS login JWTs. Auto-generated on first issue if unset. */
-	public const SAAS_JWT_SECRET = 'purecart_saas_jwt_secret';
-
-	/** SaaS access token lifetime in seconds (default 600 — 10 minutes). */
-	public const SAAS_JWT_EXPIRY_SECONDS = 'purecart_saas_jwt_expiry_seconds';
-
-	/** SaaS refresh token lifetime in seconds (default 2592000 — 30 days). */
-	public const SAAS_JWT_REFRESH_SECONDS = 'purecart_saas_jwt_refresh_seconds';
+	public const SUB_WEBHOOK_SECRET = 'purecart_webhook_secret';
 }

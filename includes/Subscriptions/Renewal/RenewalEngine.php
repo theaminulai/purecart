@@ -424,6 +424,13 @@ class RenewalEngine {
 		$attempt = $this->attempt_gateway_charge( $subscription, $order );
 
 		if ( $attempt['success'] ) {
+			// Reload from DB: the gateway's process_payment() receives the order by
+			// ID and operates on a separate WC_Order instance. Status transitions and
+			// transaction IDs it writes are in the DB but not in this stale object.
+			// Passing the stale object to complete_renewal() would double-fire the
+			// woocommerce_order_status_* transition hooks and record '' as the
+			// transaction ID in the payments ledger.
+			$order = wc_get_order( $order->get_id() ) ?: $order;
 			$this->complete_renewal( $subscription, $order, 'charged' );
 			return true;
 		}
@@ -468,6 +475,8 @@ class RenewalEngine {
 			return new \WP_Error( 'purecart_charge_failed', $attempt['reason'] );
 		}
 
+		// Same reload-after-charge pattern as charge_renewal() — see that method's comment.
+		$order = wc_get_order( $order->get_id() ) ?: $order;
 		$order->payment_complete();
 
 		$this->payments->record(
@@ -737,6 +746,18 @@ class RenewalEngine {
 	 * @return void
 	 */
 	private function mark_failed( object $subscription, \WC_Order $order, string $reason ): void {
+		// Set the WC order to `failed` so WooCommerce's order status hooks fire
+		// (woocommerce_order_status_failed, order emails, third-party integrations)
+		// and the WC admin order list shows `failed` instead of `pending` forever.
+		$order->update_status(
+			'failed',
+			sprintf(
+				/* translators: %s: gateway decline reason */
+				__( 'Renewal payment failed: %s', 'purecart' ),
+				$reason
+			)
+		);
+
 		$this->subscriptions->update(
 			(int) $subscription->id,
 			array(
@@ -824,14 +845,24 @@ class RenewalEngine {
 		$anchor          = $subscription->next_payment_at ?: $now;
 		$next_payment_at = BillingClock::add_interval( $anchor, (int) $subscription->billing_interval, $subscription->billing_period );
 
-		$this->subscriptions->update(
-			(int) $subscription->id,
-			array(
-				'last_payment_at' => $now,
-				'next_payment_at' => $next_payment_at,
-				'renewal_count'   => (int) $subscription->renewal_count + 1,
-			)
+		$updates = array(
+			'last_payment_at' => $now,
+			'next_payment_at' => $next_payment_at,
+			'renewal_count'   => (int) $subscription->renewal_count + 1,
 		);
+
+		// A paid early renewal ends the trial — convert trialing → active so
+		// RoleManager (Step 14) can swap the trial role for the subscriber role,
+		// the same transition that fires on a regular scheduled first charge.
+		if ( 'trialing' === $subscription->status ) {
+			$updates['status'] = 'active';
+		}
+
+		$this->subscriptions->update( (int) $subscription->id, $updates );
+
+		if ( isset( $updates['status'] ) ) {
+			do_action( 'purecart_subscription_status_changed', (int) $subscription->id, $subscription->status, 'active' );
+		}
 
 		$this->logs->log(
 			(int) $subscription->id,
