@@ -6,20 +6,8 @@ import { Sidebar, TopBar } from '@/shared/layout';
 import { AppRoutes, PAGE_PATHS, getPageFromPath } from './router';
 import { useAppSelector } from './store/hooks';
 import { selectSubscriptionById } from '@/modules/subscriptions';
-
-// ─── WordPress global type declaration ─────────────────────────────────────────
-declare global {
-	interface Window {
-		purecartAdmin?: {
-			/** React page slug to navigate to on initial load, set by wp_localize_script. */
-			currentPage?: string;
-			nonce?: string;
-			apiUrl?: string;
-			restNonce?: string;
-			version?: string;
-		};
-	}
-}
+import { NotificationsMenu } from '@/modules/notifications';
+import { getAdminConfig } from '@/shared/wp';
 
 // ─── Root App ──────────────────────────────────────────────────────────────────
 /**
@@ -44,7 +32,7 @@ export default function App() {
 	useEffect( () => {
 		if ( location.pathname !== '/' ) return;
 
-		const wpPage = window.purecartAdmin?.currentPage as Page | undefined;
+		const wpPage = getAdminConfig().currentPage as Page | undefined;
 		if ( ! wpPage ) return;
 
 		const path = PAGE_PATHS[ wpPage ];
@@ -85,7 +73,12 @@ export default function App() {
 			/>
 
 			<div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-				<TopBar page={ page } onNav={ goToPage } detailLabel={ detailLabel } />
+				<TopBar
+					page={ page }
+					onNav={ goToPage }
+					detailLabel={ detailLabel }
+					notificationsSlot={ <NotificationsMenu onNav={ goToPage } /> }
+				/>
 
 				<main
 					className="flex-1 overflow-y-auto"

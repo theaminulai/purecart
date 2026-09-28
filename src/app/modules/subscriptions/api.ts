@@ -8,9 +8,10 @@
  * @since 1.0.0
  */
 
-import { purecartFetch, purecartFetchRaw } from '@/shared/api';
+import { purecartFetch, purecartFetchRaw, purecartFetchWithMeta } from '@/shared/api';
 import type {
 	SubscriptionRecord,
+	SubscriptionStatus,
 	SubscriptionLogEntry,
 	SubscriptionEmailLogEntry,
 	PaymentRecord,
@@ -31,6 +32,23 @@ import {
 export async function fetchSubscriptions(): Promise<SubscriptionRecord[]> {
 	const res = await purecartFetch<any[]>('/subscriptions');
 	return Array.isArray(res) ? res.map(mapBackendSubscriptionToRecord) : [];
+}
+
+/**
+ * GET /purecart/v1/subscriptions - how many subscriptions are in one status.
+ *
+ * Requests a single row and reads WordPress's X-WP-Total header instead of
+ * counting a fetched page: callers that only need the number (the top bar's
+ * notification feed) would otherwise pull the whole list to count it, and
+ * the endpoint caps per_page at 100 anyway.
+ *
+ * @since 1.1.0
+ * @param {SubscriptionStatus} status Status to count.
+ * @return {Promise<number>} Number of subscriptions in that status.
+ */
+export async function fetchSubscriptionCount(status: SubscriptionStatus): Promise<number> {
+	const { total } = await purecartFetchWithMeta<unknown[]>('/subscriptions', { status, per_page: 1 });
+	return total;
 }
 
 /**

@@ -199,10 +199,44 @@ class Admin {
 				'adminUrl'    => esc_url_raw( admin_url() ),
 				'currentPage' => $current_page,
 				'version'     => PURECART_VERSION,
+				'currentUser' => $this->current_user_payload(),
 			)
 		);
 
 		$this->enqueue_menu_router();
+	}
+
+	/**
+	 * Display data for the signed-in user, for the SPA top bar's account menu.
+	 *
+	 * Presentation fields plus the two wp-admin URLs the menu links to — and
+	 * one capability flag, used only to decide whether the menu shows its
+	 * Settings link. It is deliberately not a permissions source: every REST
+	 * route re-checks its own capability server-side, so a tampered value
+	 * here can reveal a link, never an action.
+	 *
+	 * @since 1.1.0
+	 * @return array<string, mixed> The `purecartAdmin.currentUser` payload.
+	 */
+	private function current_user_payload(): array {
+		$user = wp_get_current_user();
+
+		$role_names = wp_roles()->get_names();
+		$role_slug  = (string) ( ( (array) $user->roles )[0] ?? '' );
+		$role_label = isset( $role_names[ $role_slug ] )
+			? translate_user_role( $role_names[ $role_slug ] )
+			: '';
+
+		return array(
+			'id'               => (int) $user->ID,
+			'name'             => (string) $user->display_name,
+			'email'            => (string) $user->user_email,
+			'avatarUrl'        => (string) get_avatar_url( $user->ID, array( 'size' => 72 ) ),
+			'roleLabel'        => $role_label,
+			'profileUrl'       => esc_url_raw( admin_url( 'profile.php' ) ),
+			'logoutUrl'        => esc_url_raw( wp_logout_url() ),
+			'canManageOptions' => current_user_can( 'manage_options' ),
+		);
 	}
 
 	/**

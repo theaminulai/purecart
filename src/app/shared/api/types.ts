@@ -4,16 +4,13 @@
  * @since 1.1.0
  */
 
+/*
+ * `window.purecartAdmin` (the wp-admin SPA's config) is declared in
+ * shared/wp/admin-config.ts, not here - one declaration per global, or
+ * TypeScript rejects the second one the moment the two drift apart.
+ */
 declare global {
 	interface Window {
-		purecartAdmin?: {
-			nonce: string;
-			restNonce: string; // wp_create_nonce( 'wp_rest' )
-			apiUrl: string; // e.g. 'http://localhost:8080/woo-digital-downloads/wp-json/purecart/v1/'
-			adminUrl: string; // e.g. 'http://localhost:8080/wp-admin/'
-			currentPage: string;
-			version: string;
-		};
 		purecartConfig?: {
 			nonce: string; // wp_create_nonce( 'wp_rest' )
 			restBase: string; // e.g. 'https://example.com/wp-json/purecart/v1'

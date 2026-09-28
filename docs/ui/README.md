@@ -9,6 +9,7 @@ They follow Material Design 3 (M3), styled by hand with inline `style` objects d
 | Component | Summary |
 |---|---|
 | [ActionDropdown](ActionDropdown.md) | Generic "⋮" overflow menu driven by an `ActionItem[]` list |
+| [AnchoredMenu](AnchoredMenu.md) | Floating panel anchored to a caller-supplied trigger (TopBar notifications + account menus) |
 | [Card](Card.md) | Base elevated surface container used by most other components |
 | [ConfirmDialog](ConfirmDialog.md) | Modal confirmation dialog for destructive/important actions |
 | [FilledButton](FilledButton.md) | Primary (filled) M3 button |
