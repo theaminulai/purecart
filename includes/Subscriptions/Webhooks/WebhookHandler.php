@@ -7,7 +7,16 @@
 
 declare( strict_types=1 );
 
-namespace PureCart\Subscriptions;
+namespace PureCart\Subscriptions\Webhooks;
+
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
+use PureCart\Subscriptions\Repository\SubscriptionLogRepository;
+use PureCart\Subscriptions\Payment\PaymentRepository;
+use PureCart\Subscriptions\Renewal\RenewalEngine;
+use PureCart\Subscriptions\DeliveryManager;
+use PureCart\Subscriptions\SubscriptionManager;
+use PureCart\Settings\OptionKeys;
+use PureCart\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -68,7 +77,7 @@ class WebhookHandler {
 	 * @return bool
 	 */
 	public function verify_signature( string $raw_body, string $signature ): bool {
-		$secret = (string) get_option( 'purecart_webhook_secret', '' );
+		$secret = (string) Settings::get( OptionKeys::SUB_WEBHOOK_SECRET, '' );
 
 		if ( '' === $secret || '' === $signature ) {
 			return false;

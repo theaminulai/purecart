@@ -14,7 +14,11 @@
 
 declare( strict_types=1 );
 
-namespace PureCart\Subscriptions;
+namespace PureCart\Subscriptions\Product;
+
+use PureCart\Subscriptions\DeliveryHandlerRegistry;
+use PureCart\Subscriptions\Billing\RenewalSync;
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
 
 use PureCart\Settings\OptionKeys;
 use PureCart\Settings\Settings;

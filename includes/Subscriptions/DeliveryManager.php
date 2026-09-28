@@ -9,6 +9,8 @@ declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
+
 use PureCart\Licensing\LicenseGenerator;
 use PureCart\SaaS\AccountProvisioner;
 use PureCart\Settings\OptionKeys;

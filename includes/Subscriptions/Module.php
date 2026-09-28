@@ -17,10 +17,19 @@ namespace PureCart\Subscriptions;
 use PureCart\API\Subscriptions as SubscriptionsApi;
 use PureCart\Settings\OptionKeys;
 use PureCart\Settings\Settings;
+use PureCart\Subscriptions\Billing\RenewalSync;
 use PureCart\Subscriptions\Delivery\CourseHandler;
 use PureCart\Subscriptions\Delivery\DownloadHandler;
 use PureCart\Subscriptions\Delivery\MembershipHandler;
 use PureCart\Subscriptions\Delivery\ServiceHandler;
+use PureCart\Subscriptions\Payment\DunningManager;
+use PureCart\Subscriptions\Payment\PlanUpgrade;
+use PureCart\Subscriptions\Payment\SplitPaymentManager;
+use PureCart\Subscriptions\Product\SubscriptionProduct;
+use PureCart\Subscriptions\Renewal\RenewalEngine;
+use PureCart\Subscriptions\Repository\RevenueRepository;
+use PureCart\Subscriptions\Reports\SubscriptionExport;
+use PureCart\Subscriptions\Webhooks\WebhookHandler;
 
 defined( 'ABSPATH' ) || exit;
 

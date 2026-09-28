@@ -8,7 +8,13 @@
 
 declare( strict_types=1 );
 
-namespace PureCart\Subscriptions;
+namespace PureCart\Subscriptions\Reports;
+
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
+use PureCart\Subscriptions\Repository\SubscriptionLogRepository;
+use PureCart\Subscriptions\Repository\RevenueRepository;
+use PureCart\Subscriptions\Billing\BillingClock;
+use PureCart\Subscriptions\ChurnScorer;
 
 use PureCart\Settings\OptionKeys;
 use PureCart\Settings\Settings;
