@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Base class for all PureCart database table stores.
  *
@@ -8,8 +9,6 @@
  *
  * @package PureCart\Store
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Store;
 

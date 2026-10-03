@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Resolves the HS256 secret used to sign SaaS login JWTs.
  *
  * @package PureCart\SaaS
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\SaaS;
 

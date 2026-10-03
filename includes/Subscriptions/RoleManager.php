@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * WP role assignment/removal across subscription lifecycle transitions
  * (feature doc "Role Mapping").
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 

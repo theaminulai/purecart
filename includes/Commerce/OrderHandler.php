@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Handles WooCommerce order events to provision licenses, downloads, and SaaS accounts.
  *
  * @package PureCart\Commerce
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Commerce;
 

@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Contract for pluggable subscription delivery-type handlers.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 

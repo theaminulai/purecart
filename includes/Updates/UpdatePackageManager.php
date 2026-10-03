@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Upload, store, version and manage update package files.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

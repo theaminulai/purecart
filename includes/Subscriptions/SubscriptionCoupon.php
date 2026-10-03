@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * Subscription-scoped coupons: sign-up-fee-only discount + recurring-fee
  * discount for the first N renewals (or forever).
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 

@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Minimal, dependency-free HS256 JSON Web Token encoder/decoder.
  *
@@ -10,8 +11,6 @@
  *
  * @package PureCart\Licensing
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Licensing;
 

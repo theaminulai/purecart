@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * Thin wrapper around get_option() / update_option() that enforces the
  * OptionKeys constant pattern — no module reads or writes raw option strings.
  *
  * @package PureCart\Settings
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Settings;
 

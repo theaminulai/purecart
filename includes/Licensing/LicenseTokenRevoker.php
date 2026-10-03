@@ -1,11 +1,10 @@
-﻿<?php
+<?php
+declare( strict_types=1 );
 /**
  * Revokes all outstanding JWTs for a license.
  *
  * @package PureCart\Licensing
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Licensing;
 

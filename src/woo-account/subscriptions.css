@@ -1,0 +1,89 @@
+/**
+ * PureCart — My Account: Subscriptions tab styles.
+ *
+ * WooCommerce themes already style:
+ *   - woocommerce-table / shop_table             (border, spacing, striping)
+ *   - mark.order-status.status-processing        (blue  — used for "Active")
+ *   - mark.order-status.status-on-hold           (orange — used for "Paused")
+ *   - mark.order-status.status-failed            (red   — used for "Past Due")
+ *   - mark.order-status.status-cancelled         (grey  — used for "Cancelled")
+ *   - .button                                    (action buttons)
+ *
+ * This file ONLY adds:
+ *   1. The three custom slugs WC themes don't know about (trialing / suspended / expired)
+ *   2. Minor layout helpers for the actions cell and the inline feedback row
+ *
+ * If the active theme already colours mark.order-status elements differently,
+ * the three rules below can be removed without breaking anything — they are
+ * purely additive fall-backs for themes that don't set these slugs.
+ *
+ * @package PureCart
+ */
+
+/* ── Custom status colours ────────────────────────────────────────────────── */
+
+/* Trial — indigo, matching the "info" feel of a trial period */
+.woocommerce-table--my-subscriptions mark.order-status.status-purecart-trialing {
+	background-color: #e8eaf6;
+	color: #3949ab;
+}
+
+/* Suspended — brown/amber, distinct from "cancelled" grey */
+.woocommerce-table--my-subscriptions mark.order-status.status-purecart-suspended {
+	background-color: #efebe9;
+	color: #6d4c41;
+}
+
+/* Expired — neutral grey (same visual weight as "cancelled") */
+.woocommerce-table--my-subscriptions mark.order-status.status-purecart-expired {
+	background-color: #f5f5f5;
+	color: #757575;
+}
+
+/* ── Actions cell ─────────────────────────────────────────────────────────── */
+
+/* Stack the buttons so multiple actions don't overflow on narrow viewports */
+.woocommerce-table--my-subscriptions .subscription-action-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+/* Dim the cancel button so it doesn't compete visually with the primary ones */
+.woocommerce-table--my-subscriptions .purecart-sub-action--cancel {
+	color: #c62828;
+	border-color: #c62828;
+}
+
+.woocommerce-table--my-subscriptions .purecart-sub-action--cancel:hover {
+	background-color: #c62828;
+	color: #fff;
+}
+
+/* ── Inline feedback row ──────────────────────────────────────────────────── */
+
+.purecart-sub-feedback {
+	font-size: 0.875em;
+	margin-top: 6px;
+	padding: 4px 8px;
+	border-radius: 3px;
+}
+
+.purecart-sub-feedback.is-loading { color: #555; font-style: italic; }
+.purecart-sub-feedback.is-success { background: #e8f5e9; color: #1b5e20; }
+.purecart-sub-feedback.is-error   { background: #ffebee; color: #b71c1c; }
+
+/* ── Subscription product name (secondary line under the ID) ─────────────── */
+
+.woocommerce-table--my-subscriptions .subscription-product-name {
+	display: block;
+	font-size: 0.875em;
+	color: #555;
+}
+
+/* ── Billing period suffix ("/ Monthly") ─────────────────────────────────── */
+
+.woocommerce-table--my-subscriptions .subscription-billing-period {
+	color: #777;
+	font-size: 0.875em;
+}

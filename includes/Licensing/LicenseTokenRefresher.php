@@ -1,11 +1,10 @@
-﻿<?php
+<?php
+declare( strict_types=1 );
 /**
  * Validates a refresh token and issues a new access token.
  *
  * @package PureCart\Licensing
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Licensing;
 

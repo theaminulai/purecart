@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * Browser-initiated CSV download of the subscriptions export, over
  * admin-post.php.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Reports;
 

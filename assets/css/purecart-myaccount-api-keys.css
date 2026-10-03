@@ -1,0 +1,143 @@
+/**
+ * Customer My Account - API Keys Tab Styles
+ */
+
+/* ── Table base ─────────────────────────────────────────────────────────── */
+
+.purecart-api-keys-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.purecart-api-keys-table th,
+.purecart-api-keys-table td {
+	padding: 10px 12px;
+	text-align: left;
+	vertical-align: middle;
+	border-bottom: 1px solid #ece6f0;
+}
+
+.purecart-api-keys-table thead th {
+	font-weight: 600;
+	color: #1c1b1f;
+	background: #f7f2fa;
+	white-space: nowrap;
+}
+
+.purecart-api-keys-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.purecart-api-keys-table tbody tr:hover td {
+	background: #fdf7ff;
+}
+
+/* ── API key cell ───────────────────────────────────────────────────────── */
+
+.purecart-api-key {
+	display: inline-block;
+	font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+	font-size: 12px;
+	background: #f3edf7;
+	color: #1c1b1f;
+	padding: 3px 8px;
+	border-radius: 4px;
+	max-width: 260px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	vertical-align: middle;
+	cursor: text;
+}
+
+/* ── Status badge ───────────────────────────────────────────────────────── */
+
+.purecart-status {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 2px 8px;
+	border-radius: 10px;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+.purecart-status--active {
+	background: #c2e7a0;
+	color: #386a20;
+}
+
+.purecart-status--inactive,
+.purecart-status--suspended {
+	background: #ffdea5;
+	color: #7a5900;
+}
+
+.purecart-status--revoked,
+.purecart-status--cancelled {
+	background: #fce8e6;
+	color: #b3261e;
+}
+
+/* ── Responsive — stacked cards ─────────────────────────────────────────── */
+
+@media ( max-width: 640px ) {
+
+	.purecart-api-keys-table,
+	.purecart-api-keys-table thead,
+	.purecart-api-keys-table tbody,
+	.purecart-api-keys-table tr,
+	.purecart-api-keys-table th,
+	.purecart-api-keys-table td {
+		display: block;
+	}
+
+	.purecart-api-keys-table thead {
+		display: none;
+	}
+
+	.purecart-api-keys-table tbody tr {
+		border: 1px solid #cac4d0;
+		border-radius: 10px;
+		margin-bottom: 12px;
+		padding: 4px 0;
+		background: #fff;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+	}
+
+	.purecart-api-keys-table td {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 9px 14px;
+		border-bottom: 1px solid #f3edf7;
+		font-size: 13px;
+	}
+
+	.purecart-api-keys-table tbody tr td:last-child {
+		border-bottom: none;
+	}
+
+	.purecart-api-keys-table td::before {
+		content: attr(data-label);
+		font-weight: 600;
+		color: #49454f;
+		flex-shrink: 0;
+		font-size: 12px;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.purecart-api-key {
+		max-width: 160px;
+	}
+}
+
+@media ( max-width: 400px ) {
+
+	.purecart-api-key {
+		max-width: 120px;
+	}
+}

@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * WooCommerce email prompting the customer to reauthorize their payment method.
  *
  * @package PureCart\Subscriptions\Emails
  * @since   1.0.0
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Emails;
 

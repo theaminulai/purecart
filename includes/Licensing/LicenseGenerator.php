@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * Generates and stores license keys.
  *
  * @package PureCart\Licensing
  * @since   1.0.0
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Licensing;
 

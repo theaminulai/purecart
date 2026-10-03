@@ -2,6 +2,8 @@
  * Customer My Account - Software Updates Tab Styles
  */
 
+/* ── Container & header ─────────────────────────────────────────────────── */
+
 .purecart-updates-container {
 	margin-top: 10px;
 }
@@ -19,6 +21,26 @@
 	margin-bottom: 24px;
 }
 
+/* ── Notice ─────────────────────────────────────────────────────────────── */
+
+.purecart-notice {
+	padding: 12px 16px;
+	border-radius: 8px;
+	font-size: 14px;
+}
+
+.purecart-notice p {
+	margin: 0;
+}
+
+.purecart-notice--info {
+	background: #e8f0fe;
+	border-left: 4px solid #4a90d9;
+	color: #1a3a5c;
+}
+
+/* ── Card list ──────────────────────────────────────────────────────────── */
+
 .purecart-product-cards-list {
 	display: flex;
 	flex-direction: column;
@@ -33,6 +55,8 @@
 	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
+/* ── Card header ────────────────────────────────────────────────────────── */
+
 .purecart-product-update-card__header {
 	display: flex;
 	justify-content: space-between;
@@ -42,11 +66,21 @@
 	margin-bottom: 12px;
 }
 
+.purecart-product-update-card__info {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.purecart-product-update-card__actions {
+	flex-shrink: 0;
+}
+
 .purecart-product-update-card__name {
 	font-size: 17px;
 	font-weight: 600;
 	margin: 0 0 6px 0;
 	color: #1c1b1f;
+	word-break: break-word;
 }
 
 .purecart-product-update-card__meta {
@@ -58,6 +92,8 @@
 	color: #49454f;
 }
 
+/* ── Version badge & code ───────────────────────────────────────────────── */
+
 .purecart-version-code {
 	font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
 	background: #f3edf7;
@@ -65,6 +101,7 @@
 	border-radius: 4px;
 	color: #1c1b1f;
 	font-weight: 600;
+	white-space: nowrap;
 }
 
 .purecart-badge {
@@ -73,6 +110,7 @@
 	padding: 2px 8px;
 	border-radius: 10px;
 	text-transform: uppercase;
+	white-space: nowrap;
 }
 
 .purecart-badge--stable {
@@ -90,13 +128,29 @@
 	color: #49454f;
 }
 
+/* ── Download button ────────────────────────────────────────────────────── */
+
 .purecart-btn--primary {
+	display: inline-block;
 	background-color: #6750a4 !important;
 	color: #fff !important;
 	border-radius: 8px !important;
 	font-weight: 600 !important;
 	padding: 8px 16px !important;
+	text-decoration: none !important;
+	transition: background-color 0.15s ease, box-shadow 0.15s ease !important;
+	white-space: nowrap;
 }
+
+.purecart-btn--primary:hover,
+.purecart-btn--primary:focus {
+	background-color: #4f3d8a !important;
+	box-shadow: 0 2px 6px rgba(103, 80, 164, 0.35) !important;
+	color: #fff !important;
+	outline: none !important;
+}
+
+/* ── Changelog & history accordions ────────────────────────────────────── */
 
 .purecart-changelog-details,
 .purecart-update-history {
@@ -111,6 +165,33 @@
 	font-weight: 600;
 	color: #6750a4;
 	cursor: pointer;
+	user-select: none;
+	list-style: none;
+	transition: color 0.15s ease;
+}
+
+.purecart-changelog-summary:hover,
+.purecart-history-summary:hover {
+	color: #4f3d8a;
+}
+
+.purecart-changelog-summary::-webkit-details-marker,
+.purecart-history-summary::-webkit-details-marker {
+	display: none;
+}
+
+.purecart-changelog-summary::before,
+.purecart-history-summary::before {
+	content: '▶';
+	display: inline-block;
+	font-size: 10px;
+	margin-right: 6px;
+	transition: transform 0.15s ease;
+}
+
+details[open] .purecart-changelog-summary::before,
+details[open] .purecart-history-summary::before {
+	transform: rotate(90deg);
 }
 
 .purecart-changelog-content {
@@ -123,6 +204,8 @@
 	color: #1c1b1f;
 }
 
+/* ── Version history list ───────────────────────────────────────────────── */
+
 .purecart-update-history__list {
 	list-style: none;
 	margin: 8px 0 0 0;
@@ -132,10 +215,20 @@
 .purecart-update-history__item {
 	display: flex;
 	align-items: center;
-	gap: 16px;
-	padding: 6px 0;
+	gap: 12px;
+	padding: 8px 0;
 	font-size: 13px;
 	border-bottom: 1px solid #f3edf7;
+	flex-wrap: wrap;
+}
+
+.purecart-update-history__item:last-child {
+	border-bottom: none;
+}
+
+.purecart-history-date,
+.purecart-history-platform {
+	color: #49454f;
 }
 
 .purecart-history-download {
@@ -143,4 +236,62 @@
 	color: #6750a4;
 	font-weight: 600;
 	text-decoration: underline;
+	white-space: nowrap;
+	transition: color 0.15s ease;
+}
+
+.purecart-history-download:hover,
+.purecart-history-download:focus {
+	color: #4f3d8a;
+	outline: none;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media ( max-width: 640px ) {
+
+	.purecart-product-update-card {
+		padding: 16px;
+	}
+
+	.purecart-product-update-card__header {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.purecart-product-update-card__actions {
+		flex-shrink: unset;
+	}
+
+	.purecart-btn--primary {
+		display: block !important;
+		width: 100% !important;
+		text-align: center !important;
+		box-sizing: border-box !important;
+		white-space: normal !important;
+	}
+
+	.purecart-product-update-card__meta {
+		gap: 8px;
+	}
+
+	.purecart-update-history__item {
+		gap: 8px;
+	}
+
+	.purecart-history-download {
+		margin-left: 0;
+		flex-basis: 100%;
+	}
+}
+
+@media ( max-width: 400px ) {
+
+	.purecart-updates-title {
+		font-size: 18px;
+	}
+
+	.purecart-product-update-card__name {
+		font-size: 15px;
+	}
 }

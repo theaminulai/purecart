@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * Registers all subscription WC_Email subclasses, and scans for the handful
  * of emails that fire on "N days before X" rather than a lifecycle event.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 

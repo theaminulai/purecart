@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Assembles per-version changelogs into the combined view WordPress shows.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

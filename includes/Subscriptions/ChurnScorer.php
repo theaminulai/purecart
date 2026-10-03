@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * Computes and updates the churn risk score (0-100) and projected customer
  * LTV on subscription lifecycle/payment events.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 

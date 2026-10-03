@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * "Updates" product data tab: settings, package upload, version history.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

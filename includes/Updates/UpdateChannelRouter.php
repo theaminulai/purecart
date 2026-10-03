@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Resolves which release channel a given request is entitled to.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

@@ -1,11 +1,10 @@
-﻿<?php
+<?php
+declare( strict_types=1 );
 /**
  * Issues access + refresh JWTs for an activated license+domain pair.
  *
  * @package PureCart\Licensing
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Licensing;
 

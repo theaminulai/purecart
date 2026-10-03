@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Provisions SaaS accounts when WooCommerce orders are completed.
  *
  * @package PureCart\SaaS
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\SaaS;
 

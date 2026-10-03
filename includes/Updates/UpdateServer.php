@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Answers "is there a newer version, and may this caller have it?".
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * All reads/writes for wp_purecart_subscription_payments.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Payment;
 

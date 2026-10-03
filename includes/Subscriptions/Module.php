@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Subscriptions module bootstrap.
  *
@@ -8,8 +9,6 @@
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 

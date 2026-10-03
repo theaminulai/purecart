@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * WooCommerce email confirming that the customer's next renewal cycle has been skipped.
  *
  * @package PureCart\Subscriptions\Emails
  * @since   1.0.0
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Emails;
 

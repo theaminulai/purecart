@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * REST routes for the SaaS Provisioning module.
  *
  * @package PureCart\API
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\API;
 

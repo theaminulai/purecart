@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * "Update Available" customer email.
  *
  * @package PureCart\Updates\Emails
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates\Emails;
 

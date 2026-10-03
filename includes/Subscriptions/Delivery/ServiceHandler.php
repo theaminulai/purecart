@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Service/Retainer delivery type — deliverable tracking + optional invoice.
  *
  * @package PureCart\Subscriptions\Delivery
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Delivery;
 

@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Action Scheduler job: purge old rows from wp_purecart_license_tokens.
  *
  * @package PureCart\Licensing
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Licensing;
 

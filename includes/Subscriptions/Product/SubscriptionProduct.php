@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Registers the "PureCart – Subscription" WooCommerce product type.
  *
@@ -11,8 +12,6 @@
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Product;
 

@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Issues access + refresh JWTs for SaaS account login.
  *
  * @package PureCart\SaaS
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\SaaS;
 

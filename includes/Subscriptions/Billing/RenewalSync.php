@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Calendar-date renewal sync: aligns a subscription's billing date to a fixed
  * day-of-month (feature doc "Renewal Sync"), with a correctly prorated first
@@ -6,8 +7,6 @@
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Billing;
 

@@ -1,4 +1,5 @@
-﻿<?php
+<?php
+declare( strict_types=1 );
 /**
  * Serves protected files via PHP — no direct file URL exposed.
  *
@@ -6,8 +7,6 @@
  *
  * @package PureCart\Downloads
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Downloads;
 

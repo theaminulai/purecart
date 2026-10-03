@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Database store for wp_purecart_saas_accounts.
  *
  * @package PureCart\Store
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Store;
 

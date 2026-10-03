@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Signed, expiring, single-use download URLs for update packages.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

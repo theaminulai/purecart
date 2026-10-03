@@ -177,12 +177,126 @@ function purecart_teardown_saas(): array {
 	return $counts;
 }
 
+/**
+ * Deletes every row and WP entity created by purecart_seed_demo_subscriptions().
+ *
+ * Removes subscription rows (gateway_subscription_id LIKE 'sub_demo_%'),
+ * the demo WooCommerce product (_purecart_demo_sub_product meta), and the
+ * five demo WP users (user_login LIKE 'demo_%').
+ *
+ * @since 1.0.0
+ * @return array<string, int> table/entity => rows deleted.
+ */
+function purecart_teardown_demo_subscriptions(): array {
+	global $wpdb;
+
+	$subs_table     = $wpdb->prefix . 'purecart_subscriptions';
+	$items_table    = $wpdb->prefix . 'purecart_subscription_items';
+	$linked_table   = $wpdb->prefix . 'purecart_subscription_linked_entities';
+	$logs_table     = $wpdb->prefix . 'purecart_subscription_logs';
+	$payments_table = $wpdb->prefix . 'purecart_subscription_payments';
+	$revenue_table  = $wpdb->prefix . 'purecart_subscription_revenue';
+	$goals_table    = $wpdb->prefix . 'purecart_revenue_goals';
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Fixed teardown query on plugin-owned table, no variable input.
+	$sub_ids = $wpdb->get_col( "SELECT id FROM {$subs_table} WHERE gateway_subscription_id LIKE 'sub_demo_%'" );
+	$id_list = purecart_seed_id_list( array_map( 'intval', $sub_ids ) );
+
+	$counts = array();
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $id_list is integers only.
+	$counts[ $revenue_table ] = (int) $wpdb->query( "DELETE FROM {$revenue_table} WHERE transaction_id LIKE 'rev_demo_%'" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above.
+	$counts[ $payments_table ] = (int) $wpdb->query( "DELETE FROM {$payments_table} WHERE subscription_id IN ({$id_list})" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above.
+	$counts[ $logs_table ] = (int) $wpdb->query( "DELETE FROM {$logs_table} WHERE subscription_id IN ({$id_list})" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above.
+	$counts[ $linked_table ] = (int) $wpdb->query( "DELETE FROM {$linked_table} WHERE subscription_id IN ({$id_list})" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above.
+	$counts[ $items_table ] = (int) $wpdb->query( "DELETE FROM {$items_table} WHERE subscription_id IN ({$id_list})" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above.
+	$counts[ $subs_table ] = (int) $wpdb->query( "DELETE FROM {$subs_table} WHERE gateway_subscription_id LIKE 'sub_demo_%'" );
+	$counts[ $goals_table ] = (int) $wpdb->delete( $goals_table, array( 'name' => 'PureCart Demo — Q3 MRR target' ), array( '%s' ) );
+
+	// Delete demo product version rows.
+	$versions_table = $wpdb->prefix . 'purecart_product_versions';
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Fixed teardown query, no variable input.
+	$counts[ $versions_table ] = (int) $wpdb->query( "DELETE FROM {$versions_table} WHERE file_path LIKE '%DEMO-PLACEHOLDER-%'" );
+
+	// Delete demo WC orders (identified by meta flag).
+	$demo_orders = wc_get_orders(
+		array(
+			'limit'      => -1,
+			'return'     => 'ids',
+			'meta_query' => array(
+				array( 'key' => '_purecart_demo_order', 'value' => '1' ),
+			),
+		)
+	);
+	$counts['demo_orders'] = 0;
+	foreach ( $demo_orders as $oid ) {
+		wc_delete_order( (int) $oid );
+		$counts['demo_orders']++;
+	}
+
+	// Delete demo license.
+	$licenses_table = $wpdb->prefix . 'purecart_licenses';
+	$act_table      = $wpdb->prefix . 'purecart_license_activations';
+	$tok_table      = $wpdb->prefix . 'purecart_license_tokens';
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Fixed teardown query, no variable input.
+	$demo_lic_ids = $wpdb->get_col( "SELECT id FROM {$licenses_table} WHERE license_key LIKE 'DEMO1-%'" );
+	$demo_lic_list = purecart_seed_id_list( array_map( 'intval', $demo_lic_ids ) );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $demo_lic_list is integers only.
+	$wpdb->query( "DELETE FROM {$tok_table} WHERE license_id IN ({$demo_lic_list})" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- As above.
+	$wpdb->query( "DELETE FROM {$act_table} WHERE license_id IN ({$demo_lic_list})" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Fixed teardown query, no variable input.
+	$counts[ $licenses_table ] = (int) $wpdb->query( "DELETE FROM {$licenses_table} WHERE license_key LIKE 'DEMO1-%'" );
+
+	// Delete demo SaaS accounts.
+	$saas_table       = $wpdb->prefix . 'purecart_saas_accounts';
+	$saas_tok_table   = $wpdb->prefix . 'purecart_saas_tokens';
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Fixed teardown query, no variable input.
+	$demo_saas_ids = $wpdb->get_col( "SELECT id FROM {$saas_table} WHERE api_key LIKE 'demo_sk_%'" );
+	$demo_saas_list = purecart_seed_id_list( array_map( 'intval', $demo_saas_ids ) );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $demo_saas_list is integers only.
+	$wpdb->query( "DELETE FROM {$saas_tok_table} WHERE account_id IN ({$demo_saas_list})" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Fixed teardown query, no variable input.
+	$counts[ $saas_table ] = (int) $wpdb->query( "DELETE FROM {$saas_table} WHERE api_key LIKE 'demo_sk_%'" );
+
+	// Delete the demo WooCommerce product.
+	$demo_products = get_posts( array(
+		'post_type'      => 'product',
+		'meta_key'       => '_purecart_demo_sub_product',
+		'meta_value'     => '1',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+	) );
+	$counts['demo_product'] = 0;
+	foreach ( $demo_products as $pid ) {
+		wp_delete_post( (int) $pid, true );
+		$counts['demo_product']++;
+	}
+
+	// Delete the five demo WP users.
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Fixed pattern, no variable input.
+	$demo_user_ids = $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->users} WHERE user_login LIKE %s", 'demo\_%' ) );
+	$counts['demo_users'] = 0;
+	foreach ( $demo_user_ids as $uid ) {
+		wp_delete_user( (int) $uid );
+		$counts['demo_users']++;
+	}
+
+	return $counts;
+}
+
 $results = array(
-	'licensing'     => purecart_teardown_licensing(),
-	'downloads'     => purecart_teardown_downloads(),
-	'updates'       => purecart_teardown_updates(),
-	'subscriptions' => purecart_teardown_subscriptions(),
-	'saas'          => purecart_teardown_saas(),
+	'licensing'          => purecart_teardown_licensing(),
+	'downloads'          => purecart_teardown_downloads(),
+	'updates'            => purecart_teardown_updates(),
+	'subscriptions'      => purecart_teardown_subscriptions(),
+	'saas'               => purecart_teardown_saas(),
+	'demo_subscriptions' => purecart_teardown_demo_subscriptions(),
 );
 
 foreach ( $results as $module => $counts ) {

@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * WC_Product subclass for the "PureCart – Subscription" product type.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Product;
 

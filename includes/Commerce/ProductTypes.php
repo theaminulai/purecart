@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Registers PureCart WooCommerce product types.
  *
@@ -6,8 +7,6 @@
  *
  * @package PureCart\Commerce
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Commerce;
 

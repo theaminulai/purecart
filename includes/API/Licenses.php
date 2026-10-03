@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Admin REST routes for the Licensing module.
  *
  * @package PureCart\Api
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\API;
 

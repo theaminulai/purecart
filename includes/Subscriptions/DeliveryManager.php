@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Dispatches provisioning across all registered subscription delivery types.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 
