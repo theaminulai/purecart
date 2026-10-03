@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Decides whether a license key may receive updates for a product.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

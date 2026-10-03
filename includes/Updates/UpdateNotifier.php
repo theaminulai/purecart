@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Emails licence holders when a new version is published.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

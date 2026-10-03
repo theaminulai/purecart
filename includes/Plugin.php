@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Main plugin class — bootstraps all modules.
  *
@@ -9,8 +10,6 @@
  * @package PureCart
  * @since   1.0.0
  */
-
-declare( strict_types=1 );
 
 namespace PureCart;
 

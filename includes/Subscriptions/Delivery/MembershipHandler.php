@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Membership delivery type — WP role assignment + content-access tier.
  *
  * @package PureCart\Subscriptions\Delivery
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Delivery;
 

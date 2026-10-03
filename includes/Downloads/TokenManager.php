@@ -1,11 +1,10 @@
-﻿<?php
+<?php
+declare( strict_types=1 );
 /**
  * Creates and validates signed, expiring download tokens.
  *
  * @package PureCart\Downloads
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Downloads;
 

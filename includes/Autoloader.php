@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * PSR-4 autoloader for the PureCart\ namespace.
  *
@@ -7,8 +8,6 @@
  *
  * @package PureCart
  */
-
-declare( strict_types=1 );
 
 namespace PureCart;
 

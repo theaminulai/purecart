@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * WordPress admin integration for PureCart.
  *
@@ -10,8 +11,6 @@
  *
  * @package PureCart\Admin
  */
-
-declare(strict_types=1);
 
 namespace PureCart\Admin;
 

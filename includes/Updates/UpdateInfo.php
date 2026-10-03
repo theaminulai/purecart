@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Builds the payload WordPress's "View details" modal expects.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

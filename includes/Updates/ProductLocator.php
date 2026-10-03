@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Resolves an update request's product slug to a WooCommerce product ID.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

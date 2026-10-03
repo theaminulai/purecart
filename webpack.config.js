@@ -13,8 +13,10 @@ const path = require('path');
  *
  * Extends the default @wordpress/scripts webpack config with two entry points:
  *
- *  1. React admin SPA — src/app/main.tsx        → build/admin/app/app.js
- *  2. Menu router      — src/menu-router/...js → build/admin/menu-router/menu-router.js
+ *  1. React admin SPA — src/app/main.tsx               → build/admin/app/app.js
+ *  2. Menu router      — src/menu-router/...js        → build/admin/menu-router/menu-router.js
+ *  3. WC My Account    — src/woo-account/subscriptions.js → build/woo-account/subscriptions.js
+ *                                                           build/woo-account/subscriptions.css
  *
  * Source structure (src/):
  *   app/                  ← the whole admin SPA — application root
@@ -25,6 +27,7 @@ const path = require('path');
  *     theme/                     ← design tokens
  *     styles/                      ← plain CSS + Tailwind
  *   menu-router/                    ← non-React wp-admin sidebar hash-navigation helper
+ *   woo-account/                      ← vanilla JS + CSS for WC My Account frontend pages
  *
  * See src/DEVELOPMENT_GUIDELINES.md for the architecture this maps to.
  *
@@ -41,8 +44,9 @@ module.exports = {
 	devtool: false,
 
 	entry: {
-		'build/admin/app/app': path.resolve(rootDir, 'src/app/main.tsx'),
-		'build/admin/menu-router/menu-router': path.resolve(rootDir, 'src/menu-router/menu-router.js'),
+		'build/admin/app/app':                      path.resolve( rootDir, 'src/app/main.tsx' ),
+		'build/admin/menu-router/menu-router':      path.resolve( rootDir, 'src/menu-router/menu-router.js' ),
+		'build/woo-account/subscriptions':          path.resolve( rootDir, 'src/woo-account/subscriptions.js' ),
 	},
 
 	resolve: {

@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Action Scheduler-driven renewal loop: scan for due subscriptions, charge them,
  * advance their schedule. Idempotency guard, zero-total handling, staging block,
@@ -6,8 +7,6 @@
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Renewal;
 

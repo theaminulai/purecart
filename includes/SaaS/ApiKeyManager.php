@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Generates and rotates SaaS account API keys.
  *
  * @package PureCart\SaaS
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\SaaS;
 

@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * All reads/writes for wp_purecart_product_versions.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

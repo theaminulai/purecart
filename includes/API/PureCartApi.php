@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Abstract base for all PureCart REST API feature controllers.
  *
  * @package PureCart\Api
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\API;
 

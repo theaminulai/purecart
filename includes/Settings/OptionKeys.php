@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Central registry of every WP option key the plugin reads or writes.
  *
@@ -9,8 +10,6 @@
  *
  * @package PureCart\Settings
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Settings;
 

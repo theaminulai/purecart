@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Learning/Course delivery type — LMS enrollment (LearnDash / LifterLMS / Tutor LMS).
  *
  * @package PureCart\Subscriptions\Delivery
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Delivery;
 

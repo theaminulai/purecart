@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Commerce module bootstrap.
  *
@@ -8,8 +9,6 @@
  *
  * @package PureCart\Commerce
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Commerce;
 

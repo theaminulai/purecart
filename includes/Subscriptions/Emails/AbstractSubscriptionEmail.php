@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Shared base for every subscription email — trigger wiring, placeholder
  * resolution, and rendering. Concrete emails only declare which hook(s) fire
@@ -6,8 +7,6 @@
  *
  * @package PureCart\Subscriptions\Emails
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Emails;
 

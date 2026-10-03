@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * "Your SaaS account is ready" customer email.
  *
  * @package PureCart\SaaS\Emails
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\SaaS\Emails;
 

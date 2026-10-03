@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Digital Downloads delivery type — per-cycle download quota + drip schedule.
  *
  * @package PureCart\Subscriptions\Delivery
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Delivery;
 

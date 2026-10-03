@@ -1,15 +1,15 @@
-﻿<?php
+<?php
+declare( strict_types=1 );
 /**
  * Licensing module bootstrap.
  *
  * @package PureCart\Licensing
  */
 
-declare( strict_types=1 );
-
 namespace PureCart\Licensing;
 
 use PureCart\API\Licenses as LicensesApi;
+use PureCart\Licensing\Emails\LicensePurchasedEmail;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -36,6 +36,22 @@ class Module {
 	public function __construct() {
 		new JwtHooks();
 
+		add_filter( 'woocommerce_email_classes', array( $this, 'register_emails' ) );
+
 		( new LicensesApi() )->register();
+	}
+
+	/**
+	 * Register the module's customer emails under WooCommerce → Settings → Emails.
+	 *
+	 * @since 1.0.0
+	 * @param array<string, \WC_Email> $emails Registered WooCommerce emails.
+	 * @return array<string, \WC_Email>
+	 */
+	public function register_emails( array $emails ): array {
+		$email                 = new LicensePurchasedEmail();
+		$emails[ $email->id ] = $email;
+
+		return $emails;
 	}
 }

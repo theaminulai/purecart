@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * "License" WooCommerce product data tab for PureCart's one-time product types.
  *
@@ -10,8 +11,6 @@
  *
  * @package PureCart\Commerce
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Commerce;
 

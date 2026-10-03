@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Admin-facing reporting for the Updates module.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

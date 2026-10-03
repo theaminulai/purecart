@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * Subscription analytics: MRR/ARR/ARPU, user & revenue churn, trial
  * conversion, churn-band distribution, LTV, and CSV export.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Reports;
 

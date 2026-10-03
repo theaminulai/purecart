@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * Cancellation retention flow: reason capture, eligible-offer matching, offer
  * acceptance (discount / pause / skip / downgrade / contact), and history.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 

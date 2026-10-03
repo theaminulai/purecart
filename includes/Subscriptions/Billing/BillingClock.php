@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Shared, timezone-safe date math for billing-cycle calculations.
  *
@@ -11,8 +12,6 @@
  * @package PureCart\Subscriptions
  * @since   1.0.0
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Billing;
 

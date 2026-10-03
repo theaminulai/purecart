@@ -1,18 +1,15 @@
 <?php
+declare( strict_types=1 );
 /**
  * Adds custom tabs to WooCommerce My Account page.
  *
  * @package PureCart\CustomerDashboard
  */
 
-declare( strict_types=1 );
-
 namespace PureCart\CustomerDashboard;
 
 defined( 'ABSPATH' ) || exit;
 
-use PureCart\Licensing\LicenseGenerator;
-use PureCart\SaaS\AccountProvisioner;
 
 /**
  * Registers and renders My Account dashboard tabs.
@@ -32,7 +29,7 @@ class Dashboard {
 	 * @since 1.0.0
 	 * @var string[]
 	 */
-	private array $slugs = array( 'purecart-licenses', 'purecart-updates', 'purecart-api-keys' );
+	private array $slugs = array( 'purecart-licenses', 'purecart-updates', 'purecart-api-keys', 'purecart-subscriptions' );
 
 	/**
 	 * Register My Account menu, query var, and endpoint hooks.
@@ -78,6 +75,39 @@ class Dashboard {
 		if ( is_wc_endpoint_url( 'purecart-updates' ) ) {
 			wp_enqueue_style( 'purecart-myaccount-updates', PURECART_URL . 'assets/css/purecart-myaccount-updates.css', array(), PURECART_VERSION );
 		}
+
+		if ( is_wc_endpoint_url( 'purecart-api-keys' ) ) {
+			wp_enqueue_style( 'purecart-myaccount-api-keys', PURECART_URL . 'assets/css/purecart-myaccount-api-keys.css', array(), PURECART_VERSION );
+		}
+
+		if ( is_wc_endpoint_url( 'purecart-subscriptions' ) ) {
+			wp_enqueue_style(
+				'purecart-myaccount-subscriptions',
+				PURECART_URL . 'build/woo-account/subscriptions.css',
+				array(),
+				PURECART_VERSION
+			);
+			wp_enqueue_script(
+				'purecart-myaccount-subscriptions',
+				PURECART_URL . 'build/woo-account/subscriptions.js',
+				array(),
+				PURECART_VERSION,
+				true
+			);
+			wp_localize_script(
+				'purecart-myaccount-subscriptions',
+				'purecartMyAccount',
+				array(
+					'apiUrl' => esc_url_raw( rest_url( PURECART_API_NAMESPACE . '/subscriptions/' ) ),
+					'nonce'  => wp_create_nonce( 'wp_rest' ),
+					'i18n'   => array(
+						'processing' => __( 'Processing…', 'purecart' ),
+						'done'       => __( 'Done! Refreshing…', 'purecart' ),
+						'error'      => __( 'An error occurred. Please try again.', 'purecart' ),
+					),
+				)
+			);
+		}
 	}
 
 	/**
@@ -88,14 +118,20 @@ class Dashboard {
 	 */
 	private function get_tabs(): array {
 		return array(
-			'purecart-licenses' => __( 'My Licenses', 'purecart' ),
-			'purecart-updates'  => __( 'Software Updates', 'purecart' ),
-			'purecart-api-keys' => __( 'API Keys', 'purecart' ),
+			'purecart-licenses'      => __( 'My Licenses', 'purecart' ),
+			'purecart-updates'       => __( 'Software Updates', 'purecart' ),
+			'purecart-api-keys'      => __( 'API Keys', 'purecart' ),
+			'purecart-subscriptions' => __( 'My Subscriptions', 'purecart' ),
 		);
 	}
 
 	/**
 	 * Register PureCart endpoints on the WooCommerce My Account page.
+	 *
+	 * Flushes rewrite rules once — automatically — whenever the set of
+	 * registered slugs changes (new endpoint added, old one removed). Uses a
+	 * hash stored in an option so the flush only fires on the first request
+	 * after a code change, never on every page load.
 	 *
 	 * @since 1.0.0
 	 * @return void
@@ -103,6 +139,12 @@ class Dashboard {
 	public function endpoints(): void {
 		foreach ( $this->slugs as $slug ) {
 			add_rewrite_endpoint( $slug, EP_ROOT | EP_PAGES );
+		}
+
+		$current = md5( implode( ',', $this->slugs ) );
+		if ( get_option( 'purecart_endpoints_version' ) !== $current ) {
+			flush_rewrite_rules( false );
+			update_option( 'purecart_endpoints_version', $current, false );
 		}
 	}
 
@@ -187,6 +229,9 @@ class Dashboard {
 			case 'purecart-api-keys':
 				$this->render_api_keys_tab();
 				break;
+			case 'purecart-subscriptions':
+				$this->render_subscriptions_tab();
+				break;
 		}
 	}
 
@@ -208,119 +253,62 @@ class Dashboard {
 	}
 
 	/**
+	 * Render the My Subscriptions tab content.
+	 *
+	 * Supports theme overrides at:
+	 *   yourtheme/purecart/myaccount/purecart-subscriptions.php
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
+	private function render_subscriptions_tab(): void {
+		$template = PURECART_PATH . 'templates/myaccount/purecart-subscriptions.php';
+		$override = locate_template( 'purecart/myaccount/purecart-subscriptions.php' );
+
+		if ( '' !== $override ) {
+			load_template( $override );
+		} elseif ( file_exists( $template ) ) {
+			load_template( $template );
+		}
+	}
+
+	/**
 	 * Render the My Licenses tab content.
+	 *
+	 * Supports theme overrides at:
+	 *   yourtheme/purecart/myaccount/purecart-licenses.php
 	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	private function render_licenses_tab(): void {
-		$user_id  = get_current_user_id();
-		$licenses = ( new LicenseGenerator() )->get_by_user( $user_id );
+		$template = PURECART_PATH . 'templates/myaccount/purecart-licenses.php';
+		$override = locate_template( 'purecart/myaccount/purecart-licenses.php' );
 
-		if ( empty( $licenses ) ) {
-			echo '<p>' . esc_html__( 'You have no licenses yet.', 'purecart' ) . '</p>';
-			return;
+		if ( '' !== $override ) {
+			load_template( $override );
+		} elseif ( file_exists( $template ) ) {
+			load_template( $template );
 		}
-
-		echo '<table class="woocommerce-table shop_table purecart-licenses-table">';
-		echo '<thead><tr>'
-			. '<th>' . esc_html__( 'Product', 'purecart' ) . '</th>'
-			. '<th>' . esc_html__( 'License Key', 'purecart' ) . '</th>'
-			. '<th>' . esc_html__( 'Status', 'purecart' ) . '</th>'
-			. '<th>' . esc_html__( 'Sites Used', 'purecart' ) . '</th>'
-			. '<th>' . esc_html__( 'Expires', 'purecart' ) . '</th>'
-			. '<th>' . esc_html__( 'Activate on Domain', 'purecart' ) . '</th>'
-			. '</tr></thead><tbody>';
-
-		foreach ( $licenses as $license ) {
-			// Build expiry label — escape at point of output below.
-			$expires_label = $license->expires_at
-				? date_i18n( get_option( 'date_format' ), strtotime( $license->expires_at ) )
-				: __( 'Lifetime', 'purecart' );
-
-			echo '<tr>';
-			printf( '<td>%s</td>', esc_html( $license->product_name ?? '' ) );
-
-			// Blurred by default — click "Reveal" to show, then "Copy" to
-			// copy. Prevents shoulder-surfing the raw key on-page-load.
-			printf(
-				'<td><code class="purecart-license-key purecart-license-key--hidden" data-key="%1$s">••••-••••-••••-••••</code> '
-					. '<button type="button" class="purecart-reveal-key button-link">%2$s</button>'
-					. '<button type="button" class="purecart-copy-key button-link" style="display:none">%3$s</button></td>',
-				esc_attr( $license->license_key ),
-				esc_html__( 'Reveal', 'purecart' ),
-				esc_html__( 'Copy', 'purecart' )
-			);
-
-			printf(
-				'<td><span class="purecart-status purecart-status--%s">%s</span></td>',
-				esc_attr( $license->status ),
-				esc_html( ucfirst( $license->status ) )
-			);
-
-			printf(
-				'<td>%s / %s</td>',
-				esc_html( (string) $license->activated_count ),
-				'unlimited' === $license->plan_type ? esc_html__( '∞', 'purecart' ) : esc_html( (string) $license->activation_limit )
-			);
-
-			printf( '<td>%s</td>', esc_html( $expires_label ) );
-
-			if ( 'active' === $license->status ) {
-				printf(
-					'<td><form class="purecart-activate-license" data-license-key="%1$s">'
-						. '<input type="text" name="domain" placeholder="%2$s" required>'
-						. '<button type="submit" class="button">%3$s</button>'
-						. '<span class="purecart-activate-result"></span>'
-						. '</form></td>',
-					esc_attr( $license->license_key ),
-					esc_attr__( 'example.com', 'purecart' ),
-					esc_html__( 'Activate', 'purecart' )
-				);
-			} else {
-				echo '<td>&mdash;</td>';
-			}
-
-			echo '</tr>';
-		}
-
-		echo '</tbody></table>';
 	}
 
 	/**
 	 * Render the API Keys tab content.
 	 *
+	 * Supports theme overrides at:
+	 *   yourtheme/purecart/myaccount/purecart-api-keys.php
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
 	private function render_api_keys_tab(): void {
-		$user_id  = get_current_user_id();
-		$accounts = ( new AccountProvisioner() )->get_by_user( $user_id );
+		$template = PURECART_PATH . 'templates/myaccount/purecart-api-keys.php';
+		$override = locate_template( 'purecart/myaccount/purecart-api-keys.php' );
 
-		if ( empty( $accounts ) ) {
-			echo '<p>' . esc_html__( 'No API keys found.', 'purecart' ) . '</p>';
-			return;
+		if ( '' !== $override ) {
+			load_template( $override );
+		} elseif ( file_exists( $template ) ) {
+			load_template( $template );
 		}
-
-		echo '<table class="woocommerce-table shop_table purecart-api-keys-table">';
-		echo '<thead><tr>'
-			. '<th>' . esc_html__( 'Product', 'purecart' ) . '</th>'
-			. '<th>' . esc_html__( 'Plan', 'purecart' ) . '</th>'
-			. '<th>' . esc_html__( 'API Key', 'purecart' ) . '</th>'
-			. '<th>' . esc_html__( 'Status', 'purecart' ) . '</th>'
-			. '</tr></thead><tbody>';
-
-		foreach ( $accounts as $account ) {
-			printf(
-				'<tr><td>%s</td><td>%s</td><td><code class="purecart-api-key">%s</code></td><td><span class="purecart-status purecart-status--%s">%s</span></td></tr>',
-				esc_html( $account->product_name ?? '' ),
-				esc_html( ucfirst( $account->plan ) ),
-				esc_html( $account->api_key ),
-				esc_attr( $account->status ),
-				esc_html( ucfirst( $account->status ) )
-			);
-		}
-
-		echo '</tbody></table>';
 	}
 }

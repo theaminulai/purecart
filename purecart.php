@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Plugin Name:       PureCart
  * Description:       The complete digital product suite for WooCommerce. Sell software, SaaS, and any digital file with secure delivery, licensing, and subscriptions.
@@ -21,8 +22,6 @@
  * @package PureCart
  * @since   1.0.0
  */
-
-declare( strict_types=1 );
 
 defined( 'ABSPATH' ) || exit;
 

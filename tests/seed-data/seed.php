@@ -52,13 +52,15 @@ require __DIR__ . '/downloads-seed.php';
 require __DIR__ . '/updates-seed.php';
 require __DIR__ . '/subscriptions-seed.php';
 require __DIR__ . '/saas-seed.php';
+require __DIR__ . '/demo-subscriptions.php';
 
 $results = array(
-	'licensing'     => purecart_seed_licensing(),
-	'downloads'     => purecart_seed_downloads(),
-	'updates'       => purecart_seed_updates(),
-	'subscriptions' => purecart_seed_subscriptions(),
-	'saas'          => purecart_seed_saas(),
+	'licensing'          => purecart_seed_licensing(),
+	'downloads'          => purecart_seed_downloads(),
+	'updates'            => purecart_seed_updates(),
+	'subscriptions'      => purecart_seed_subscriptions(),
+	'saas'               => purecart_seed_saas(),
+	'demo_subscriptions' => purecart_seed_demo_subscriptions(),
 );
 
 foreach ( $results as $module => $summary ) {

@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * Split/installment payment model: N fixed installments instead of open-ended
  * recurring billing, with configurable access timing.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Payment;
 

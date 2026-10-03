@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Updates module bootstrap.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

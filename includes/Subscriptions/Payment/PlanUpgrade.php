@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Subscription plan upgrade/downgrade with 3 proration modes.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Payment;
 

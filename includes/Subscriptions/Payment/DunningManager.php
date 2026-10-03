@@ -1,12 +1,11 @@
 <?php
+declare( strict_types=1 );
 /**
  * Failed-payment recovery: retry scheduling, hard/soft decline targeting,
  * grace-period suspend/cancel transitions, and the no-login card-update magic link.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Payment;
 

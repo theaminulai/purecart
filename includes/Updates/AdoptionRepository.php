@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Records and reports which release each activated site is running.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 

@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * WP-CLI commands for the Licensing module.
  *
  * @package PureCart\CLI
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\CLI;
 

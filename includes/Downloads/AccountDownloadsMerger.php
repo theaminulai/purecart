@@ -1,12 +1,11 @@
-﻿<?php
+<?php
+declare( strict_types=1 );
 /**
  * Merges PureCart's own token-based downloads into WooCommerce's native
  * My Account → Downloads list.
  *
  * @package PureCart\Downloads
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Downloads;
 

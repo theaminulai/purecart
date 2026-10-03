@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Core subscription lifecycle: create-from-order, pause, resume, skip, cancel, expire, resubscribe.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 

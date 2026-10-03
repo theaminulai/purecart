@@ -1,11 +1,10 @@
-﻿<?php
+<?php
+declare( strict_types=1 );
 /**
  * Secure Downloads module bootstrap.
  *
  * @package PureCart\Downloads
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Downloads;
 

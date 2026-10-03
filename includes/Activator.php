@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Plugin activation / deactivation — creates & upgrades custom DB tables.
  *
  * @package PureCart
  */
-
-declare( strict_types=1 );
 
 namespace PureCart;
 
