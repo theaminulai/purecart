@@ -38,20 +38,18 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * 16 MVP emails (feature doc § 22) + 2 outside the MVP set that this step's
- * own checklist requires wired anyway (card-expiry, reauth) = 18 total.
- * Built so the remaining ~19 (delivery-type-specific, admin-facing) can be
- * added later as more AbstractSubscriptionEmail subclasses without touching
- * this registry's structure — just append to email_instances().
+ * Registers all 18 subscription email classes with WooCommerce and wires each
+ * to its triggering action. Built so additional emails can be added later as
+ * AbstractSubscriptionEmail subclasses without touching this registry's
+ * structure — just append to email_instances().
  *
- * Three of the 18 (`Trial Ending Soon`, `Renewal Reminder`,
- * `Suspended Grace Ending`) and one bonus (`Card Expiring Soon`) have no
- * lifecycle event to fire on — "N days before a future date" is a scan, not
- * a hook. Reuses RenewalEngine's existing hourly `purecart_scan_due_renewals`
- * job and the existing 12h `purecart_process_dunning` job (both already
- * relied on by earlier steps) rather than adding a third/fourth schedule —
- * any class can add its own listener to an existing WordPress action hook,
- * no coupling to RenewalEngine/DunningManager needed for that.
+ * Four of the 18 (`Trial Ending Soon`, `Renewal Reminder`,
+ * `Suspended Grace Ending`, `Card Expiring Soon`) have no lifecycle event to
+ * fire on — "N days before a future date" is a scan, not a hook. Reuses
+ * RenewalEngine's existing hourly `purecart_scan_due_renewals` job and the
+ * existing 12h `purecart_process_dunning` job rather than adding a
+ * third/fourth schedule — any class can add its own listener to an existing
+ * WordPress action hook, no coupling to RenewalEngine/DunningManager needed.
  *
  * @since 1.0.0
  */

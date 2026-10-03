@@ -18,7 +18,7 @@ use PureCart\Subscriptions\DeliveryManager;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * RND-subscriptions.md "Split Payment / Installment Model":
+ * Split Payment / Installment Model:
  *
  *   Product: "PureCart Pro" — $300 total, paid as 3 x $100/month
  *     _purecart_payment_type  = 'split'
@@ -32,9 +32,7 @@ defined( 'ABSPATH' ) || exit;
  *   On each renewal: renewal_count++; once renewal_count >= max_payments,
  *   status -> 'completed', no more renewals.
  *
- * Correction vs. the doc: it describes an interim status of 'pending_payment'
- * for `after_full_payment` before the final installment — that value isn't in
- * the reconciled schema's status ENUM (subscription-final-dev-plan.md § 2).
+ * An interim 'pending_payment' status for `after_full_payment` is not used.
  * Status describes *billing* state, which is unaffected either way (it still
  * bills as 'active'); "access withheld" is instead just "DeliveryManager
  * never got called yet", achieved via the purecart_should_activate_delivery
@@ -131,8 +129,7 @@ class SplitPaymentManager {
 			'payment_type'  => 'split',
 			'max_payments'  => max( 1, (int) $product->get_meta( '_purecart_max_payments' ) ),
 			'access_timing' => $access_timing,
-			// RND: "renewal_count = 1 (first installment paid with order)" —
-			// the initial order itself is installment #1, not a renewal yet to come.
+			// The initial order itself is installment #1, not a renewal yet to come.
 			'renewal_count' => max( 1, (int) $subscription->renewal_count ),
 		);
 

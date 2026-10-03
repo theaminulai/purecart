@@ -2,11 +2,6 @@
 /**
  * Contract for pluggable subscription delivery-type handlers.
  *
- * subscription-final-dev-plan.md § 3 names this `Delivery_Handler_Interface`
- * (carried over un-translated from the `[nym-ARCH]` source doc) — renamed to
- * `DeliveryHandlerInterface` here to match this codebase's real PSR-4 PascalCase
- * convention (LicenseActivator, AccountProvisioner, ProductTypes, ...).
- *
  * @package PureCart\Subscriptions
  */
 

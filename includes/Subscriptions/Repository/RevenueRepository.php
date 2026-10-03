@@ -16,24 +16,16 @@ use PureCart\Subscriptions\Billing\BillingClock;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Gap found during Step 15: `wp_purecart_subscription_revenue` has been
- * created by Schema.php since Step 1 and documented there as "Powers MRR/ARR/
- * churn reporting independent of WooCommerce's own order reports" — but
- * nothing in the entire module ever wrote a row to it. Every step since has
- * recorded money only into `wp_purecart_subscription_payments`, which is a
- * per-charge-*attempt* ledger (successes, failures, and refunds alike, stamped
- * with the wall-clock time of the attempt).
- *
- * The two are genuinely different things and both are needed:
+ * `wp_purecart_subscription_payments` and `wp_purecart_subscription_revenue`
+ * are genuinely different ledgers and both are needed:
  *  - payments answers "what did we try to charge, and did it work?"
  *  - revenue answers "which service period does this money belong to?"
  *    (period_start/period_end), which is what any trend/cohort report needs —
  *    a renewal charged three days late still belongs to its own cycle, not to
  *    the day the retry happened.
  *
- * Populated here by listening to the same `purecart_subscription_renewed`
- * event every other reporting-adjacent class already uses, so no earlier step
- * needed modifying to start filling it.
+ * Populated by listening to `purecart_subscription_renewed`, the same event
+ * every other reporting-adjacent class already uses.
  *
  * @since 1.0.0
  */

@@ -12,8 +12,7 @@ namespace PureCart\Updates;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Channel resolution, in the priority order RND-auto-updates.md §
- * "Version Channels" specifies:
+ * Channel resolution, in priority order:
  *
  *   1. a per-license override (a tester granted beta access)
  *   2. the product's own default channel

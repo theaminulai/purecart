@@ -192,7 +192,6 @@ class DunningManager {
 
 		as_schedule_single_action( $timestamp, self::RETRY_HOOK, array( $subscription_id, $attempt_index ), self::AS_GROUP );
 
-		// New in Step 13 — SubscriptionEmail's "Payment Retry Scheduled" listens here.
 		do_action( 'purecart_dunning_retry_scheduled', $subscription_id, $timestamp );
 	}
 
@@ -215,8 +214,6 @@ class DunningManager {
 
 		$this->logs->log( $subscription_id, 'dunning_retry_failed', array( 'note' => 'attempt ' . ( $attempt_index + 1 ) ) );
 
-		// New in Step 13 — SubscriptionEmail's "Overdue Notice" listens here
-		// (RND: "Day N: Retry ... Failure -> Send overdue reminder email").
 		do_action( 'purecart_dunning_retry_failed', $subscription_id, $attempt_index );
 
 		$this->schedule_next_retry( $subscription_id, $attempt_index + 1 );

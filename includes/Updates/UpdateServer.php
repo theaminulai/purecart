@@ -12,10 +12,9 @@ namespace PureCart\Updates;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The update-check pipeline (RND-auto-updates.md § "WordPress Plugin/Theme
- * Update Flow"): resolve the product, gate on licence, resolve the channel,
- * find the newest entitled package, compare versions, and — only when an
- * update is actually available — mint a signed download URL.
+ * The update-check pipeline: resolves the product, gates on licence, resolves
+ * the channel, finds the newest entitled package, compares versions, and —
+ * only when an update is actually available — mints a signed download URL.
  *
  * Deliberately free of REST plumbing: it takes a plain array and returns a
  * plain array or WP_Error, so `PureCart\API\Updates` stays a thin adapter and

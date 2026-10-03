@@ -13,8 +13,8 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * WordPress renders plugin and theme detail modals from the shape
- * `plugins_api()` / `themes_api()` return. `PureCartUpdater` (Step 9) hands
- * this straight back from its `plugins_api` filter, so the field names here
+ * `plugins_api()` / `themes_api()` return. `PureCartUpdater` hands this
+ * straight back from its `plugins_api` filter, so the field names here
  * are WordPress's, not ours.
  *
  * **This response is public and contains no download URL.** The doc lists

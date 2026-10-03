@@ -140,10 +140,8 @@ class RenewalEngine {
 	/**
 	 * Auto-resume paused subscriptions whose pause_end_date has arrived.
 	 *
-	 * Gap found during Step 9 (RetentionFlow's "pause" offer would otherwise
-	 * pause a subscription forever, since RND's "Auto-Resume" flow was never
-	 * built back in Step 5) — piggybacked on this class's existing hourly
-	 * scan rather than adding a third recurring job.
+	 * Piggybacked on this class's existing hourly scan rather than registering
+	 * a third recurring Action Scheduler job.
 	 *
 	 * @since 1.0.0
 	 * @return void
@@ -158,8 +156,8 @@ class RenewalEngine {
 
 	/**
 	 * Attempt to renew one subscription. Every early-return below is a
-	 * deliberate guard from subscription-final-dev-plan.md § 9 Step 6 / the
-	 * RND doc's "Renewal Engine — Idempotency & Safety" section.
+	 * deliberate idempotency guard: expired, wrong-status, already-renewed,
+	 * and gateway-self-scheduled subscriptions are all skipped safely.
 	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
@@ -216,11 +214,10 @@ class RenewalEngine {
 			return;
 		}
 
-		// Apply any pending plan switch (RetentionFlow's downgrade offer, Step 9)
+		// Apply any pending plan switch (RetentionFlow's downgrade offer)
 		// *before* computing the charge, so this cycle bills at the new plan's
-		// rate. This is a minimal preview of Step 10's PlanUpgrade scope — just
-		// enough to satisfy this step's own checklist ("accepted downgrade
-		// applies at next renewal") — not the full 3-mode proration system.
+		// rate. Handles only the apply_at_renewal mode (no proration charge);
+		// the full 3-mode proration system lives in PlanUpgrade.
 		$subscription = $this->maybe_apply_pending_switch( $subscription );
 
 		$amount = $this->renewal_amount( $subscription );
@@ -235,10 +232,10 @@ class RenewalEngine {
 
 	/**
 	 * Retry a charge for a subscription that's already `past_due` or
-	 * `suspended` — DunningManager's (Step 7) entry point, called from a
-	 * scheduled retry or a card-update magic link. Deliberately separate
-	 * from process_renewal(): that method only ever handles a *fresh* due
-	 * cycle (`active`/`trialing`) and would reject these statuses outright.
+	 * `suspended` — DunningManager's entry point, called from a scheduled
+	 * retry or a card-update magic link. Deliberately separate from
+	 * process_renewal(): that method only ever handles a *fresh* due cycle
+	 * (`active`/`trialing`) and would reject these statuses outright.
 	 *
 	 * Reuses this class's own charge_renewal()/complete_renewal() so there's
 	 * exactly one implementation of "how to charge a renewal" — a scheduled
@@ -271,8 +268,9 @@ class RenewalEngine {
 
 		if ( $success && $was_suspended ) {
 			// complete_renewal() dispatches DeliveryManager::renew(), which
-			// deliberately skips software/saas (§ 3 — that's Step 16's job).
-			// A recovery from `suspended` needs the access itself *restored*,
+			// deliberately skips software/saas delivery — it only handles
+			// downloads, courses, and roles. A recovery from `suspended` needs
+			// the access itself *restored*,
 			// which is exactly what reactivate() does (e.g. un-suspending the
 			// SaaS account) — renew() alone wouldn't do that here.
 			DeliveryManager::reactivate( (array) $subscription );
@@ -289,11 +287,9 @@ class RenewalEngine {
 	 * yet (e.g. the process crashed between charging and advancing the row) —
 	 * skip re-charging instead of double-billing.
 	 *
-	 * Deliberately checks the payments ledger (§ 2's `wp_purecart_subscription_payments`)
-	 * rather than a single `_purecart_current_renewal_order_id`-style field on
-	 * the subscription row (RND's original approach) — the reconciled schema
-	 * in subscription-final-dev-plan.md § 2 adopted the ledger specifically
-	 * because a single field can't tell "already charged" from "never tried".
+	 * Deliberately checks the payments ledger (`wp_purecart_subscription_payments`)
+	 * rather than a single field on the subscription row — a single field
+	 * can't distinguish "already charged" from "never tried".
 	 *
 	 * @since 1.0.0
 	 * @param object $subscription Subscription row.
@@ -336,8 +332,8 @@ class RenewalEngine {
 
 	/**
 	 * The amount due this cycle, applying stepped pricing if configured and
-	 * reached, then letting other modules adjust it (RetentionFlow's active
-	 * discount, Step 9).
+	 * reached, then letting other modules adjust it via the
+	 * `purecart_renewal_amount` filter (e.g. RetentionFlow's active discount).
 	 *
 	 * @since 1.0.0
 	 * @param object $subscription Subscription row.
@@ -352,7 +348,7 @@ class RenewalEngine {
 
 		/**
 		 * Filters the computed renewal amount before it's charged — e.g.
-		 * RetentionFlow (Step 9) reduces it while an accepted discount offer's
+		 * RetentionFlow reduces it while an accepted discount offer's
 		 * `discount_renewals_remaining` counter hasn't yet run out.
 		 *
 		 * @since 1.0.0
@@ -363,8 +359,8 @@ class RenewalEngine {
 	}
 
 	/**
-	 * Apply a scheduled plan switch (RetentionFlow's downgrade-as-retention-offer,
-	 * § 6) if one is pending, before this cycle's charge is computed.
+	 * Apply a scheduled plan switch if one is pending, before this cycle's
+	 * charge is computed.
 	 *
 	 * Minimal on purpose: swaps product_id/recurring_amount/billing_interval/
 	 * billing_period to the new product's configuration with no proration —
@@ -372,7 +368,7 @@ class RenewalEngine {
 	 * documented as "no immediate change, applies fully at next renewal" (i.e.
 	 * inherently the `apply_at_renewal` mode). The full 3-mode proration system
 	 * (`prorate_immediately` / `apply_at_renewal` / `no_proration`, for
-	 * customer-initiated upgrades/downgrades generally) is Step 10's job.
+	 * customer-initiated upgrades/downgrades generally) is handled by PlanUpgrade.
 	 *
 	 * @since 1.0.0
 	 * @param object $subscription Subscription row.
@@ -430,9 +426,9 @@ class RenewalEngine {
 	 * @since 1.0.0
 	 * @param object $subscription Subscription row.
 	 * @param float  $amount       Amount to charge.
-	 * @return bool Whether the charge succeeded. Used by retry_renewal() (Step 7 —
-	 *              DunningManager needs to know the outcome to decide whether to
-	 *              schedule another retry or restore access).
+	 * @return bool Whether the charge succeeded. Used by retry_renewal() so
+	 *              DunningManager can decide whether to schedule another retry
+	 *              or restore access.
 	 */
 	private function charge_renewal( object $subscription, float $amount ): bool {
 		$order = $this->create_renewal_order( $subscription, $amount );
@@ -460,8 +456,8 @@ class RenewalEngine {
 
 	/**
 	 * Charge an arbitrary one-off amount via the subscription's saved payment
-	 * token — PlanUpgrade's (Step 10) entry point for a prorated
-	 * upgrade/downgrade charge. Deliberately separate from charge_renewal():
+	 * token — PlanUpgrade's entry point for a prorated upgrade/downgrade
+	 * charge. Deliberately separate from charge_renewal():
 	 * a proration charge is NOT a renewal — it must not advance
 	 * next_payment_at/renewal_count the way complete_renewal() does, since
 	 * PlanUpgrade sets the resulting subscription state itself (proration
@@ -575,7 +571,7 @@ class RenewalEngine {
 
 		/**
 		 * The specific decline reason, for DunningManager's hard/soft-decline
-		 * targeting (Step 7). No WC payment gateway returns a standardized
+		 * targeting. No WC payment gateway returns a standardized
 		 * decline code from process_payment() itself — gateways that expose one
 		 * (e.g. via order meta) should filter this to the real code; defaults
 		 * to a generic string so dunning still falls back to "always retry".
@@ -738,13 +734,12 @@ class RenewalEngine {
 
 		DeliveryManager::renew( (array) $subscription );
 
-		// Gap found during Step 14: this method changes `status` (trialing/
-		// past_due -> active on a subscription's first successful charge after
-		// a trial or a dunning retry) but, unlike SubscriptionManager's own
-		// pause()/cancel()/expire(), never fired the generic status-changed
-		// hook — only DunningManager's suspend()/hard_cancel() did. RoleManager
-		// (Step 14) needs this to swap the trial role for the active role on
-		// trial conversion, so it's added here rather than worked around.
+		// This method transitions `status` (trialing/past_due -> active on a
+		// first successful charge after a trial or dunning retry) but, unlike
+		// SubscriptionManager's pause()/cancel()/expire(), it never fired the
+		// generic status-changed hook — only DunningManager's suspend()/
+		// hard_cancel() did. RoleManager needs this to swap the trial role for
+		// the active role on trial conversion.
 		if ( 'active' !== $subscription->status ) {
 			do_action( 'purecart_subscription_status_changed', (int) $subscription->id, $subscription->status, 'active' );
 		}
@@ -754,9 +749,9 @@ class RenewalEngine {
 
 	/**
 	 * Record a failed renewal attempt. Deliberately minimal — the actual
-	 * grace-period/retry-interval schedule belongs to DunningManager (Step 7),
+	 * grace-period/retry-interval schedule belongs to DunningManager,
 	 * not duplicated here. This just gets the subscription into `past_due`
-	 * and leaves an auditable trail for that step to pick up.
+	 * and leaves an auditable trail.
 	 *
 	 * @since 1.0.0
 	 * @param object    $subscription Subscription row.
@@ -818,15 +813,11 @@ class RenewalEngine {
 	}
 
 	/**
-	 * Renew a subscription immediately, before its next_payment_at is due —
-	 * feature doc § 5 ("Early renewal"), Step 12's REST endpoint for it.
+	 * Renew a subscription immediately, before its next_payment_at is due.
 	 *
-	 * Deliberately simpler than RND-subscriptions.md's version, which routes
-	 * through a WooCommerce checkout redirect — this codebase already charges
-	 * renewals off-session via the customer's saved payment token (this exact
-	 * class), so an early renewal just charges that same way right now instead
-	 * of waiting for the scan to notice next_payment_at is due. No separate
-	 * checkout flow needed.
+	 * Reuses the same off-session payment-token charge path as a scheduled
+	 * renewal — charges that way right now instead of waiting for the scan to
+	 * notice next_payment_at is due. No separate checkout flow needed.
 	 *
 	 * Fires the same `purecart_subscription_renewed` action a scheduled
 	 * renewal does, so ChurnScorer/RetentionFlow/SplitPaymentManager all react
@@ -867,8 +858,8 @@ class RenewalEngine {
 		);
 
 		// A paid early renewal ends the trial — convert trialing → active so
-		// RoleManager (Step 14) can swap the trial role for the subscriber role,
-		// the same transition that fires on a regular scheduled first charge.
+		// RoleManager can swap the trial role for the subscriber role, the
+		// same transition that fires on a regular scheduled first charge.
 		if ( 'trialing' === $subscription->status ) {
 			$updates['status'] = 'active';
 		}

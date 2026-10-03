@@ -13,8 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Listens for `purecart_update_package_published` and fans the notification
- * out through Action Scheduler in batches (RND-auto-updates.md §
- * "Customer Email Notification").
+ * out through Action Scheduler in batches.
  *
  * Emailing every licence holder inline would time out the request that
  * published the release — a store with 10,000 customers would leave the

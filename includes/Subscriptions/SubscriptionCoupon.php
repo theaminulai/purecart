@@ -1,7 +1,7 @@
 <?php
 /**
  * Subscription-scoped coupons: sign-up-fee-only discount + recurring-fee
- * discount for the first N renewals (or forever) — feature doc § 3/§ 20.
+ * discount for the first N renewals (or forever).
  *
  * @package PureCart\Subscriptions
  */
@@ -35,7 +35,7 @@ defined( 'ABSPATH' ) || exit;
  *    `purecart_subscription_activated` — for the recurring-fee scope, stores
  *    an equivalent `discount_percent`/`discount_renewals_remaining` pair on
  *    the new subscription record, reusing the exact mechanism RetentionFlow
- *    (Step 9) already established for the `purecart_renewal_amount` filter.
+ *    already established for the `purecart_renewal_amount` filter.
  *    The coupon's *own* native discount already correctly reduced the
  *    initial order total — nothing extra needed there.
  *
@@ -62,8 +62,8 @@ class SubscriptionCoupon {
 	/**
 	 * Sentinel stored in `discount_renewals_remaining` to represent "applies forever".
 	 *
-	 * That column has no separate boolean for it (Schema.php, Step 1/9) and adding one
-	 * for a single coupon feature wasn't judged worth a schema change.
+	 * That column has no separate boolean for it and adding one for a single
+	 * coupon feature wasn't judged worth a schema change.
 	 * SMALLINT UNSIGNED max is 65535, so this is nowhere near overflowing.
 	 *
 	 * @since 1.0.0
@@ -235,7 +235,7 @@ class SubscriptionCoupon {
 	 * On a brand-new subscription, check whether its originating order used a
 	 * recurring-fee-scoped coupon and, if so, seed `discount_percent` /
 	 * `discount_renewals_remaining` so RenewalEngine's `purecart_renewal_amount`
-	 * filter (via RetentionFlow's existing listener, Step 9) discounts the
+	 * filter (via RetentionFlow's existing listener) discounts the
 	 * next N renewals automatically. Only one discount "slot" exists per
 	 * subscription — if a retention offer later grants its own discount, that
 	 * overwrites this one; an acceptable, disclosed simplification rather
@@ -295,7 +295,7 @@ class SubscriptionCoupon {
 	 * Converts a coupon's native amount (a flat currency value for
 	 * fixed_product/fixed_cart, or already a percent for `percent`) into the
 	 * equivalent percent-off, since that's what the shared
-	 * discount_percent/renewal_amount mechanism (Step 9) expects.
+	 * discount_percent/renewal_amount mechanism expects.
 	 *
 	 * @since 1.0.0
 	 * @param \WC_Coupon $coupon           The coupon.

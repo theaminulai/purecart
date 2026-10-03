@@ -31,7 +31,7 @@ class UpdatePackageManager {
 	 * An allow-list, not a deny-list: a deny-list of dangerous extensions is
 	 * impossible to keep complete (`.php5`, `.phtml`, `.pht`, handler
 	 * mappings that vary per host), whereas this enumerates exactly the file
-	 * kinds RND-auto-updates.md § "Supported Product Types" describes.
+	 * kinds the Updates module supports (plugin zips, themes, installers, etc.).
 	 *
 	 * @since 1.0.0
 	 * @var string[]
@@ -274,7 +274,7 @@ class UpdatePackageManager {
 		/**
 		 * Fires after a new package version is published.
 		 *
-		 * UpdateNotifier (Step 8) listens here to email active license holders.
+		 * UpdateNotifier listens here to email active license holders.
 		 *
 		 * @since 1.0.0
 		 * @param int    $package_id Package row ID.

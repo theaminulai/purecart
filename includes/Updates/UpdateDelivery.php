@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
  * Update packages are never reachable at a guessable path. Every download goes
  * through `/purecart-update/{token}.{signature}`, where the token is an
  * HMAC-SHA256-signed payload naming the package, the license it was issued to,
- * an expiry, and a one-time ID (RND-auto-updates.md § "Signed Download URL").
+ * an expiry, and a one-time ID.
  *
  * Deliberately *stateless* on the issue side — unlike
  * `Downloads\TokenManager`, which writes a row per token. An update check runs

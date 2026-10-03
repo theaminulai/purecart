@@ -32,9 +32,9 @@ class PackageRepository {
 	public const CHANNELS = array( 'stable', 'beta', 'nightly' );
 
 	/**
-	 * Which channels a subscriber to a given channel is allowed to see
-	 * (RND-auto-updates.md § "Version Channels"): a beta tester still receives
-	 * stable releases, a nightly tester receives everything.
+	 * Which channels a subscriber to a given channel is allowed to see:
+	 * a beta tester still receives stable releases; a nightly tester receives
+	 * everything.
 	 *
 	 * @since 1.0.0
 	 * @var array<string, string[]>

@@ -12,8 +12,7 @@ namespace PureCart\Updates;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Adds the admin surface described in RND-auto-updates.md § "Admin UI —
- * Package Upload" to every WooCommerce product edit screen.
+ * Adds the "Updates" product data tab to every WooCommerce product edit screen.
  *
  * Mirrors `Subscriptions\SubscriptionProduct`'s use of WooCommerce's native
  * product-data-tab system, with one addition that tab did not need: the

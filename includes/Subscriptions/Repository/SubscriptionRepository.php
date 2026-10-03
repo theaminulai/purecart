@@ -3,7 +3,7 @@
  * All reads/writes for wp_purecart_subscriptions.
  *
  * Keeps $wpdb calls out of business-logic classes (SubscriptionManager,
- * RenewalEngine, ...), per subscription-final-dev-plan.md § 9 Step 4.
+ * RenewalEngine, ...).
  *
  * @package PureCart\Subscriptions
  */
@@ -254,8 +254,8 @@ class SubscriptionRepository {
 	/**
 	 * Find the subscription created from a given order (initial order, not a renewal order).
 	 *
-	 * Used by SubscriptionManager (Step 5) to keep `maybe_create_from_order()`
-	 * idempotent when WooCommerce fires its completion hooks more than once.
+	 * Used by SubscriptionManager to keep `maybe_create_from_order()` idempotent
+	 * when WooCommerce fires its completion hooks more than once.
 	 *
 	 * @since 1.0.0
 	 * @param int $order_id WooCommerce order ID.
@@ -275,8 +275,8 @@ class SubscriptionRepository {
 	 *
 	 * The real idempotency key for "was this line item already turned into a
 	 * subscription" — a single order can contain more than one subscription
-	 * product (feature doc § 3, "Multiple subscriptions"), so `find_by_order()`
-	 * alone (first match, any product) isn't precise enough to guard each item.
+	 * product, so `find_by_order()` alone (first match, any product) isn't
+	 * precise enough to guard each item.
 	 *
 	 * @since 1.0.0
 	 * @param int $order_id   WooCommerce order ID.
@@ -331,11 +331,8 @@ class SubscriptionRepository {
 	}
 
 	/**
-	 * Paused subscriptions whose pause_end_date has arrived — due for
-	 * auto-resume. Gap found during Step 9: a retention "pause offer" is
-	 * meaningless if nothing ever resumes it automatically, and no scan for
-	 * this existed (RND's "Auto-Resume (scheduled via Action Scheduler when
-	 * pause_end_date reached)" flow was never built in Step 5).
+	 * Returns paused subscriptions whose pause_end_date has arrived — due for
+	 * auto-resume. Polled by RenewalEngine's hourly scan.
 	 *
 	 * @since 1.0.0
 	 * @return array<int, object>
@@ -360,7 +357,7 @@ class SubscriptionRepository {
 	 *
 	 * Matches trialing/active subscriptions whose next_payment_at has arrived.
 	 * `next_payment_at IS NOT NULL` excludes split-payment subscriptions that
-	 * have already completed (Step 11 sets it to NULL on completion).
+	 * have already completed (SplitPaymentManager sets it to NULL on completion).
 	 *
 	 * @since 1.0.0
 	 * @return array<int, object>
@@ -427,9 +424,9 @@ class SubscriptionRepository {
 	}
 
 	/**
-	 * Subscriptions that started before a given moment, as
+	 * Returns subscriptions that started before a given moment, as
 	 * `id => monthly-equivalent inputs`. Feeds the churn-rate denominator
-	 * (§ 8: "active at month start") together with
+	 * (active-at-month-start) together with
 	 * SubscriptionLogRepository::ended_before().
 	 *
 	 * @since 1.0.0

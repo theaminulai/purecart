@@ -14,13 +14,12 @@ use PureCart\Updates\PackageRepository;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * A WC_Email rather than the standalone template file RND-auto-updates.md
- * describes. Registering with WooCommerce puts this alongside every other
- * store email under WooCommerce → Settings → Emails, so the store owner can
- * disable it, rewrite the subject and heading, and inherit the store's own
- * header, footer and branding — none of which a bare template file in the
- * plugin would offer. It matches how the Subscriptions module's 18 emails are
- * built, so a store has one place to manage all PureCart mail.
+ * Registered as a WC_Email rather than a standalone template file. Registering
+ * with WooCommerce puts this alongside every other store email under
+ * WooCommerce → Settings → Emails, so the store owner can disable it, rewrite
+ * the subject and heading, and inherit the store's own header, footer and
+ * branding. Consistent with how the Subscriptions module's 18 emails are
+ * built, giving a store one place to manage all PureCart mail.
  *
  * @since 1.0.0
  */
