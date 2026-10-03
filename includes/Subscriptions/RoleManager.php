@@ -18,16 +18,10 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Correction vs. RND-subscriptions.md's "Role Mapping" section (lines
- * 997-1008): that doc names per-product meta keys (`_purecart_sub_role_trial`,
- * etc.), but the project's own Configuration Options table — already
- * established as authoritative for every prior naming conflict in this
- * project — defines these as *global* WP options instead:
- * `purecart_sub_trial_role`, `purecart_sub_active_role`,
- * `purecart_sub_cancelled_role` (all default `''`, meaning "don't touch
- * roles"). Followed the options table here for the same reason as every
- * earlier reconciliation: one role scheme site-wide, not per-product UI that
- * was never built (Step 3 never added product fields for this).
+ * Role management uses global WP options (`purecart_sub_trial_role`,
+ * `purecart_sub_active_role`, `purecart_sub_cancelled_role`, all default `''`
+ * meaning "don't touch roles") rather than per-product meta keys — one role
+ * scheme site-wide rather than per-product UI.
  *
  * A customer can hold more than one subscription at once (to different
  * products). Since roles here are global, not per-product, removing a role
@@ -97,8 +91,7 @@ class RoleManager {
 	}
 
 	/**
-	 * Every other transition (trial converts, suspend, cancel, expire, and —
-	 * since RenewalEngine now fires this hook too, Step 14 gap-fill —
+	 * Every other transition (trial converts, suspend, cancel, expire,
 	 * past_due) runs through here.
 	 *
 	 * @since 1.0.0

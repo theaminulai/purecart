@@ -450,9 +450,8 @@ class Subscriptions extends PureCartApi {
 	}
 
 	/**
-	 * Owner only, no admin bypass — matches subscription-final-dev-plan.md
-	 * § 6's "Customer" auth level (as opposed to "Customer/Admin") for the
-	 * two retention-offer endpoints specifically.
+	 * Owner only, no admin bypass — the two retention-offer endpoints
+	 * are customer-only actions, not admin-accessible.
 	 *
 	 * @since 1.0.0
 	 * @param \WP_REST_Request $request REST request.

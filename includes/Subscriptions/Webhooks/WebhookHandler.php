@@ -21,17 +21,16 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Feature doc § 11 event tables (Stripe + PayPal), mapped onto this module's
- * existing lifecycle methods rather than reimplementing status transitions —
- * a webhook-reported failure fires the exact same `purecart_subscription_payment_failed`
+ * Gateway webhook events (Stripe + PayPal) mapped onto this module's existing
+ * lifecycle methods rather than reimplementing status transitions — a
+ * webhook-reported failure fires the exact same `purecart_subscription_payment_failed`
  * action a self-initiated renewal failure does, so DunningManager reacts
  * identically either way.
  *
  * Entry point is per-subscription (`POST /subscriptions/{id}/webhook-event`,
  * RestController) rather than one global receiver trying to parse an opaque
  * Stripe/PayPal payload and match it to a subscription — the subscription ID
- * is already in the URL. Matches subscription-final-dev-plan.md § 6's actual
- * documented endpoint. A single global multi-tenant webhook receiver that
+ * is already in the URL. A single global multi-tenant webhook receiver that
  * identifies the subscription from `gateway_subscription_id` is real
  * gateway-integration work with no gateway wired up yet to build it against.
  *
@@ -265,8 +264,8 @@ class WebhookHandler {
 			)
 		);
 
-		// Reuses DunningManager's existing listener on this exact action (Step 7) —
-		// a webhook-reported failure schedules retries the same way a
+		// Reuses DunningManager's existing listener on this exact action — a
+		// webhook-reported failure schedules retries the same way a
 		// self-initiated one does, no separate dunning path needed.
 		do_action( 'purecart_subscription_payment_failed', $subscription_id, 0, $reason );
 	}
@@ -297,11 +296,10 @@ class WebhookHandler {
 
 		do_action( 'purecart_subscription_status_changed', $subscription_id, $subscription->status, 'pending_reauth' );
 
-		// Full SCA/3DS reauthorization (feature doc § 10) — the signed
-		// one-time payment link + "confirm your payment" email — isn't built
-		// anywhere in this module yet (no step covers it explicitly). The
-		// status transition alone is wired here so it's at least visible/
-		// filterable; a real reauth flow is future work, not silently faked.
+		// Full SCA/3DS reauthorization — the signed one-time payment link +
+		// "confirm your payment" email — isn't built yet. The status transition
+		// alone is wired here so it's at least visible/filterable; a real reauth
+		// flow is future work, not silently faked.
 		do_action( 'purecart_subscription_reauth_required', $subscription_id );
 	}
 
@@ -342,9 +340,9 @@ class WebhookHandler {
 	}
 
 	/**
-	 * feature doc § 21 (Refund Policy) — records the refund against the
-	 * payment ledger. Deliberately does not auto-cancel the subscription:
-	 * the doc itself says a renewal-specific refund is "admin's discretion".
+	 * Records a gateway-reported refund against the payment ledger.
+	 * Deliberately does not auto-cancel the subscription: a renewal-specific
+	 * refund is left to the admin's discretion.
 	 *
 	 * @since 1.0.0
 	 * @param array<string, mixed> $payload Decoded payload.

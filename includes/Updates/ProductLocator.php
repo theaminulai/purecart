@@ -13,10 +13,10 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * An update request identifies its product by `slug` — the folder name the
- * plugin/theme installs into, stored as `_purecart_plugin_slug` product meta
- * (RND-auto-updates.md § "Product Meta Fields"). This class is the one place
- * that lookup happens, so UpdateServer, UpdateInfo and ChangelogManager can't
- * drift into three subtly different resolutions of the same slug.
+ * plugin/theme installs into, stored as `_purecart_plugin_slug` product meta.
+ * This class is the one place that lookup happens, so UpdateServer, UpdateInfo
+ * and ChangelogManager can't drift into three subtly different resolutions of
+ * the same slug.
  *
  * @since 1.0.0
  */

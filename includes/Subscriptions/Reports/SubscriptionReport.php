@@ -22,7 +22,7 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Implements the feature doc § 8 "Core analytics formulas" table verbatim:
+ * Core analytics formulas:
  *
  *   MRR                 sum of monthly-equivalent recurring revenue, active subs
  *   ARR                 MRR x 12
@@ -161,9 +161,9 @@ class SubscriptionReport {
 	 * Monthly Recurring Revenue: every active subscription's recurring amount
 	 * normalized to a monthly rate.
 	 *
-	 * Uses ChurnScorer's normalization (made shared in Step 15) so MRR and the
-	 * per-subscription LTV figure can never disagree about what "$X every 3
-	 * months" is worth per month.
+	 * Uses ChurnScorer's normalization so MRR and the per-subscription LTV
+	 * figure can never disagree about what "$X every 3 months" is worth
+	 * per month.
 	 *
 	 * @since 1.0.0
 	 * @return float
@@ -275,11 +275,10 @@ class SubscriptionReport {
 	 * Trial conversion rate: of the trials that started in the period, how
 	 * many went on to convert to a paid cycle.
 	 *
-	 * Conversion is counted from the log's `trialing -> active` transition,
-	 * which RenewalEngine has fired since Step 14's gap-fix. Trials started
-	 * before that fix shipped have no such log row and will read as
-	 * unconverted — worth knowing when looking at historical numbers on a
-	 * site that ran an earlier build.
+	 * Conversion is counted from the log's `trialing -> active` transition
+	 * fired by RenewalEngine. Trials started before that event was wired
+	 * have no such log row and will read as unconverted — worth knowing
+	 * when looking at historical numbers on a site that ran an earlier build.
 	 *
 	 * @since 1.0.0
 	 * @param string $period_start Inclusive start (MySQL datetime).

@@ -12,10 +12,9 @@ namespace PureCart\Updates;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Each package row carries its own `changelog` (RND-auto-updates.md §
- * "Key Design Decisions" 8 — the changelog lives in the DB, not inside the
- * package, so it can be corrected without re-uploading a release). What
- * WordPress's "View details → Changelog" tab wants, though, is one HTML
+ * Each package row carries its own `changelog` — the changelog lives in the
+ * DB, not inside the package, so it can be corrected without re-uploading a
+ * release. What WordPress's "View details → Changelog" tab wants is one HTML
  * document covering the recent history. This class is that assembly.
  *
  * @since 1.0.0

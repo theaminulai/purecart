@@ -166,7 +166,7 @@ class PlanUpgrade {
 	/**
 	 * Mode: apply_at_renewal (default) — no charge today; scheduled for the
 	 * next renewal via the same pending_switch_* mechanism RetentionFlow
-	 * already uses for its downgrade offer (Step 9).
+	 * already uses for its downgrade offer.
 	 *
 	 * @since 1.0.0
 	 * @param object      $subscription Subscription row.
@@ -256,9 +256,8 @@ class PlanUpgrade {
 			}
 			$order_id = $order->get_id();
 		} elseif ( $charge < 0 ) {
-			// "issue store credit for the difference" (RND § 8) — no generic
-			// store-credit mechanism exists in this codebase yet (would need
-			// its own feature: a WC coupon-based credit balance or similar).
+			// No generic store-credit mechanism exists in this codebase yet (would
+			// need its own feature: a WC coupon-based credit balance or similar).
 			// Not charging is the safe default; the credit amount is logged
 			// and filterable so a real implementation can hook in later
 			// instead of this silently doing nothing.

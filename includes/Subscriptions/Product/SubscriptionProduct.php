@@ -69,7 +69,7 @@ class SubscriptionProduct {
 
 		// Render the add-to-cart form on the single product page.
 		//
-		// Gap found in Step 3 and only surfaced by live testing: WooCommerce's
+		// Gap only surfaced by live testing: WooCommerce's
 		// woocommerce_template_single_add_to_cart() dispatches
 		// `do_action( 'woocommerce_' . $product->get_type() . '_add_to_cart' )`
 		// (wc-template-functions.php), and wc-template-hooks.php registers a
@@ -87,8 +87,8 @@ class SubscriptionProduct {
 		add_action( 'woocommerce_single_product_summary', array( $this, 'render_billing_terms' ), 11 );
 		add_filter( 'woocommerce_get_price_html', array( $this, 'append_billing_suffix' ), 10, 2 );
 
-		// Step 14 additions — see save_meta()'s price-sync comment and the
-		// class docblock note above adjust_cart_prices() for why these exist.
+		// See save_meta()'s price-sync comment and the class docblock note
+		// above adjust_cart_prices() for why these hooks exist.
 		add_action( 'woocommerce_before_calculate_totals', array( $this, 'adjust_cart_prices' ) );
 		add_filter( 'woocommerce_add_to_cart_validation', array( $this, 'validate_add_to_cart' ), 10, 2 );
 		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'filter_gateways_for_subscriptions' ) );
@@ -516,7 +516,7 @@ class SubscriptionProduct {
 			update_post_meta( $post_id, '_purecart_sub_lms_course_ids', wp_json_encode( array_values( $ids ) ) );
 		}
 
-		// Gap found during Step 14: this method only ever wrote our own
+		// This method only ever wrote our own
 		// `_purecart_sub_price`/`_purecart_sub_signup_fee` meta — it never
 		// touched WooCommerce's own `_price`/`_regular_price` meta, which is
 		// what checkout actually charges. Without this, a subscription
@@ -727,16 +727,15 @@ class SubscriptionProduct {
 	}
 
 	/**
-	 * Mixed-cart validation rules (feature doc § 20):
+	 * Mixed-cart validation rules:
 	 *  - blocks a second subscription to the *same* product a customer is
 	 *    already subscribed to (any not-yet-ended status);
 	 *  - optionally (site setting `purecart_sub_allow_multiple_subscriptions`,
 	 *    default true) blocks subscribing to a *different* product while
 	 *    another subscription is active.
-	 * Deliberately silent on guests (matches SubscriptionManager's own
-	 * guest-checkout gap, Step 5 — nothing to check against yet) and on
-	 * mixed subscription+non-subscription carts, which the doc explicitly
-	 * allows and needs no validation at all.
+	 * Deliberately silent on guests (nothing to check against for a user
+	 * without an account yet) and on mixed subscription+non-subscription
+	 * carts, which are explicitly allowed and need no validation.
 	 *
 	 * @since 1.0.0
 	 * @param bool $passed     Whether add-to-cart should proceed so far.
@@ -780,10 +779,9 @@ class SubscriptionProduct {
 	}
 
 	/**
-	 * Hide gateways that can't tokenize a payment method (COD, cheque, bank
-	 * transfer) from checkout whenever the cart contains a subscription —
-	 * feature doc § 20's "gateway filtering". Left alone in wp-admin so an
-	 * order can still be created/edited manually there.
+	 * Hides gateways that can't tokenize a payment method (COD, cheque, bank
+	 * transfer) from checkout whenever the cart contains a subscription.
+	 * Left alone in wp-admin so an order can still be created/edited manually.
 	 *
 	 * @since 1.0.0
 	 * @param array<string, \WC_Payment_Gateway> $gateways Available gateways.

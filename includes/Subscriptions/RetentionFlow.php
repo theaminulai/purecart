@@ -20,19 +20,13 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Feature doc § 6 flow: customer clicks "Cancel" -> pick a reason -> shown an
- * offer matched to that reason -> accept (offer applied, cancel aborted) or
- * decline (cancellation proceeds). This class owns the reason list, offer
- * matching/eligibility, and acceptance side effects — the actual "customer
- * clicked cancel and got shown this modal" flow is Step 12 (REST) / Frontend
- * Phase 2's job; nothing here reads $_POST or renders anything.
+ * Customer clicks "Cancel" → picks a reason → is shown a matched offer →
+ * accepts (offer applied, cancel aborted) or declines (cancellation proceeds).
+ * This class owns the reason list, offer matching/eligibility, and acceptance
+ * side effects. Nothing here reads $_POST or renders anything.
  *
- * Scope note: offer definitions are global (WP options + filter), not the
- * per-product `_purecart_sub_retention_offers` JSON meta the RND doc
- * describes — Step 3 never built product-UI for that meta (deferred at the
- * time, "dead UI with nothing behind it"), and it still isn't built. Once the
- * Settings UI (Frontend Phase 5) exists to configure retention offers, this
- * class is where a per-product override would layer on top of these defaults.
+ * Offer definitions are global (WP options + filter), not per-product meta.
+ * A per-product override would layer on top of these global defaults.
  *
  * @since 1.0.0
  */
@@ -70,7 +64,7 @@ class RetentionFlow {
 	/* Reasons */
 
 	/**
-	 * Admin-configurable cancellation reason list (feature doc § 6, Step 1).
+	 * Returns the admin-configurable cancellation reason list.
 	 *
 	 * @since 1.0.0
 	 * @return array<string, string> Reason slug => label.
@@ -98,7 +92,7 @@ class RetentionFlow {
 	/* Offers */
 
 	/**
-	 * The 5 offer types (feature doc § 6) with their default configuration.
+	 * The 5 offer types with their default configuration.
 	 * `trigger_reasons` empty = shown regardless of the selected reason.
 	 *
 	 * @since 1.0.0
@@ -177,7 +171,7 @@ class RetentionFlow {
 	}
 
 	/**
-	 * Eligibility rule set from feature doc § 6 (inspired by ArraySubs).
+	 * Determines whether a given offer is eligible for this subscription and reason.
 	 *
 	 * @since 1.0.0
 	 * @param object               $subscription Subscription row.
@@ -232,7 +226,7 @@ class RetentionFlow {
 		}
 
 		// One-time-use guard — a discount offer already accepted for this
-		// subscription is never shown again (feature doc § 6).
+		// subscription is never shown again.
 		if ( 'discount' === $offer['type'] && $this->has_used_discount_offer( (int) $subscription->id ) ) {
 			return false;
 		}
@@ -262,15 +256,11 @@ class RetentionFlow {
 	}
 
 	/**
-	 * The configured downgrade target for this subscription's product, if any.
+	 * Returns the configured downgrade target product ID for this subscription's product, if any.
 	 *
-	 * Reads `_purecart_sub_downgrade_products` product meta — documented in
-	 * RND-subscriptions.md's Product Meta Fields table, but Step 3 never built
-	 * admin UI for it (a multi-product picker, deferred as out of scope at the
-	 * time). Reading it here doesn't require the UI to exist yet; it just
-	 * means this offer stays ineligible (see is_eligible() above) until a
-	 * merchant sets it — e.g. directly via `update_post_meta()` — or the
-	 * Settings UI adds a picker for it.
+	 * Reads the `_purecart_sub_downgrade_products` product meta key. When the
+	 * meta is absent the downgrade offer is ineligible (see is_eligible()), so
+	 * a merchant must set this meta before the offer can be shown.
 	 *
 	 * @since 1.0.0
 	 * @param object $subscription Subscription row.
@@ -395,7 +385,7 @@ class RetentionFlow {
 
 				// Deliberately NOT immediate — status/price stay exactly as they
 				// are; RenewalEngine::maybe_apply_pending_switch() applies this
-				// at the next renewal (feature doc § 6, "Downgrade-as-retention-offer").
+				// at the next renewal.
 				$this->subscriptions->update(
 					(int) $subscription->id,
 					array(

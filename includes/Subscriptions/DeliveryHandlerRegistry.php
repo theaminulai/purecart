@@ -2,9 +2,9 @@
 /**
  * Pluggable registry of subscription delivery-type handlers.
  *
- * subscription-final-dev-plan.md § 3. Lets any module (including third-party
- * code) register a new delivery type via a filter, instead of a schema change —
- * this is why `delivery_type` on wp_purecart_subscriptions is VARCHAR, not ENUM.
+ * Any module (including third-party code) can register a new delivery type via
+ * a filter rather than requiring a schema change — this is why `delivery_type`
+ * on wp_purecart_subscriptions is VARCHAR, not ENUM.
  *
  * @package PureCart\Subscriptions
  */
