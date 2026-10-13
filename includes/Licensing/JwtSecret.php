@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Resolves the HS256 secret used to sign license JWTs.
  *
  * @package PureCart\Licensing
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Licensing;
 

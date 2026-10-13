@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Wires the JWT token layer into the existing license lifecycle hooks.
  *
  * @package PureCart\Licensing
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Licensing;
 

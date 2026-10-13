@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * "Update Available" customer email.
  *
  * @package PureCart\Updates\Emails
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates\Emails;
 
@@ -14,28 +13,44 @@ use PureCart\Updates\PackageRepository;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * A WC_Email rather than the standalone template file RND-auto-updates.md
- * describes. Registering with WooCommerce puts this alongside every other
- * store email under WooCommerce → Settings → Emails, so the store owner can
- * disable it, rewrite the subject and heading, and inherit the store's own
- * header, footer and branding — none of which a bare template file in the
- * plugin would offer. It matches how the Subscriptions module's 18 emails are
- * built, so a store has one place to manage all PureCart mail.
+ * Registered as a WC_Email rather than a standalone template file. Registering
+ * with WooCommerce puts this alongside every other store email under
+ * WooCommerce → Settings → Emails, so the store owner can disable it, rewrite
+ * the subject and heading, and inherit the store's own header, footer and
+ * branding. Consistent with how the Subscriptions module's 18 emails are
+ * built, giving a store one place to manage all PureCart mail.
  *
  * @since 1.0.0
  */
 class UpdateAvailableEmail extends \WC_Email {
 
-	/** @var PackageRepository */
+	/**
+	 * Package repository used to fetch package rows.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
-	/** Package currently being announced, set by trigger(). */
+	/**
+	 * Package currently being announced, set by trigger().
+	 *
+	 * @since 1.0.0
+	 * @var object|null
+	 */
 	private ?object $package = null;
 
-	/** Customer currently being emailed. */
+	/**
+	 * Customer currently being emailed.
+	 *
+	 * @since 1.0.0
+	 * @var \WP_User|null
+	 */
 	private ?\WP_User $customer = null;
 
 	/**
+	 * Registers the email with WooCommerce and attaches the trigger action.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -53,6 +68,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the default email subject template.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -61,6 +78,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the default email heading template.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -69,6 +88,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the default additional content shown below the main email body.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -107,6 +128,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Populates the email placeholder values from the current package and customer.
+	 *
 	 * @since 1.0.0
 	 * @return void
 	 */
@@ -157,6 +180,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Builds the main notification body text, including the changelog excerpt.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -174,6 +199,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the HTML version of the email body.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -195,6 +222,8 @@ class UpdateAvailableEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the plain-text version of the email body.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

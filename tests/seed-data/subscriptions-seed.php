@@ -9,13 +9,15 @@
  * (mid-dunning retry), customer-paused, and cancelled (churn).
  *
  * @package PureCart\Tests
+ * @since   1.0.0
  */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Seed every Subscriptions-module table.
+ * Seeds rows into every Subscriptions-module table.
  *
+ * @since 1.0.0
  * @return array<string, int> scenario label => subscription id.
  */
 function purecart_seed_subscriptions(): array {

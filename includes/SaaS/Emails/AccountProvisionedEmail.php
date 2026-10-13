@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * "Your SaaS account is ready" customer email.
  *
  * @package PureCart\SaaS\Emails
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\SaaS\Emails;
 
@@ -22,10 +21,17 @@ defined( 'ABSPATH' ) || exit;
  */
 class AccountProvisionedEmail extends \WC_Email {
 
-	/** Account row currently being emailed, set by trigger(). */
+	/**
+	 * Account row currently being emailed, set by trigger().
+	 *
+	 * @since 1.0.0
+	 * @var object|null
+	 */
 	private ?object $account = null;
 
 	/**
+	 * Sets up email properties and registers the provisioning action listener.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -41,6 +47,8 @@ class AccountProvisionedEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the default email subject line.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -49,6 +57,8 @@ class AccountProvisionedEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the default email heading.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -57,6 +67,8 @@ class AccountProvisionedEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the default additional content appended to the email body.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -92,6 +104,8 @@ class AccountProvisionedEmail extends \WC_Email {
 	}
 
 	/**
+	 * Populates email placeholders for the given account owner.
+	 *
 	 * @since 1.0.0
 	 * @param \WP_User $user The account owner.
 	 * @return void
@@ -111,6 +125,8 @@ class AccountProvisionedEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the URL for the customer's API Keys account page.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -123,6 +139,8 @@ class AccountProvisionedEmail extends \WC_Email {
 	}
 
 	/**
+	 * Builds the plain-text body message string for the email.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -143,6 +161,8 @@ class AccountProvisionedEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the email body in HTML format.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -164,6 +184,8 @@ class AccountProvisionedEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the email body in plain-text format.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

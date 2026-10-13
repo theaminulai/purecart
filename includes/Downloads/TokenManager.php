@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Creates and validates signed, expiring download tokens.
  *
  * @package PureCart\Downloads
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Downloads;
 
@@ -16,6 +15,8 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Manages the purecart_downloads table.
+ *
+ * @since 1.0.0
  */
 class TokenManager {
 

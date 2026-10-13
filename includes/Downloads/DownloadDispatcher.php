@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Serves protected files via PHP — no direct file URL exposed.
  *
@@ -7,17 +8,23 @@
  * @package PureCart\Downloads
  */
 
-declare( strict_types=1 );
-
 namespace PureCart\Downloads;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Registers the rewrite rule and streams the file to the browser.
+ *
+ * @since 1.0.0
  */
 class DownloadDispatcher {
 
+	/**
+	 * Query variable name used to pass the download token through WordPress rewrites.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const QUERY_VAR = 'purecart_download_token';
 
 	/**
@@ -69,6 +76,12 @@ class DownloadDispatcher {
 			return;
 		}
 
+		/**
+		 * Fires before a download token is validated and the file is streamed.
+		 *
+		 * @since 1.0.0
+		 * @param string $token The raw download token from the URL.
+		 */
 		do_action( 'purecart_before_file_download', $token );
 
 		$manager = new TokenManager();

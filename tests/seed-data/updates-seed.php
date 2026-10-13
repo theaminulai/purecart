@@ -11,13 +11,15 @@
  * for that.
  *
  * @package PureCart\Tests
+ * @since   1.0.0
  */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Seed purecart_product_versions.
+ * Seeds rows into purecart_product_versions.
  *
+ * @since 1.0.0
  * @return array<string, int> scenario label => row id.
  */
 function purecart_seed_updates(): array {

@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Secure Downloads module bootstrap.
  *
  * @package PureCart\Downloads
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Downloads;
 
@@ -28,6 +27,8 @@ defined( 'ABSPATH' ) || exit;
 class Module {
 
 	/**
+	 * Instantiates the hook-registering classes and registers the admin REST API routes.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {

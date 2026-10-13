@@ -1,34 +1,44 @@
 <?php
+declare( strict_types=1 );
 /**
  * Assembles per-version changelogs into the combined view WordPress shows.
  *
  * @package PureCart\Updates
  */
 
-declare( strict_types=1 );
-
 namespace PureCart\Updates;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Each package row carries its own `changelog` (RND-auto-updates.md §
- * "Key Design Decisions" 8 — the changelog lives in the DB, not inside the
- * package, so it can be corrected without re-uploading a release). What
- * WordPress's "View details → Changelog" tab wants, though, is one HTML
+ * Each package row carries its own `changelog` — the changelog lives in the
+ * DB, not inside the package, so it can be corrected without re-uploading a
+ * release. What WordPress's "View details → Changelog" tab wants is one HTML
  * document covering the recent history. This class is that assembly.
  *
  * @since 1.0.0
  */
 class ChangelogManager {
 
-	/** How many versions the combined changelog covers by default. */
+	/**
+	 * How many versions the combined changelog covers by default.
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	private const DEFAULT_LIMIT = 20;
 
-	/** @var PackageRepository */
+	/**
+	 * Package repository used to fetch version rows.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
 	/**
+	 * Initialises the changelog manager with a package repository.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {

@@ -17,7 +17,7 @@ $packages_repo = new PackageRepository();
 $delivery      = new UpdateDelivery();
 $user_id       = get_current_user_id();
 
-// Query customer licensed products
+// Build the list of update-enabled products the current customer has purchased.
 $products = array();
 if ( function_exists( 'wc_get_orders' ) ) {
 	$orders = wc_get_orders( array(
@@ -47,7 +47,7 @@ if ( function_exists( 'wc_get_orders' ) ) {
 	}
 }
 
-// If admin and no personal orders placed yet, display all store releases for preview
+// Admins with no personal purchases see all active releases for preview purposes.
 if ( empty( $products ) && current_user_can( 'manage_woocommerce' ) ) {
 	global $wpdb;
 	$table = $wpdb->prefix . 'purecart_product_versions';
@@ -59,7 +59,7 @@ if ( empty( $products ) && current_user_can( 'manage_woocommerce' ) ) {
 			$product_id = (int) $pid;
 			$product    = function_exists( 'wc_get_product' ) ? wc_get_product( $product_id ) : null;
 			$latest     = $packages_repo->get_latest( $product_id, 'stable' );
-			if ( $latest ) {
+			if ( $product && $latest ) {
 				$history = $packages_repo->find_by_product( $product_id, true );
 				$products[ $product_id ] = array(
 					'product' => $product,
@@ -94,7 +94,7 @@ if ( empty( $products ) && current_user_can( 'manage_woocommerce' ) ) {
 				<div class="purecart-product-update-card">
 					<div class="purecart-product-update-card__header">
 						<div class="purecart-product-update-card__info">
-							<h3 class="purecart-product-update-card__name"><?php echo esc_html( $product->get_name() ); ?></h3>
+							<h3 class="purecart-product-update-card__name"><?php echo esc_html( $product ? $product->get_name() : __( 'Unknown Product', 'purecart' ) ); ?></h3>
 							<div class="purecart-product-update-card__meta">
 								<span><strong><?php esc_html_e( 'Latest Version:', 'purecart' ); ?></strong> <code class="purecart-version-code">v<?php echo esc_html( $latest->version ); ?></code></span>
 								<span class="purecart-badge purecart-badge--<?php echo esc_attr( $latest->channel ); ?>">

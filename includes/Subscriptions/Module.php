@@ -1,26 +1,33 @@
 <?php
+declare( strict_types=1 );
 /**
  * Subscriptions module bootstrap.
  *
- * Wires the Subscriptions module into the plugin's existing init flow
- * (\PureCart\Plugin::init(), same pattern as ProductTypes/OrderHandler/RestApi)
- * and gates the whole module behind a single enable/disable option, per
- * subscription-final-dev-plan.md § 9 Step 2.
+ * Wires the Subscriptions module into the plugin init flow (same pattern as
+ * ProductTypes/OrderHandler/RestApi) and gates the whole module behind a
+ * single enable/disable option.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 
 use PureCart\API\Subscriptions as SubscriptionsApi;
 use PureCart\Settings\OptionKeys;
 use PureCart\Settings\Settings;
+use PureCart\Subscriptions\Billing\RenewalSync;
 use PureCart\Subscriptions\Delivery\CourseHandler;
 use PureCart\Subscriptions\Delivery\DownloadHandler;
 use PureCart\Subscriptions\Delivery\MembershipHandler;
 use PureCart\Subscriptions\Delivery\ServiceHandler;
+use PureCart\Subscriptions\Payment\DunningManager;
+use PureCart\Subscriptions\Payment\PlanUpgrade;
+use PureCart\Subscriptions\Payment\SplitPaymentManager;
+use PureCart\Subscriptions\Product\SubscriptionProduct;
+use PureCart\Subscriptions\Renewal\RenewalEngine;
+use PureCart\Subscriptions\Repository\RevenueRepository;
+use PureCart\Subscriptions\Reports\SubscriptionExport;
+use PureCart\Subscriptions\Webhooks\WebhookHandler;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -32,6 +39,8 @@ defined( 'ABSPATH' ) || exit;
 class Module {
 
 	/**
+	 * Wires all Subscriptions module classes into the WordPress hook system.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {

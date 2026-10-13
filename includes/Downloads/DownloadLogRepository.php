@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Admin query layer over wp_purecart_download_logs / wp_purecart_downloads.
  *
  * @package PureCart\Downloads
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Downloads;
 

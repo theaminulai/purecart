@@ -1,16 +1,15 @@
 <?php
+declare( strict_types=1 );
 /**
  * All reads/writes for wp_purecart_subscriptions.
  *
  * Keeps $wpdb calls out of business-logic classes (SubscriptionManager,
- * RenewalEngine, ...), per subscription-final-dev-plan.md § 9 Step 4.
+ * RenewalEngine, ...).
  *
  * @package PureCart\Subscriptions
  */
 
-declare( strict_types=1 );
-
-namespace PureCart\Subscriptions;
+namespace PureCart\Subscriptions\Repository;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -82,7 +81,12 @@ class SubscriptionRepository {
 		'updated_at'                  => '%s',
 	);
 
-	/** Required columns for a valid new subscription row. */
+	/**
+	 * Required columns for a valid new subscription row.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const REQUIRED_ON_CREATE = array( 'user_id', 'product_id', 'order_id', 'billing_interval', 'billing_period', 'recurring_amount' );
 
 	/**
@@ -249,8 +253,8 @@ class SubscriptionRepository {
 	/**
 	 * Find the subscription created from a given order (initial order, not a renewal order).
 	 *
-	 * Used by SubscriptionManager (Step 5) to keep `maybe_create_from_order()`
-	 * idempotent when WooCommerce fires its completion hooks more than once.
+	 * Used by SubscriptionManager to keep `maybe_create_from_order()` idempotent
+	 * when WooCommerce fires its completion hooks more than once.
 	 *
 	 * @since 1.0.0
 	 * @param int $order_id WooCommerce order ID.
@@ -270,8 +274,8 @@ class SubscriptionRepository {
 	 *
 	 * The real idempotency key for "was this line item already turned into a
 	 * subscription" — a single order can contain more than one subscription
-	 * product (feature doc § 3, "Multiple subscriptions"), so `find_by_order()`
-	 * alone (first match, any product) isn't precise enough to guard each item.
+	 * product, so `find_by_order()` alone (first match, any product) isn't
+	 * precise enough to guard each item.
 	 *
 	 * @since 1.0.0
 	 * @param int $order_id   WooCommerce order ID.
@@ -326,11 +330,8 @@ class SubscriptionRepository {
 	}
 
 	/**
-	 * Paused subscriptions whose pause_end_date has arrived — due for
-	 * auto-resume. Gap found during Step 9: a retention "pause offer" is
-	 * meaningless if nothing ever resumes it automatically, and no scan for
-	 * this existed (RND's "Auto-Resume (scheduled via Action Scheduler when
-	 * pause_end_date reached)" flow was never built in Step 5).
+	 * Returns paused subscriptions whose pause_end_date has arrived — due for
+	 * auto-resume. Polled by RenewalEngine's hourly scan.
 	 *
 	 * @since 1.0.0
 	 * @return array<int, object>
@@ -355,7 +356,7 @@ class SubscriptionRepository {
 	 *
 	 * Matches trialing/active subscriptions whose next_payment_at has arrived.
 	 * `next_payment_at IS NOT NULL` excludes split-payment subscriptions that
-	 * have already completed (Step 11 sets it to NULL on completion).
+	 * have already completed (SplitPaymentManager sets it to NULL on completion).
 	 *
 	 * @since 1.0.0
 	 * @return array<int, object>
@@ -375,10 +376,6 @@ class SubscriptionRepository {
 			)
 		) ?: array();
 	}
-
-	// -----------------------------------------------------------------------
-	// Reporting aggregates (Step 15)
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Count of subscriptions per status, as `status => count`.
@@ -426,9 +423,9 @@ class SubscriptionRepository {
 	}
 
 	/**
-	 * Subscriptions that started before a given moment, as
+	 * Returns subscriptions that started before a given moment, as
 	 * `id => monthly-equivalent inputs`. Feeds the churn-rate denominator
-	 * (§ 8: "active at month start") together with
+	 * (active-at-month-start) together with
 	 * SubscriptionLogRepository::ended_before().
 	 *
 	 * @since 1.0.0
@@ -484,133 +481,133 @@ class SubscriptionRepository {
 	 * @return array<int, object>
 	 */
 	public function find_all(
-	array|string|null $status = null,
-	array|string|null $product = null,
-	array|string|null $cycle = null,
-	array|string|null $type = null,
-	array|string|null $payment_type = null,
-	array|string|null $churn_risk = null,
-	?string $search = null,
-	int $page = 1,
-	int $per_page = 20
-): array {
-	global $wpdb;
+		array|string|null $status = null,
+		array|string|null $product = null,
+		array|string|null $cycle = null,
+		array|string|null $type = null,
+		array|string|null $payment_type = null,
+		array|string|null $churn_risk = null,
+		?string $search = null,
+		int $page = 1,
+		int $per_page = 20
+	): array {
+		global $wpdb;
 
-	$page = max( 1, $page );
+		$page = max( 1, $page );
 
-	$where  = array();
-	$params = array();
+		$where  = array();
+		$params = array();
 
-	$add_in_filter = static function ( string $column, array|string|null $values ) use ( &$where, &$params ): void {
-		if ( null === $values ) {
-			return;
+		$add_in_filter = static function ( string $column, array|string|null $values ) use ( &$where, &$params ): void {
+			if ( null === $values ) {
+				return;
+			}
+
+			// Allow passing a single scalar or an array.
+			$values = is_array( $values ) ? $values : array( $values );
+
+			// Remove empty/null values and normalize indexes.
+			$values = array_values(
+				array_filter(
+					$values,
+					static fn( $v ) => null !== $v && '' !== trim( (string) $v )
+				)
+			);
+
+			if ( empty( $values ) ) {
+				return;
+			}
+
+			$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
+			$where[]      = "{$column} IN ({$placeholders})";
+
+			foreach ( $values as $value ) {
+				$params[] = (string) $value;
+			}
+		};
+
+		/*
+		* Filters (single or multiple values supported).
+		*/
+		$add_in_filter( 'status', $status );
+		$add_in_filter( 'product', $product );
+		$add_in_filter( 'cycle', $cycle );
+		$add_in_filter( 'type', $type );
+		$add_in_filter( 'payment_type', $payment_type );
+		$add_in_filter( 'churn_risk', $churn_risk );
+
+		/*
+		* Search.
+		*/
+		if ( null !== $search && '' !== trim( $search ) ) {
+			$search = '%' . $wpdb->esc_like( trim( $search ) ) . '%';
+
+			$where[]  = '(product LIKE %s OR id LIKE %s)';
+			$params[] = $search;
+			$params[] = $search;
 		}
 
-		// Allow passing a single scalar or an array.
-		$values = is_array( $values ) ? $values : array( $values );
+		/*
+		* Build WHERE clause.
+		*/
+		$where_sql = '';
 
-		// Remove empty/null values and normalize indexes.
-		$values = array_values(
-			array_filter(
-				$values,
-				static fn( $v ) => null !== $v && '' !== trim( (string) $v )
-			)
-		);
-
-		if ( empty( $values ) ) {
-			return;
+		if ( ! empty( $where ) ) {
+			$where_sql = ' WHERE ' . implode( ' AND ', $where );
 		}
 
-		$placeholders = implode( ', ', array_fill( 0, count( $values ), '%s' ) );
-		$where[]      = "{$column} IN ({$placeholders})";
+		/*
+		* Count total matching records.
+		*/
+		$count_query = "SELECT COUNT(*) FROM {$this->table()}{$where_sql}";
 
-		foreach ( $values as $value ) {
-			$params[] = (string) $value;
+		if ( ! empty( $params ) ) {
+			$total = (int) $wpdb->get_var(
+				$wpdb->prepare( $count_query, ...$params )
+			);
+		} else {
+			$total = (int) $wpdb->get_var( $count_query );
 		}
-	};
 
-	/*
-	 * Filters (single or multiple values supported).
-	 */
-	$add_in_filter( 'status', $status );
-	$add_in_filter( 'product', $product );
-	$add_in_filter( 'cycle', $cycle );
-	$add_in_filter( 'type', $type );
-	$add_in_filter( 'payment_type', $payment_type );
-	$add_in_filter( 'churn_risk', $churn_risk );
-
-	/*
-	 * Search.
-	 */
-	if ( null !== $search && '' !== trim( $search ) ) {
-		$search = '%' . $wpdb->esc_like( trim( $search ) ) . '%';
-
-		$where[]  = '(product LIKE %s OR id LIKE %s)';
-		$params[] = $search;
-		$params[] = $search;
-	}
-
-	/*
-	 * Build WHERE clause.
-	 */
-	$where_sql = '';
-
-	if ( ! empty( $where ) ) {
-		$where_sql = ' WHERE ' . implode( ' AND ', $where );
-	}
-
-	/*
-	 * Count total matching records.
-	 */
-	$count_query = "SELECT COUNT(*) FROM {$this->table()}{$where_sql}";
-
-	if ( ! empty( $params ) ) {
-		$total = (int) $wpdb->get_var(
-			$wpdb->prepare( $count_query, ...$params )
-		);
-	} else {
-		$total = (int) $wpdb->get_var( $count_query );
-	}
-
-	/*
-	 * Get results.
-	 */
-	if ( -1 === $per_page ) {
-		$query = "SELECT *
+		/*
+		* Get results.
+		*/
+		if ( -1 === $per_page ) {
+			$query = "SELECT *
 			FROM {$this->table()}
 			{$where_sql}
 			ORDER BY id ASC";
 
-		$query_params = $params;
-	} else {
-		$per_page = max( 1, $per_page );
-		$offset   = ( $page - 1 ) * $per_page;
+			$query_params = $params;
+		} else {
+			$per_page = max( 1, $per_page );
+			$offset   = ( $page - 1 ) * $per_page;
 
-		$query = "SELECT *
+			$query = "SELECT *
 			FROM {$this->table()}
 			{$where_sql}
 			ORDER BY id ASC
 			LIMIT %d OFFSET %d";
 
-		$query_params   = $params;
-		$query_params[] = $per_page;
-		$query_params[] = $offset;
-	}
+			$query_params   = $params;
+			$query_params[] = $per_page;
+			$query_params[] = $offset;
+		}
 
-	$results = ! empty( $query_params )
+		$results = ! empty( $query_params )
 		? $wpdb->get_results(
 			$wpdb->prepare( $query, ...$query_params )
 		)
 		: $wpdb->get_results( $query );
 
-	$results = $results ?: array();
+		$results = $results ?: array();
 
-	return array(
-		'items'       => $results,
-		'total'       => $total,
-		'page'        => $page,
-		'per_page'    => $per_page,
-		'total_pages' => -1 === $per_page ? 1 : (int) ceil( $total / $per_page ),
-	);
-}
+		return array(
+			'items'       => $results,
+			'total'       => $total,
+			'page'        => $page,
+			'per_page'    => $per_page,
+			'total_pages' => -1 === $per_page ? 1 : (int) ceil( $total / $per_page ),
+		);
+	}
 }

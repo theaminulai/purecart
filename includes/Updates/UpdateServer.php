@@ -1,21 +1,19 @@
 <?php
+declare( strict_types=1 );
 /**
  * Answers "is there a newer version, and may this caller have it?".
  *
  * @package PureCart\Updates
  */
 
-declare( strict_types=1 );
-
 namespace PureCart\Updates;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The update-check pipeline (RND-auto-updates.md § "WordPress Plugin/Theme
- * Update Flow"): resolve the product, gate on licence, resolve the channel,
- * find the newest entitled package, compare versions, and — only when an
- * update is actually available — mint a signed download URL.
+ * The update-check pipeline: resolves the product, gates on licence, resolves
+ * the channel, finds the newest entitled package, compares versions, and —
+ * only when an update is actually available — mints a signed download URL.
  *
  * Deliberately free of REST plumbing: it takes a plain array and returns a
  * plain array or WP_Error, so `PureCart\API\Updates` stays a thin adapter and
@@ -25,22 +23,52 @@ defined( 'ABSPATH' ) || exit;
  */
 class UpdateServer {
 
-	/** @var PackageRepository */
+	/**
+	 * Package repository used to query for the latest available package.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
-	/** @var ProductLocator */
+	/**
+	 * Product locator used to resolve a slug to a WooCommerce product ID.
+	 *
+	 * @since 1.0.0
+	 * @var ProductLocator
+	 */
 	private ProductLocator $locator;
 
-	/** @var LicenseGate */
+	/**
+	 * Licence gate used to validate the caller's licence key.
+	 *
+	 * @since 1.0.0
+	 * @var LicenseGate
+	 */
 	private LicenseGate $license_gate;
 
-	/** @var UpdateChannelRouter */
+	/**
+	 * Channel router used to determine which release channel to serve.
+	 *
+	 * @since 1.0.0
+	 * @var UpdateChannelRouter
+	 */
 	private UpdateChannelRouter $channels;
 
-	/** @var UpdateDelivery */
+	/**
+	 * Delivery instance used to mint signed download URLs.
+	 *
+	 * @since 1.0.0
+	 * @var UpdateDelivery
+	 */
 	private UpdateDelivery $delivery;
 
-	/** @var AdoptionRepository */
+	/**
+	 * Adoption repository used to record reported versions for telemetry.
+	 *
+	 * @since 1.0.0
+	 * @var AdoptionRepository
+	 */
 	private AdoptionRepository $adoption;
 
 	/**
@@ -127,6 +155,8 @@ class UpdateServer {
 	}
 
 	/**
+	 * Builds the "no update available" response payload.
+	 *
 	 * @since 1.0.0
 	 * @param string $current_version Version the caller reported.
 	 * @return array<string, mixed>

@@ -9,13 +9,16 @@
  * admin download-log view's status filter and KPI strip.
  *
  * @package PureCart\Tests
+ * @since   1.0.0
  */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Seed purecart_downloads / purecart_download_logs.
+ * Seeds rows into purecart_downloads and purecart_download_logs covering
+ * the key download-token lifecycle branches.
  *
+ * @since 1.0.0
  * @return array<string, int> token => download_id.
  */
 function purecart_seed_downloads(): array {

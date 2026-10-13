@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * WP role assignment/removal across subscription lifecycle transitions
  * (feature doc "Role Mapping").
@@ -6,9 +7,9 @@
  * @package PureCart\Subscriptions
  */
 
-declare( strict_types=1 );
-
 namespace PureCart\Subscriptions;
+
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
 
 use PureCart\Settings\OptionKeys;
 use PureCart\Settings\Settings;
@@ -16,16 +17,10 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Correction vs. RND-subscriptions.md's "Role Mapping" section (lines
- * 997-1008): that doc names per-product meta keys (`_purecart_sub_role_trial`,
- * etc.), but the project's own Configuration Options table — already
- * established as authoritative for every prior naming conflict in this
- * project — defines these as *global* WP options instead:
- * `purecart_sub_trial_role`, `purecart_sub_active_role`,
- * `purecart_sub_cancelled_role` (all default `''`, meaning "don't touch
- * roles"). Followed the options table here for the same reason as every
- * earlier reconciliation: one role scheme site-wide, not per-product UI that
- * was never built (Step 3 never added product fields for this).
+ * Role management uses global WP options (`purecart_sub_trial_role`,
+ * `purecart_sub_active_role`, `purecart_sub_cancelled_role`, all default `''`
+ * meaning "don't touch roles") rather than per-product meta keys — one role
+ * scheme site-wide rather than per-product UI.
  *
  * A customer can hold more than one subscription at once (to different
  * products). Since roles here are global, not per-product, removing a role
@@ -37,13 +32,28 @@ defined( 'ABSPATH' ) || exit;
  */
 class RoleManager {
 
-	/** Statuses that still justify holding the active role. */
+	/**
+	 * Statuses that still justify holding the active role.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const OPEN_STATUSES = array( 'active', 'trialing', 'past_due', 'paused', 'pending_cancel' );
 
-	/** Statuses that end a subscription's role claim entirely. */
+	/**
+	 * Statuses that end a subscription's role claim entirely.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const ENDED_STATUSES = array( 'suspended', 'cancelled', 'expired' );
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository for reading subscription rows by user.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
 	/**
@@ -80,8 +90,7 @@ class RoleManager {
 	}
 
 	/**
-	 * Every other transition (trial converts, suspend, cancel, expire, and —
-	 * since RenewalEngine now fires this hook too, Step 14 gap-fill —
+	 * Every other transition (trial converts, suspend, cancel, expire,
 	 * past_due) runs through here.
 	 *
 	 * @since 1.0.0
@@ -139,11 +148,11 @@ class RoleManager {
 		$this->add_role( $user_id, self::active_role() );
 	}
 
-	// -----------------------------------------------------------------------
-	// Role helpers
-	// -----------------------------------------------------------------------
+	/* Role helpers */
 
 	/**
+	 * Returns the configured WP role slug to assign during a trial, or empty string if unconfigured.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -152,6 +161,8 @@ class RoleManager {
 	}
 
 	/**
+	 * Returns the configured WP role slug to assign for active subscriptions, or empty string if unconfigured.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -160,6 +171,8 @@ class RoleManager {
 	}
 
 	/**
+	 * Returns the configured WP role slug to grant after cancellation, or empty string if unconfigured.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -168,6 +181,8 @@ class RoleManager {
 	}
 
 	/**
+	 * Adds a role to a WordPress user, silently skipping blank slugs or non-existent users.
+	 *
 	 * @since 1.0.0
 	 * @param int    $user_id WordPress user ID.
 	 * @param string $role    Role slug; a blank string (unconfigured) is a no-op.

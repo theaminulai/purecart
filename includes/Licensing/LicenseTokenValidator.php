@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Decodes + verifies an incoming access-token JWT for the /license/check Bearer path.
  *
  * @package PureCart\Licensing
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Licensing;
 

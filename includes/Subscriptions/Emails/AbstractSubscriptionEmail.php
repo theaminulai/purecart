@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Shared base for every subscription email — trigger wiring, placeholder
  * resolution, and rendering. Concrete emails only declare which hook(s) fire
@@ -7,11 +8,9 @@
  * @package PureCart\Subscriptions\Emails
  */
 
-declare( strict_types=1 );
-
 namespace PureCart\Subscriptions\Emails;
 
-use PureCart\Subscriptions\SubscriptionRepository;
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -29,14 +28,27 @@ defined( 'ABSPATH' ) || exit;
  */
 abstract class AbstractSubscriptionEmail extends \WC_Email {
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	protected SubscriptionRepository $subscriptions;
 
-	/** Subscription row currently being emailed, set by trigger(). */
+	/**
+	 * Subscription row currently being emailed, set by trigger().
+	 *
+	 * @since 1.0.0
+	 * @var object|null
+	 */
 	protected ?object $subscription = null;
 
 	/**
+	 * Sets up trigger hooks and customer-email flag on instantiation.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->subscriptions  = new SubscriptionRepository();
@@ -116,6 +128,8 @@ abstract class AbstractSubscriptionEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the email address of the customer associated with the current subscription.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -130,9 +144,10 @@ abstract class AbstractSubscriptionEmail extends \WC_Email {
 	}
 
 	/**
-	 * Populate the shared placeholder set (feature doc § 22's list, the
-	 * subset that's actually derivable from data this module has). Merged on
-	 * top of WC_Email's own base placeholders ({site_title}, {store_email}, ...).
+	 * Populates the shared placeholder set for this email.
+	 *
+	 * Sets subscription-specific placeholders and merges them on top of
+	 * WC_Email's own base placeholders ({site_title}, {store_email}, etc.).
 	 *
 	 * @since 1.0.0
 	 * @return void
@@ -172,6 +187,8 @@ abstract class AbstractSubscriptionEmail extends \WC_Email {
 	}
 
 	/**
+	 * Formats a monetary amount using WooCommerce's price formatting with the subscription currency.
+	 *
 	 * @since 1.0.0
 	 * @param float $amount Amount to format.
 	 * @return string
@@ -185,6 +202,8 @@ abstract class AbstractSubscriptionEmail extends \WC_Email {
 	}
 
 	/**
+	 * Formats a MySQL datetime string according to the site's configured date format.
+	 *
 	 * @since 1.0.0
 	 * @param string|null $date A MySQL datetime string, or null/empty.
 	 * @return string
@@ -198,6 +217,8 @@ abstract class AbstractSubscriptionEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the HTML version of the email, wrapped in WooCommerce header and footer.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -219,6 +240,8 @@ abstract class AbstractSubscriptionEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the plain-text version of the email with all HTML stripped.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -234,6 +257,8 @@ abstract class AbstractSubscriptionEmail extends \WC_Email {
 	}
 
 	/**
+	 * Returns the default additional content shown at the bottom of every subscription email.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

@@ -1,16 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Contract for pluggable subscription delivery-type handlers.
  *
- * subscription-final-dev-plan.md § 3 names this `Delivery_Handler_Interface`
- * (carried over un-translated from the `[nym-ARCH]` source doc) — renamed to
- * `DeliveryHandlerInterface` here to match this codebase's real PSR-4 PascalCase
- * convention (LicenseActivator, AccountProvisioner, ProductTypes, ...).
- *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 
@@ -28,6 +22,7 @@ interface DeliveryHandlerInterface {
 	/**
 	 * First charge succeeds, or trial starts.
 	 *
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row as an associative array.
 	 * @return void
 	 */
@@ -36,6 +31,7 @@ interface DeliveryHandlerInterface {
 	/**
 	 * Every successful renewal.
 	 *
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row as an associative array.
 	 * @return void
 	 */
@@ -44,6 +40,7 @@ interface DeliveryHandlerInterface {
 	/**
 	 * Subscription becomes suspended/cancelled/expired.
 	 *
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row as an associative array.
 	 * @return void
 	 */
@@ -52,6 +49,7 @@ interface DeliveryHandlerInterface {
 	/**
 	 * Type-specific data for the admin panel / REST response.
 	 *
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row as an associative array.
 	 * @return array<string, mixed>
 	 */
@@ -60,6 +58,7 @@ interface DeliveryHandlerInterface {
 	/**
 	 * Validate type-specific data before it's persisted.
 	 *
+	 * @since 1.0.0
 	 * @param array<string, mixed> $data Linked-entity data to validate.
 	 * @return bool|\WP_Error
 	 */

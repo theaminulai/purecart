@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Records and reports which release each activated site is running.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 
@@ -29,6 +28,8 @@ defined( 'ABSPATH' ) || exit;
 class AdoptionRepository {
 
 	/**
+	 * Returns the activations table name.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

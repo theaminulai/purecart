@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * All reads/writes for wp_purecart_subscription_revenue — the recognized-revenue
  * ledger (one row per completed billing period).
@@ -6,44 +7,50 @@
  * @package PureCart\Subscriptions
  */
 
-declare( strict_types=1 );
+namespace PureCart\Subscriptions\Repository;
 
-namespace PureCart\Subscriptions;
+use PureCart\Subscriptions\Payment\PaymentRepository;
+use PureCart\Subscriptions\Billing\BillingClock;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Gap found during Step 15: `wp_purecart_subscription_revenue` has been
- * created by Schema.php since Step 1 and documented there as "Powers MRR/ARR/
- * churn reporting independent of WooCommerce's own order reports" — but
- * nothing in the entire module ever wrote a row to it. Every step since has
- * recorded money only into `wp_purecart_subscription_payments`, which is a
- * per-charge-*attempt* ledger (successes, failures, and refunds alike, stamped
- * with the wall-clock time of the attempt).
- *
- * The two are genuinely different things and both are needed:
+ * `wp_purecart_subscription_payments` and `wp_purecart_subscription_revenue`
+ * are genuinely different ledgers and both are needed:
  *  - payments answers "what did we try to charge, and did it work?"
  *  - revenue answers "which service period does this money belong to?"
  *    (period_start/period_end), which is what any trend/cohort report needs —
  *    a renewal charged three days late still belongs to its own cycle, not to
  *    the day the retry happened.
  *
- * Populated here by listening to the same `purecart_subscription_renewed`
- * event every other reporting-adjacent class already uses, so no earlier step
- * needed modifying to start filling it.
+ * Populated by listening to `purecart_subscription_renewed`, the same event
+ * every other reporting-adjacent class already uses.
  *
  * @since 1.0.0
  */
 class RevenueRepository {
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var PaymentRepository */
+	/**
+	 * Payment repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var PaymentRepository
+	 */
 	private PaymentRepository $payments;
 
 	/**
+	 * Instantiates repository dependencies and registers the renewal-revenue hook.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->subscriptions = new SubscriptionRepository();
@@ -53,6 +60,8 @@ class RevenueRepository {
 	}
 
 	/**
+	 * Returns the fully-qualified revenue table name.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

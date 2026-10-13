@@ -1,13 +1,12 @@
 <?php
+declare( strict_types=1 );
 /**
  * WC_Product subclass for the "PureCart – Subscription" product type.
  *
  * @package PureCart\Subscriptions
  */
 
-declare( strict_types=1 );
-
-namespace PureCart\Subscriptions;
+namespace PureCart\Subscriptions\Product;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -32,6 +31,8 @@ defined( 'ABSPATH' ) || exit;
 class SubscriptionProductType extends \WC_Product_Simple {
 
 	/**
+	 * Returns the custom product type slug so WooCommerce type-detection works correctly.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

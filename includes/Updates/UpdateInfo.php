@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Builds the payload WordPress's "View details" modal expects.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 
@@ -13,8 +12,8 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * WordPress renders plugin and theme detail modals from the shape
- * `plugins_api()` / `themes_api()` return. `PureCartUpdater` (Step 9) hands
- * this straight back from its `plugins_api` filter, so the field names here
+ * `plugins_api()` / `themes_api()` return. `PureCartUpdater` hands this
+ * straight back from its `plugins_api` filter, so the field names here
  * are WordPress's, not ours.
  *
  * **This response is public and contains no download URL.** The doc lists
@@ -27,25 +26,57 @@ defined( 'ABSPATH' ) || exit;
  */
 class UpdateInfo {
 
-	/** Product meta overriding the displayed author name. */
+	/**
+	 * Product meta overriding the displayed author name.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const AUTHOR_META = '_purecart_update_author';
 
-	/** Product meta holding a homepage URL for the product. */
+	/**
+	 * Product meta holding a homepage URL for the product.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const HOMEPAGE_META = '_purecart_update_homepage';
 
-	/** Product meta holding a wide banner image ID for the modal header. */
+	/**
+	 * Product meta holding a wide banner image ID for the modal header.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const BANNER_META = '_purecart_update_banner_id';
 
-	/** @var PackageRepository */
+	/**
+	 * Package repository used to fetch the latest package for a product.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
-	/** @var ProductLocator */
+	/**
+	 * Product locator used to resolve slugs to product IDs.
+	 *
+	 * @since 1.0.0
+	 * @var ProductLocator
+	 */
 	private ProductLocator $locator;
 
-	/** @var ChangelogManager */
+	/**
+	 * Changelog manager used to render the combined changelog HTML.
+	 *
+	 * @since 1.0.0
+	 * @var ChangelogManager
+	 */
 	private ChangelogManager $changelog;
 
 	/**
+	 * Initialises the info builder with its required collaborators.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -194,6 +225,8 @@ class UpdateInfo {
 	}
 
 	/**
+	 * Returns the URL of the product's primary (featured) image.
+	 *
 	 * @since 1.0.0
 	 * @param mixed $product    WC_Product or null.
 	 * @param int   $product_id WooCommerce product ID.

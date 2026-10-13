@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Database store for wp_purecart_license_tokens.
  *
  * @package PureCart\Store
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Store;
 
@@ -22,9 +21,11 @@ defined( 'ABSPATH' ) || exit;
 class LicenseTokens extends PureCartStore {
 
 	/**
+	 * Returns the CREATE TABLE SQL for the license JWT tracking table.
+	 *
 	 * @since 1.0.0
-	 * @param string $charset
-	 * @return string
+	 * @param string $charset Character set collation string from $wpdb->get_charset_collate().
+	 * @return string CREATE TABLE SQL statement ready for dbDelta().
 	 */
 	protected function schema( string $charset ): string {
 		global $wpdb;

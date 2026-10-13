@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Generates and rotates SaaS account API keys.
  *
  * @package PureCart\SaaS
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\SaaS;
 
@@ -54,6 +53,13 @@ class ApiKeyManager {
 			return null;
 		}
 
+		/**
+		 * Fires after an account's API key has been rotated.
+		 *
+		 * @since 1.0.0
+		 * @param int    $account_id The purecart_saas_accounts row ID.
+		 * @param string $new_key    The newly generated API key.
+		 */
 		do_action( 'purecart_api_key_rotated', $account_id, $new_key );
 
 		return $new_key;

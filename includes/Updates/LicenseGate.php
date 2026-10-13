@@ -1,28 +1,24 @@
 <?php
+declare( strict_types=1 );
 /**
  * Decides whether a license key may receive updates for a product.
  *
  * @package PureCart\Updates
  */
 
-declare( strict_types=1 );
-
 namespace PureCart\Updates;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Correction vs. RND-auto-updates.md, which calls
- * `LicenseActivator::validate( license_key, domain )` — that method does not
- * exist. `LicenseActivator` only performs per-domain activate/deactivate for a
- * license the customer already holds, and the only other license entry point
- * (`RestApi::license_check()`) merely *reports* status; neither decides
- * entitlement. This class is that missing decision.
+ * Centralises update-entitlement checks. `LicenseActivator` only performs
+ * per-domain activate/deactivate for a license the customer already holds;
+ * neither it nor `RestApi::license_check()` decides entitlement. This class
+ * is that decision.
  *
- * Its single most important rule is one the doc never states: **the license
- * must belong to the product being updated**. Without that check, a $9 license
- * for any product in the catalogue would unlock update downloads for every
- * other product in it, which defeats the point of licensing the updates at all.
+ * Its single most important rule: **the license must belong to the product
+ * being updated**. Without that check, a license for any product would unlock
+ * update downloads for every other product, defeating the purpose of licensing.
  *
  * @since 1.0.0
  */
@@ -163,6 +159,8 @@ class LicenseGate {
 	}
 
 	/**
+	 * Checks whether a domain has an active activation row for a licence.
+	 *
 	 * @since 1.0.0
 	 * @param int    $license_id License row ID.
 	 * @param string $domain     Normalised domain.
@@ -215,6 +213,8 @@ class LicenseGate {
 	}
 
 	/**
+	 * Looks up a licence row by its key, returning null when none exists.
+	 *
 	 * @since 1.0.0
 	 * @param string $license_key License key.
 	 * @return object|null

@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * WC_Product subclass for the "PureCart – Plugin" product type.
  *
  * @package PureCart\Commerce
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Commerce;
 
@@ -32,6 +31,8 @@ defined( 'ABSPATH' ) || exit;
 class PluginProductType extends \WC_Product_Simple {
 
 	/**
+	 * Returns the WooCommerce product type slug for Plugin products.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Handles WooCommerce order events to provision licenses, downloads, and SaaS accounts.
  *
  * @package PureCart\Commerce
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Commerce;
 
@@ -19,6 +18,8 @@ use PureCart\Settings\Settings;
 
 /**
  * Hooks into WooCommerce order lifecycle.
+ *
+ * @since 1.0.0
  */
 class OrderHandler {
 
@@ -114,6 +115,12 @@ class OrderHandler {
 		// account updates zero rows, so no duplicate webhook fires.
 		$this->reactivate_by_order( $order_id );
 
+		/**
+		 * Fires after an order has been fully provisioned (licenses, downloads, and SaaS accounts issued).
+		 *
+		 * @since 1.0.0
+		 * @param int $order_id WooCommerce order ID.
+		 */
 		do_action( 'purecart_order_provisioned', $order_id );
 	}
 
@@ -126,6 +133,13 @@ class OrderHandler {
 	 */
 	public function on_order_refunded( int $order_id ): void {
 		$this->suspend_by_order( $order_id, 'refunded' );
+
+		/**
+		 * Fires after licenses and SaaS accounts have been suspended due to an order refund.
+		 *
+		 * @since 1.0.0
+		 * @param int $order_id WooCommerce order ID.
+		 */
 		do_action( 'purecart_order_refunded', $order_id );
 	}
 
@@ -138,6 +152,13 @@ class OrderHandler {
 	 */
 	public function on_order_cancelled( int $order_id ): void {
 		$this->suspend_by_order( $order_id, 'cancelled' );
+
+		/**
+		 * Fires after licenses and SaaS accounts have been suspended due to an order cancellation.
+		 *
+		 * @since 1.0.0
+		 * @param int $order_id WooCommerce order ID.
+		 */
 		do_action( 'purecart_order_cancelled', $order_id );
 	}
 
@@ -150,6 +171,13 @@ class OrderHandler {
 	 */
 	public function on_subscription_cancelled( mixed $subscription ): void {
 		$sub_id = is_object( $subscription ) ? $subscription->get_id() : (int) $subscription;
+
+		/**
+		 * Fires when a WooCommerce Subscription is cancelled.
+		 *
+		 * @since 1.0.0
+		 * @param int $sub_id Subscription ID.
+		 */
 		do_action( 'purecart_subscription_cancelled', $sub_id );
 	}
 
@@ -186,12 +214,25 @@ class OrderHandler {
 				array( '%d' )
 			);
 
+			/**
+			 * Fires after a single license has been marked as expired.
+			 *
+			 * @since 1.0.0
+			 * @param int $id License ID.
+			 */
 			do_action( 'purecart_license_expired', (int) $id );
 		}
 
 		if ( ! empty( $expired ) ) {
 			// Batch hook — RND-licensing.md documents this shape (array of ids)
 			// for the Subscriptions module and the JWT token revoker.
+
+			/**
+			 * Fires once per expiry run after all newly expired licenses have been marked.
+			 *
+			 * @since 1.0.0
+			 * @param int[] $expired Array of expired license IDs.
+			 */
 			do_action( 'purecart_licenses_expired', array_map( 'intval', $expired ) );
 		}
 	}
@@ -203,6 +244,11 @@ class OrderHandler {
 	 * @return void
 	 */
 	public function run_dunning(): void {
+		/**
+		 * Fires when the dunning/payment-retry process has been executed by Action Scheduler.
+		 *
+		 * @since 1.0.0
+		 */
 		do_action( 'purecart_dunning_processed' );
 	}
 
@@ -240,6 +286,13 @@ class OrderHandler {
 			$provisioner->suspend( $account_id );
 		}
 
+		/**
+		 * Fires after all licenses and SaaS accounts for an order have been suspended.
+		 *
+		 * @since 1.0.0
+		 * @param int    $order_id WooCommerce order ID.
+		 * @param string $reason   Reason for suspension — 'refunded' or 'cancelled'.
+		 */
 		do_action( 'purecart_order_suspended', $order_id, $reason );
 	}
 

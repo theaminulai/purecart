@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Resolves an update request's product slug to a WooCommerce product ID.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 
@@ -13,22 +12,37 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * An update request identifies its product by `slug` — the folder name the
- * plugin/theme installs into, stored as `_purecart_plugin_slug` product meta
- * (RND-auto-updates.md § "Product Meta Fields"). This class is the one place
- * that lookup happens, so UpdateServer, UpdateInfo and ChangelogManager can't
- * drift into three subtly different resolutions of the same slug.
+ * plugin/theme installs into, stored as `_purecart_plugin_slug` product meta.
+ * This class is the one place that lookup happens, so UpdateServer, UpdateInfo
+ * and ChangelogManager can't drift into three subtly different resolutions of
+ * the same slug.
  *
  * @since 1.0.0
  */
 class ProductLocator {
 
-	/** Product meta holding the update slug. */
+	/**
+	 * Product meta holding the update slug.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const SLUG_META = '_purecart_plugin_slug';
 
-	/** Product meta holding the product kind (wp-plugin, wp-theme, software, ...). */
+	/**
+	 * Product meta holding the product kind (wp-plugin, wp-theme, software, ...).
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	public const TYPE_META = '_purecart_product_type';
 
-	/** Product types that get WordPress-specific response fields. */
+	/**
+	 * Product types that get WordPress-specific response fields.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const WP_TYPES = array( 'wp-plugin', 'wp-theme' );
 
 	/**

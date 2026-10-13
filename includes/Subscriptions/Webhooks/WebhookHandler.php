@@ -1,28 +1,35 @@
 <?php
+declare( strict_types=1 );
 /**
  * Inbound Stripe/PayPal webhook idempotency + event mapping.
  *
  * @package PureCart\Subscriptions
  */
 
-declare( strict_types=1 );
+namespace PureCart\Subscriptions\Webhooks;
 
-namespace PureCart\Subscriptions;
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
+use PureCart\Subscriptions\Repository\SubscriptionLogRepository;
+use PureCart\Subscriptions\Payment\PaymentRepository;
+use PureCart\Subscriptions\Renewal\RenewalEngine;
+use PureCart\Subscriptions\DeliveryManager;
+use PureCart\Subscriptions\SubscriptionManager;
+use PureCart\Settings\OptionKeys;
+use PureCart\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Feature doc § 11 event tables (Stripe + PayPal), mapped onto this module's
- * existing lifecycle methods rather than reimplementing status transitions —
- * a webhook-reported failure fires the exact same `purecart_subscription_payment_failed`
+ * Gateway webhook events (Stripe + PayPal) mapped onto this module's existing
+ * lifecycle methods rather than reimplementing status transitions — a
+ * webhook-reported failure fires the exact same `purecart_subscription_payment_failed`
  * action a self-initiated renewal failure does, so DunningManager reacts
  * identically either way.
  *
  * Entry point is per-subscription (`POST /subscriptions/{id}/webhook-event`,
  * RestController) rather than one global receiver trying to parse an opaque
  * Stripe/PayPal payload and match it to a subscription — the subscription ID
- * is already in the URL. Matches subscription-final-dev-plan.md § 6's actual
- * documented endpoint. A single global multi-tenant webhook receiver that
+ * is already in the URL. A single global multi-tenant webhook receiver that
  * identifies the subscription from `gateway_subscription_id` is real
  * gateway-integration work with no gateway wired up yet to build it against.
  *
@@ -35,21 +42,44 @@ defined( 'ABSPATH' ) || exit;
  */
 class WebhookHandler {
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Subscription log repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
-	/** @var PaymentRepository */
+	/**
+	 * Payment repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var PaymentRepository
+	 */
 	private PaymentRepository $payments;
 
-	/** @var RenewalEngine */
+	/**
+	 * Renewal engine instance for recording external and failed renewals.
+	 *
+	 * @since 1.0.0
+	 * @var RenewalEngine
+	 */
 	private RenewalEngine $renewal_engine;
 
 	/**
+	 * Initializes repository dependencies and stores the shared renewal engine.
+	 *
 	 * @since 1.0.0
 	 * @param RenewalEngine $renewal_engine Shared instance from Module.
+	 * @return void
 	 */
 	public function __construct( RenewalEngine $renewal_engine ) {
 		$this->subscriptions  = new SubscriptionRepository();
@@ -68,7 +98,7 @@ class WebhookHandler {
 	 * @return bool
 	 */
 	public function verify_signature( string $raw_body, string $signature ): bool {
-		$secret = (string) get_option( 'purecart_webhook_secret', '' );
+		$secret = (string) Settings::get( OptionKeys::SUB_WEBHOOK_SECRET, '' );
 
 		if ( '' === $secret || '' === $signature ) {
 			return false;
@@ -122,6 +152,8 @@ class WebhookHandler {
 	}
 
 	/**
+	 * Returns true when the event ID has already been logged for this subscription.
+	 *
 	 * @since 1.0.0
 	 * @param int    $subscription_id Subscription row ID.
 	 * @param string $event_id        Gateway event ID.
@@ -198,6 +230,8 @@ class WebhookHandler {
 	}
 
 	/**
+	 * Marks a subscription as past-due following a gateway-reported payment failure.
+	 *
 	 * @since 1.0.0
 	 * @param int                  $subscription_id Subscription row ID.
 	 * @param array<string, mixed> $payload         Decoded payload.
@@ -229,13 +263,15 @@ class WebhookHandler {
 			)
 		);
 
-		// Reuses DunningManager's existing listener on this exact action (Step 7) —
-		// a webhook-reported failure schedules retries the same way a
+		// Reuses DunningManager's existing listener on this exact action — a
+		// webhook-reported failure schedules retries the same way a
 		// self-initiated one does, no separate dunning path needed.
 		do_action( 'purecart_subscription_payment_failed', $subscription_id, 0, $reason );
 	}
 
 	/**
+	 * Transitions a subscription to pending-reauth and fires the reauth-required action.
+	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
 	 * @return void
@@ -259,15 +295,16 @@ class WebhookHandler {
 
 		do_action( 'purecart_subscription_status_changed', $subscription_id, $subscription->status, 'pending_reauth' );
 
-		// Full SCA/3DS reauthorization (feature doc § 10) — the signed
-		// one-time payment link + "confirm your payment" email — isn't built
-		// anywhere in this module yet (no step covers it explicitly). The
-		// status transition alone is wired here so it's at least visible/
-		// filterable; a real reauth flow is future work, not silently faked.
+		// Full SCA/3DS reauthorization — the signed one-time payment link +
+		// "confirm your payment" email — isn't built yet. The status transition
+		// alone is wired here so it's at least visible/filterable; a real reauth
+		// flow is future work, not silently faked.
 		do_action( 'purecart_subscription_reauth_required', $subscription_id );
 	}
 
 	/**
+	 * Suspends a subscription and deactivates its delivery following a gateway-reported suspension.
+	 *
 	 * @since 1.0.0
 	 * @param int $subscription_id Subscription row ID.
 	 * @return void
@@ -302,9 +339,9 @@ class WebhookHandler {
 	}
 
 	/**
-	 * feature doc § 21 (Refund Policy) — records the refund against the
-	 * payment ledger. Deliberately does not auto-cancel the subscription:
-	 * the doc itself says a renewal-specific refund is "admin's discretion".
+	 * Records a gateway-reported refund against the payment ledger.
+	 * Deliberately does not auto-cancel the subscription: a renewal-specific
+	 * refund is left to the admin's discretion.
 	 *
 	 * @since 1.0.0
 	 * @param array<string, mixed> $payload Decoded payload.

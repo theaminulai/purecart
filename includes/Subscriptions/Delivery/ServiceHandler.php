@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Service/Retainer delivery type — deliverable tracking + optional invoice.
  *
  * @package PureCart\Subscriptions\Delivery
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions\Delivery;
 
@@ -14,24 +13,27 @@ use PureCart\Subscriptions\DeliveryHandlerInterface;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Stub for now (subscription-final-dev-plan.md § 9 Step 3) — satisfies the
- * registry contract so "Service / Retainer" is selectable as a delivery type
- * today. Real deliverable-due-date advancing and invoice dispatch are added
- * once the linked-entities repository (Step 4) exists.
+ * Stub implementation of the Service/Retainer delivery type.
+ *
+ * Satisfies the registry contract so "Service / Retainer" is selectable as a
+ * delivery type. Real deliverable-due-date tracking and invoice dispatch require
+ * linked-entity support to track the next deliverable date per subscription.
  *
  * @since 1.0.0
  */
 class ServiceHandler implements DeliveryHandlerInterface {
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return void
 	 */
 	public function activate( array $subscription ): void {
-		// TODO(Step 4+): seed next_deliverable_due from the product's deliverable template.
+		// TODO: seed next_deliverable_due from the product's deliverable template.
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return void
 	 */
@@ -40,6 +42,7 @@ class ServiceHandler implements DeliveryHandlerInterface {
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return void
 	 */
@@ -48,6 +51,7 @@ class ServiceHandler implements DeliveryHandlerInterface {
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $subscription Subscription row.
 	 * @return array<string, mixed>
 	 */
@@ -56,6 +60,7 @@ class ServiceHandler implements DeliveryHandlerInterface {
 	}
 
 	/**
+	 * @since 1.0.0
 	 * @param array<string, mixed> $data Linked-entity data to validate.
 	 * @return bool|\WP_Error
 	 */

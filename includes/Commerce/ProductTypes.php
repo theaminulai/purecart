@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Registers PureCart WooCommerce product types.
  *
@@ -7,19 +8,39 @@
  * @package PureCart\Commerce
  */
 
-declare( strict_types=1 );
-
 namespace PureCart\Commerce;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Registers three custom WooCommerce product types.
+ *
+ * @since 1.0.0
  */
 class ProductTypes {
 
+	/**
+	 * Product type slug for the "PureCart – Plugin" product type.
+	 *
+	 * @since 1.0.0
+	 * @var   string
+	 */
 	public const TYPE_PLUGIN = 'purecart_plugin';
+
+	/**
+	 * Product type slug for the "PureCart – SaaS" product type.
+	 *
+	 * @since 1.0.0
+	 * @var   string
+	 */
 	public const TYPE_SAAS   = 'purecart_saas';
+
+	/**
+	 * Product type slug for the "PureCart – Bundle" product type.
+	 *
+	 * @since 1.0.0
+	 * @var   string
+	 */
 	public const TYPE_BUNDLE = 'purecart_bundle';
 
 	/**

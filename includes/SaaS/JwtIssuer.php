@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Issues access + refresh JWTs for SaaS account login.
  *
  * @package PureCart\SaaS
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\SaaS;
 
@@ -117,6 +116,14 @@ class JwtIssuer {
 
 		$access = $this->build_access_token( $account );
 
+		/**
+		 * Fires after a new access token has been issued via a refresh token.
+		 *
+		 * @since 1.0.0
+		 * @param string $new_access_jti The JTI of the newly issued access token.
+		 * @param string $refresh_jti    The JTI of the refresh token used.
+		 * @param int    $account_id     The SaaS account ID.
+		 */
 		do_action( 'purecart_saas_jwt_token_refreshed', $access['jti'], $jti, $account->id );
 
 		return array(
@@ -166,6 +173,14 @@ class JwtIssuer {
 			array( '%d', '%s', '%s', '%s', '%s' )
 		);
 
+		/**
+		 * Fires after a new access and refresh token pair has been issued.
+		 *
+		 * @since 1.0.0
+		 * @param string $access_jti  The JTI of the newly issued access token.
+		 * @param string $refresh_jti The JTI of the newly issued refresh token.
+		 * @param int    $account_id  The SaaS account ID.
+		 */
 		do_action( 'purecart_saas_jwt_token_issued', $access['jti'], $refresh_jti, $account->id );
 
 		return array(

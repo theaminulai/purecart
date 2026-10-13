@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * WP-CLI commands for the SaaS Provisioning module.
  *
  * @package PureCart\CLI
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\CLI;
 
@@ -137,6 +136,14 @@ class SaasCommands {
 					continue;
 				}
 
+				/**
+				 * Fires after a SaaS account has been retroactively provisioned for a past order item.
+				 *
+				 * @since 1.0.0
+				 * @param int $account_id The newly provisioned SaaS account ID.
+				 * @param int $order_id   The WooCommerce order ID.
+				 * @param int $product_id The WooCommerce product ID.
+				 */
 				do_action( 'purecart_saas_past_order_provisioned', $account->id, $order_id, $product->get_id() );
 
 				++$provisioned;

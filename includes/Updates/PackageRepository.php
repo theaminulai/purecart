@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * All reads/writes for wp_purecart_product_versions.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 
@@ -23,14 +22,20 @@ defined( 'ABSPATH' ) || exit;
  */
 class PackageRepository {
 
-	/** Release channels, ordered from most to least stable. */
+	/**
+	 * Release channels, ordered from most to least stable.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	public const CHANNELS = array( 'stable', 'beta', 'nightly' );
 
 	/**
-	 * Which channels a subscriber to a given channel is allowed to see
-	 * (RND-auto-updates.md § "Version Channels"): a beta tester still receives
-	 * stable releases, a nightly tester receives everything.
+	 * Which channels a subscriber to a given channel is allowed to see:
+	 * a beta tester still receives stable releases; a nightly tester receives
+	 * everything.
 	 *
+	 * @since 1.0.0
 	 * @var array<string, string[]>
 	 */
 	private const CHANNEL_VISIBILITY = array(
@@ -42,6 +47,7 @@ class PackageRepository {
 	/**
 	 * Column => $wpdb format specifier for every settable column.
 	 *
+	 * @since 1.0.0
 	 * @var array<string, string>
 	 */
 	private const COLUMN_FORMATS = array(
@@ -65,6 +71,8 @@ class PackageRepository {
 	);
 
 	/**
+	 * Returns the package versions table name.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */
@@ -86,6 +94,8 @@ class PackageRepository {
 	}
 
 	/**
+	 * Returns the $wpdb format specifiers that correspond to a row's columns.
+	 *
 	 * @since 1.0.0
 	 * @param array<string, mixed> $row Column data.
 	 * @return string[]
@@ -97,10 +107,6 @@ class PackageRepository {
 		}
 		return $formats;
 	}
-
-	// -----------------------------------------------------------------------
-	// Writes
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Insert a package row.
@@ -197,11 +203,9 @@ class PackageRepository {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// Reads
-	// -----------------------------------------------------------------------
-
 	/**
+	 * Fetches a single package row by its primary key.
+	 *
 	 * @since 1.0.0
 	 * @param int $id Package row ID.
 	 * @return object|null

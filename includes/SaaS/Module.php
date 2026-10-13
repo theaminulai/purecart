@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * SaaS Provisioning module bootstrap.
  *
  * @package PureCart\SaaS
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\SaaS;
 
@@ -27,6 +26,8 @@ defined( 'ABSPATH' ) || exit;
 class Module {
 
 	/**
+	 * Registers WooCommerce email classes and the SaaS REST API routes.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {

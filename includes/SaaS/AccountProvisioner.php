@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Provisions SaaS accounts when WooCommerce orders are completed.
  *
  * @package PureCart\SaaS
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\SaaS;
 
@@ -16,6 +15,8 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Manages the purecart_saas_accounts table and webhook calls.
+ *
+ * @since 1.0.0
  */
 class AccountProvisioner {
 
@@ -134,6 +135,12 @@ class AccountProvisioner {
 		// WooCommerce's own custom-email documentation prescribes.
 		WC()->mailer();
 
+		/**
+		 * Fires when a new SaaS account has been provisioned.
+		 *
+		 * @since 1.0.0
+		 * @param object $account The newly created SaaS account row.
+		 */
 		do_action( 'purecart_saas_provisioned', $account );
 
 		return $account;

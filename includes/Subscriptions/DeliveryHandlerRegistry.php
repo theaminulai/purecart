@@ -1,15 +1,14 @@
 <?php
+declare( strict_types=1 );
 /**
  * Pluggable registry of subscription delivery-type handlers.
  *
- * subscription-final-dev-plan.md § 3. Lets any module (including third-party
- * code) register a new delivery type via a filter, instead of a schema change —
- * this is why `delivery_type` on wp_purecart_subscriptions is VARCHAR, not ENUM.
+ * Any module (including third-party code) can register a new delivery type via
+ * a filter rather than requiring a schema change — this is why `delivery_type`
+ * on wp_purecart_subscriptions is VARCHAR, not ENUM.
  *
  * @package PureCart\Subscriptions
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Subscriptions;
 
@@ -25,6 +24,7 @@ class DeliveryHandlerRegistry {
 	/**
 	 * Cached handler map, keyed by delivery_type.
 	 *
+	 * @since 1.0.0
 	 * @var array<string, DeliveryHandlerInterface>|null
 	 */
 	private static ?array $handlers = null;

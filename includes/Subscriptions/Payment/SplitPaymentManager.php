@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Split/installment payment model: N fixed installments instead of open-ended
  * recurring billing, with configurable access timing.
@@ -6,14 +7,17 @@
  * @package PureCart\Subscriptions
  */
 
-declare( strict_types=1 );
+namespace PureCart\Subscriptions\Payment;
 
-namespace PureCart\Subscriptions;
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
+use PureCart\Subscriptions\Repository\SubscriptionLogRepository;
+use PureCart\Subscriptions\Billing\BillingClock;
+use PureCart\Subscriptions\DeliveryManager;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * RND-subscriptions.md "Split Payment / Installment Model":
+ * Split Payment / Installment Model:
  *
  *   Product: "PureCart Pro" — $300 total, paid as 3 x $100/month
  *     _purecart_payment_type  = 'split'
@@ -27,9 +31,7 @@ defined( 'ABSPATH' ) || exit;
  *   On each renewal: renewal_count++; once renewal_count >= max_payments,
  *   status -> 'completed', no more renewals.
  *
- * Correction vs. the doc: it describes an interim status of 'pending_payment'
- * for `after_full_payment` before the final installment — that value isn't in
- * the reconciled schema's status ENUM (subscription-final-dev-plan.md § 2).
+ * An interim 'pending_payment' status for `after_full_payment` is not used.
  * Status describes *billing* state, which is unaffected either way (it still
  * bills as 'active'); "access withheld" is instead just "DeliveryManager
  * never got called yet", achieved via the purecart_should_activate_delivery
@@ -39,13 +41,25 @@ defined( 'ABSPATH' ) || exit;
  */
 class SplitPaymentManager {
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository for reading and updating subscription rows.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Log repository for recording split-payment completion events.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
 	/**
+	 * Registers hooks for activation gating, split-payment configuration, and completion checks.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -114,8 +128,7 @@ class SplitPaymentManager {
 			'payment_type'  => 'split',
 			'max_payments'  => max( 1, (int) $product->get_meta( '_purecart_max_payments' ) ),
 			'access_timing' => $access_timing,
-			// RND: "renewal_count = 1 (first installment paid with order)" —
-			// the initial order itself is installment #1, not a renewal yet to come.
+			// The initial order itself is installment #1, not a renewal yet to come.
 			'renewal_count' => max( 1, (int) $subscription->renewal_count ),
 		);
 
@@ -197,6 +210,8 @@ class SplitPaymentManager {
 	}
 
 	/**
+	 * Returns $value if it is in $allowed, or $default otherwise.
+	 *
 	 * @since 1.0.0
 	 * @param string   $value   Candidate value.
 	 * @param string[] $allowed Allowed values.

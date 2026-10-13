@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Calendar-date renewal sync: aligns a subscription's billing date to a fixed
  * day-of-month (feature doc "Renewal Sync"), with a correctly prorated first
@@ -7,9 +8,9 @@
  * @package PureCart\Subscriptions
  */
 
-declare( strict_types=1 );
+namespace PureCart\Subscriptions\Billing;
 
-namespace PureCart\Subscriptions;
+use PureCart\Subscriptions\Product\SubscriptionProduct;
 
 use PureCart\Settings\OptionKeys;
 use PureCart\Settings\Settings;
@@ -40,10 +41,17 @@ defined( 'ABSPATH' ) || exit;
  */
 class RenewalSync {
 
-	/** Reference cycle length used for proration — matches the feature doc's own worked example (16/30 days). */
+	/**
+	 * Reference cycle length used for proration — matches the feature doc's own worked example (16/30 days).
+	 *
+	 * @since 1.0.0
+	 * @var int
+	 */
 	private const REFERENCE_CYCLE_DAYS = 30;
 
 	/**
+	 * Registers the filter that overrides the initial next-payment date when renewal sync is active.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
@@ -51,6 +59,8 @@ class RenewalSync {
 	}
 
 	/**
+	 * Returns whether calendar-date renewal sync is currently enabled site-wide.
+	 *
 	 * @since 1.0.0
 	 * @return bool
 	 */
@@ -59,6 +69,8 @@ class RenewalSync {
 	}
 
 	/**
+	 * Replaces the initial next-payment date with the next calendar sync date when renewal sync applies.
+	 *
 	 * @since 1.0.0
 	 * @param string $default_next_payment_at Already-computed next_payment_at (trial end, or now + one interval).
 	 * @param int    $product_id              Subscription product ID.
@@ -74,6 +86,8 @@ class RenewalSync {
 	}
 
 	/**
+	 * Returns whether renewal sync applies to the given subscription product (monthly, no trial).
+	 *
 	 * @since 1.0.0
 	 * @param int $product_id Subscription product ID.
 	 * @return bool

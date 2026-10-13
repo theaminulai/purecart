@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * WC_Product subclass for the "PureCart – SaaS" product type.
  *
  * @package PureCart\Commerce
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Commerce;
 
@@ -24,6 +23,8 @@ defined( 'ABSPATH' ) || exit;
 class SaasProductType extends \WC_Product_Simple {
 
 	/**
+	 * Returns the WooCommerce product type slug for SaaS products.
+	 *
 	 * @since 1.0.0
 	 * @return string
 	 */

@@ -1,4 +1,5 @@
 <?php
+declare( strict_types=1 );
 /**
  * Subscription analytics: MRR/ARR/ARPU, user & revenue churn, trial
  * conversion, churn-band distribution, LTV, and CSV export.
@@ -6,9 +7,13 @@
  * @package PureCart\Subscriptions
  */
 
-declare( strict_types=1 );
+namespace PureCart\Subscriptions\Reports;
 
-namespace PureCart\Subscriptions;
+use PureCart\Subscriptions\Repository\SubscriptionRepository;
+use PureCart\Subscriptions\Repository\SubscriptionLogRepository;
+use PureCart\Subscriptions\Repository\RevenueRepository;
+use PureCart\Subscriptions\Billing\BillingClock;
+use PureCart\Subscriptions\ChurnScorer;
 
 use PureCart\Settings\OptionKeys;
 use PureCart\Settings\Settings;
@@ -16,7 +21,7 @@ use PureCart\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Implements the feature doc § 8 "Core analytics formulas" table verbatim:
+ * Core analytics formulas:
  *
  *   MRR                 sum of monthly-equivalent recurring revenue, active subs
  *   ARR                 MRR x 12
@@ -46,30 +51,49 @@ defined( 'ABSPATH' ) || exit;
  */
 class SubscriptionReport {
 
-	/** Statuses whose recurring revenue counts toward MRR. */
+	/**
+	 * Statuses whose recurring revenue counts toward MRR.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const MRR_STATUSES = array( 'active' );
 
-	/** @var SubscriptionRepository */
+	/**
+	 * Subscription repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionRepository
+	 */
 	private SubscriptionRepository $subscriptions;
 
-	/** @var SubscriptionLogRepository */
+	/**
+	 * Subscription log repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var SubscriptionLogRepository
+	 */
 	private SubscriptionLogRepository $logs;
 
-	/** @var RevenueRepository */
+	/**
+	 * Revenue repository instance.
+	 *
+	 * @since 1.0.0
+	 * @var RevenueRepository
+	 */
 	private RevenueRepository $revenue;
 
 	/**
+	 * Instantiates the repository dependencies used throughout this class.
+	 *
 	 * @since 1.0.0
+	 * @return void
 	 */
 	public function __construct() {
 		$this->subscriptions = new SubscriptionRepository();
 		$this->logs          = new SubscriptionLogRepository();
 		$this->revenue       = new RevenueRepository();
 	}
-
-	// -----------------------------------------------------------------------
-	// Summary
-	// -----------------------------------------------------------------------
 
 	/**
 	 * The full dashboard summary.
@@ -132,17 +156,13 @@ class SubscriptionReport {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// Individual metrics
-	// -----------------------------------------------------------------------
-
 	/**
 	 * Monthly Recurring Revenue: every active subscription's recurring amount
 	 * normalized to a monthly rate.
 	 *
-	 * Uses ChurnScorer's normalization (made shared in Step 15) so MRR and the
-	 * per-subscription LTV figure can never disagree about what "$X every 3
-	 * months" is worth per month.
+	 * Uses ChurnScorer's normalization so MRR and the per-subscription LTV
+	 * figure can never disagree about what "$X every 3 months" is worth
+	 * per month.
 	 *
 	 * @since 1.0.0
 	 * @return float
@@ -254,11 +274,10 @@ class SubscriptionReport {
 	 * Trial conversion rate: of the trials that started in the period, how
 	 * many went on to convert to a paid cycle.
 	 *
-	 * Conversion is counted from the log's `trialing -> active` transition,
-	 * which RenewalEngine has fired since Step 14's gap-fix. Trials started
-	 * before that fix shipped have no such log row and will read as
-	 * unconverted — worth knowing when looking at historical numbers on a
-	 * site that ran an earlier build.
+	 * Conversion is counted from the log's `trialing -> active` transition
+	 * fired by RenewalEngine. Trials started before that event was wired
+	 * have no such log row and will read as unconverted — worth knowing
+	 * when looking at historical numbers on a site that ran an earlier build.
 	 *
 	 * @since 1.0.0
 	 * @param string $period_start Inclusive start (MySQL datetime).
@@ -391,16 +410,14 @@ class SubscriptionReport {
 	}
 
 	/**
+	 * Returns the average customer lifetime in months, from site settings.
+	 *
 	 * @since 1.0.0
 	 * @return int
 	 */
 	private function avg_lifetime_months(): int {
 		return max( 1, (int) Settings::get( OptionKeys::SUB_AVG_LIFETIME_MONTHS, 24 ) );
 	}
-
-	// -----------------------------------------------------------------------
-	// CSV export
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Column headers for the subscriptions CSV export.

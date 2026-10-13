@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Handles domain activation and deactivation for licenses.
  *
  * @package PureCart\Licensing
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Licensing;
 
@@ -13,6 +12,8 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Manages the purecart_license_activations table.
+ *
+ * @since 1.0.0
  */
 class LicenseActivator {
 
@@ -153,6 +154,14 @@ class LicenseActivator {
 			);
 		}
 
+		/**
+		 * Fires after a license has been successfully activated on a domain.
+		 *
+		 * @since 1.0.0
+		 * @param int    $license_id  License row ID.
+		 * @param string $domain      The activated domain.
+		 * @param string $environment The deployment environment ('production', 'staging', or 'local').
+		 */
 		do_action( 'purecart_license_activated', $license->id, $domain, $environment );
 
 		return array(
@@ -224,6 +233,13 @@ class LicenseActivator {
 				);
 			}
 
+			/**
+			 * Fires after a license activation has been removed from a domain.
+			 *
+			 * @since 1.0.0
+			 * @param int    $license_id License row ID.
+			 * @param string $domain     The domain that was deactivated.
+			 */
 			do_action( 'purecart_license_deactivated', $license->id, $domain );
 		}
 
@@ -233,9 +249,6 @@ class LicenseActivator {
 		);
 	}
 
-	// -----------------------------------------------------------------------
-	// Admin dashboard support
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Every activation record for one license, newest first — the Activation
@@ -291,6 +304,12 @@ class LicenseActivator {
 		);
 
 		if ( false !== $updated ) {
+			/**
+			 * Fires after all activations for a license have been cleared and its counter reset to zero.
+			 *
+			 * @since 1.0.0
+			 * @param int $license_id License row ID.
+			 */
 			do_action( 'purecart_license_activations_reset', $license_id );
 		}
 

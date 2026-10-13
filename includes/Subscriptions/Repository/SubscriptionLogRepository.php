@@ -1,13 +1,12 @@
 <?php
+declare( strict_types=1 );
 /**
  * All reads/writes for wp_purecart_subscription_logs.
  *
  * @package PureCart\Subscriptions
  */
 
-declare( strict_types=1 );
-
-namespace PureCart\Subscriptions;
+namespace PureCart\Subscriptions\Repository;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -20,7 +19,12 @@ defined( 'ABSPATH' ) || exit;
  */
 class SubscriptionLogRepository {
 
-	/** Valid values for the actor_type column. */
+	/**
+	 * Valid values for the actor_type column.
+	 *
+	 * @since 1.0.0
+	 * @var string[]
+	 */
 	private const ACTOR_TYPES = array( 'system', 'customer', 'admin', 'webhook' );
 
 	/**
@@ -108,10 +112,6 @@ class SubscriptionLogRepository {
 			)
 		) ?: array();
 	}
-
-	// -----------------------------------------------------------------------
-	// Reporting aggregates (Step 15)
-	// -----------------------------------------------------------------------
 
 	/**
 	 * How many subscriptions transitioned *into* a given status within a date

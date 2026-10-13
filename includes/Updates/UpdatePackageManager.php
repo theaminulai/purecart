@@ -1,11 +1,10 @@
 <?php
+declare( strict_types=1 );
 /**
  * Upload, store, version and manage update package files.
  *
  * @package PureCart\Updates
  */
-
-declare( strict_types=1 );
 
 namespace PureCart\Updates;
 
@@ -31,8 +30,9 @@ class UpdatePackageManager {
 	 * An allow-list, not a deny-list: a deny-list of dangerous extensions is
 	 * impossible to keep complete (`.php5`, `.phtml`, `.pht`, handler
 	 * mappings that vary per host), whereas this enumerates exactly the file
-	 * kinds RND-auto-updates.md § "Supported Product Types" describes.
+	 * kinds the Updates module supports (plugin zips, themes, installers, etc.).
 	 *
+	 * @since 1.0.0
 	 * @var string[]
 	 */
 	private const ALLOWED_EXTENSIONS = array(
@@ -41,22 +41,30 @@ class UpdatePackageManager {
 		'apk', 'ipa', 'jar', 'bin', 'run',
 	);
 
-	/** Directory inside wp-content/uploads where packages are stored. */
+	/**
+	 * Directory inside wp-content/uploads where packages are stored.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
 	private const STORAGE_DIR = 'purecart-packages';
 
-	/** @var PackageRepository */
+	/**
+	 * Package repository used for all DB reads and writes.
+	 *
+	 * @since 1.0.0
+	 * @var PackageRepository
+	 */
 	private PackageRepository $packages;
 
 	/**
+	 * Initialises the package manager with a package repository.
+	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
 		$this->packages = new PackageRepository();
 	}
-
-	// -----------------------------------------------------------------------
-	// Storage
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Absolute path to the package storage directory, created and protected
@@ -136,10 +144,6 @@ class UpdatePackageManager {
 			$extension
 		);
 	}
-
-	// -----------------------------------------------------------------------
-	// Adding packages
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Register a new package from a file already on the server.
@@ -269,7 +273,7 @@ class UpdatePackageManager {
 		/**
 		 * Fires after a new package version is published.
 		 *
-		 * UpdateNotifier (Step 8) listens here to email active license holders.
+		 * UpdateNotifier listens here to email active license holders.
 		 *
 		 * @since 1.0.0
 		 * @param int    $package_id Package row ID.
@@ -343,10 +347,6 @@ class UpdatePackageManager {
 	}
 
 
-	// -----------------------------------------------------------------------
-	// Lifecycle
-	// -----------------------------------------------------------------------
-
 	/**
 	 * Withdraw or restore a version without deleting it.
 	 *
@@ -419,10 +419,6 @@ class UpdatePackageManager {
 
 		return 0 === strpos( $real_path, $real_storage );
 	}
-
-	// -----------------------------------------------------------------------
-	// Version detection
-	// -----------------------------------------------------------------------
 
 	/**
 	 * Read the version out of a WordPress plugin/theme ZIP.
