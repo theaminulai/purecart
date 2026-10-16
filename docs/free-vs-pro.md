@@ -26,7 +26,7 @@
 | Secure Downloads | Core | Advanced | Full |
 | License Key Management | — | ✅ | ✅ |
 | Plugin & Software Auto-Updates | — | ✅ | ✅ |
-| Subscription Tracking | — | ✅ | ✅ |
+| Subscriptions | Core | Advanced | Full |
 | SaaS Provisioning | — | — | ✅ |
 | Security & Anti-Piracy | Basic | Standard | Full |
 | Git Integration (GitHub/Bitbucket) | — | — | ✅ |
@@ -136,23 +136,63 @@
 
 ---
 
-### Subscription Tracking
+### Subscriptions
+
+> **Principle:** the Free tier must let a merchant sell a subscription and get it renewed automatically, end to end. Paid tiers add flexibility (plan changes, pause/skip, installments), retention, and revenue intelligence — never the ability to bill.
 
 | Feature | Free | Personal | Enterprise |
 |---|:---:|:---:|:---:|
-| Subscription state tracking linked to license expiry | — | ✅ | ✅ |
-| 2-phase grace period: active grace → on-hold → cancellation | — | ✅ | ✅ |
-| Failed payment dunning email sequence | — | ✅ | ✅ |
-| Skip next renewal (customer self-service in My Account) | — | ✅ | ✅ |
-| Pause / vacation mode (configurable max duration + cooldown) | — | ✅ | ✅ |
-| Plan upgrade / downgrade with 3 proration methods | — | ✅ | ✅ |
-| Renewal sync (align all renewals to a shared calendar date) | — | ✅ | ✅ |
+| **Selling** | | | |
+| Subscription product type (simple products) | ✅ | ✅ | ✅ |
+| Billing intervals: day / week / month / year, every N periods | ✅ | ✅ | ✅ |
+| Free trial + one-time sign-up fee | ✅ | ✅ | ✅ |
+| Fixed-length subscriptions (end after N cycles) | ✅ | ✅ | ✅ |
+| Mixed carts (subscription + one-off products) | ✅ | ✅ | ✅ |
+| Classic + Block checkout; account required when cart has a subscription | ✅ | ✅ | ✅ |
+| Variable subscription products (per-variation price / interval / trial) | — | ✅ | ✅ |
+| Subscribe & Save option on regular products | — | ✅ | ✅ |
+| Split payments / installment plans | — | ✅ | ✅ |
 | Stepped renewal pricing (different price after N cycles) | — | ✅ | ✅ |
-| One-trial-per-customer enforcement (prevents trial abuse) | — | ✅ | ✅ |
-| License behavior on renewal: extend expiry OR issue new key | — | ✅ | ✅ |
+| Renewal sync (align renewals to a shared calendar date) | — | ✅ | ✅ |
+| One-trial-per-customer enforcement | — | ✅ | ✅ |
+| **Billing** | | | |
+| Automatic renewals with saved card — Stripe, WooPayments, PayPal Payments | ✅ | ✅ | ✅ |
+| Manual renewal (invoice email + pay link) for any other gateway | ✅ | ✅ | ✅ |
+| Failed-payment retry — fixed schedule (3 attempts) | ✅ | ✅ | ✅ |
+| Configurable retry schedule + 2-phase grace period (active grace → on-hold) | — | ✅ | ✅ |
+| Card-expiring-soon email + one-click card-update link | — | ✅ | ✅ |
+| Early renewal | — | ✅ | ✅ |
+| Subscription coupons (recurring discounts) | — | ✅ | ✅ |
+| **Customer self-service (My Account)** | | | |
+| View subscriptions, next payment date, renewal history | ✅ | ✅ | ✅ |
+| Cancel subscription (immediately or at period end) | ✅ | ✅ | ✅ |
+| Update payment method | ✅ | ✅ | ✅ |
+| Resubscribe after cancellation / expiry | ✅ | ✅ | ✅ |
+| Pause / vacation mode (max duration + cooldown) | — | ✅ | ✅ |
+| Skip next renewal | — | ✅ | ✅ |
+| Plan upgrade / downgrade with 3 proration methods | — | ✅ | ✅ |
+| **Emails** | | | |
+| Core: created, renewal successful, payment failed, cancelled, renewal reminder | ✅ | ✅ | ✅ |
+| Full set: trial started/ending/converted, overdue, suspend notices, skip/pause/plan-change confirmations, expiration | — | ✅ | ✅ |
+| **Admin** | | | |
+| Subscriptions list + detail view, cancel, manual renew, activity log | ✅ | ✅ | ✅ |
+| Subscription Health Check (missing tokens, stalled renewals) | ✅ | ✅ | ✅ |
+| Import from WooCommerce Subscriptions | ✅ | ✅ | ✅ |
+| Manual admin subscription creation | — | ✅ | ✅ |
+| CSV / JSON export | — | ✅ | ✅ |
+| Import from YITH, ArraySubs, Milo, Sublium, Recurio, WP Swings | — | ✅ | ✅ |
+| **Integrations with other PureCart modules** | | | |
+| Downloads access follows subscription status | ✅ | ✅ | ✅ |
+| License expiry follows subscription (extend expiry OR issue new key) | — | ✅ | ✅ |
+| SaaS account suspend / reactivate follows subscription | — | — | ✅ |
 | WP role assignment based on subscription status | — | ✅ | ✅ |
-| Retention flow on cancellation (offer discount / pause before cancel) | — | — | ✅ |
+| **Retention & intelligence** | | | |
+| Retention flow on cancellation (discount / pause / downgrade offer) | — | — | ✅ |
 | Retention analytics (churn reasons, offer acceptance rate) | — | — | ✅ |
+| Churn risk scoring per subscription | — | — | ✅ |
+| Win-back and onboarding email sequences | — | — | ✅ |
+| Content gating / drip by subscription; member-only discounts | — | — | ✅ |
+| Outbound subscription webhooks | — | — | ✅ |
 
 ---
 
@@ -349,6 +389,18 @@
 
 Secure file delivery solves a complete problem for a large audience — ebook sellers, template creators, font vendors, and any merchant selling files who want better than WooCommerce's native download links. Giving this away free creates a massive top-of-funnel and positions PureCart against EDD's free tier (which also includes download protection). The Free tier must be usable end-to-end, not just a teaser.
 
+### Why core Subscriptions are Free
+
+A subscription module that is entirely paid can't be tried, and every free competitor installed for research — Milo Subscriptions, ArraySubs, Sublium, Subscriptions for WooCommerce (WP Swings), YITH Subscription free — ships working recurring billing at $0. If PureCart Free has no subscriptions, a merchant evaluating it on WordPress.org has no reason to stay.
+
+The line is drawn at **"can bill" vs "can optimise"**:
+
+- **Free** = everything needed to sell one subscription product and have it renew automatically: product type, trial, sign-up fee, saved-card renewals, a fixed retry schedule, a basic customer portal (view / cancel / update card / resubscribe), core emails, and the admin list. Migration from WooCommerce Subscriptions is also free, because it is the single biggest switching barrier.
+- **Personal** = flexibility a growing store asks for next: variable plans, plan changes with proration, pause and skip, installments, Subscribe & Save, the full email set, configurable dunning, and linking subscriptions to licenses.
+- **Enterprise** = revenue optimisation: retention flows, churn scoring, win-back, content gating, webhooks, SaaS lifecycle.
+
+**WordPress.org constraint:** the WP.org guidelines don't allow a hosted plugin to contain locked or trial-limited features. The Free build must contain only Free code; Personal/Enterprise features ship in a separate Pro plugin that hooks into Free through filters and actions (`purecart_renewal_gateways`, `purecart_subscription_portal_actions`, `purecart_subscription_emails`, etc.). The current single-plugin codebase needs to be split along the lines in this table before WP.org submission.
+
 ### Why Licensing is Personal (not Free)
 
 Software licensing replaces tools priced at $149–$399/yr (EDD Software Licensing $199/yr, AffiliateWP $149/yr, DLM Pro). At $99/yr, Personal delivers compelling value compared to those alternatives for the single-product plugin developer. The JWT layer (offline validation, no network call on each boot) is an additional technical differentiator that justifies the upgrade. Keeping licensing out of Free maintains a clear value distinction while free-tier users still get industry-leading download security.
@@ -437,7 +489,7 @@ An Enterprise merchant replacing EDD All Access ($999/yr) + AffiliateWP ($149/yr
 | Phase | Features | Plan | Target |
 |---|---|---|---|
 | Phase 1 (MVP) | Core secure downloads, licensing + JWT layer, WP plugin/software updates, My Account (Licenses, Downloads, Updates tabs), 5 transactional emails | Free + Personal | v1.0 |
-| Phase 2 | Subscription tracking, SaaS provisioning, cloud storage (S3/R2), video protection, Electron/Squirrel feed, RS256 JWT, extended My Account (Product detail page, API Keys tab) | Personal + Enterprise | v1.1 |
+| Phase 2 | Core subscriptions (Free), advanced subscriptions (Personal), SaaS provisioning, cloud storage (S3/R2), video protection, Electron/Squirrel feed, RS256 JWT, extended My Account (Product detail page, API Keys tab) | Free + Personal + Enterprise | v1.1 |
 | Phase 3 | Geo-blocking, abuse detection, rate limiting, PDF certificate, QR code, concurrent download detection | Enterprise | v1.2 |
 | Phase 4 | GitHub/Bitbucket sync, auto-changelog, rollback, Minisign/GPG signing, delta updates, Composer endpoint | Enterprise | v1.3 |
 | Phase 5 | Abandoned cart recovery, affiliate program, post-purchase funnels | Personal + Enterprise | v1.4 |
